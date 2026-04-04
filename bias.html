@@ -439,7 +439,7 @@ async function loadCalendar() {
   var calEl = document.getElementById('calBody');
   if (!calEl) return;
   try {
-    var res = await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json?v='+Date.now());
+    var res = await fetch('/api/calendar');
     if (!res.ok) throw new Error('Failed');
     var data = await res.json();
     var todayStr = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
