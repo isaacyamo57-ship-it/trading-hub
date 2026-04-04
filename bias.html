@@ -410,6 +410,36 @@ function renderResults(a, articleCount) {
 
   document.getElementById('results').innerHTML =
     '<div class="ts-bar"><div><div class="ts-date">'+dateStr+' · '+timeStr+'</div><div class="ts-count">✓ '+articleCount+' live articles analysed</div></div><button class="reanalyse" onclick="runAnalysis()">↻ Re-analyse</button></div>'+
+
+    // ── Pre-session score + best session ──
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">'+
+      '<div style="background:#0d0d0f;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:20px;">'+
+        '<div style="font-family:DM Mono,monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:#635f5a;margin-bottom:12px;">Pre-Session Score</div>'+
+        '<div style="font-family:Unbounded,sans-serif;font-size:48px;font-weight:700;color:'+scoreColor+';line-height:1;margin-bottom:8px;">'+score+'<span style="font-size:20px;color:#635f5a;">/10</span></div>'+
+        '<div style="display:flex;gap:4px;margin-bottom:8px;">'+scoreDots+'</div>'+
+        '<div style="font-family:DM Mono,monospace;font-size:10px;color:#b0aca6;">'+scoreLabel+'</div>'+
+      '</div>'+
+      '<div style="background:#0d0d0f;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:20px;">'+
+        '<div style="font-family:DM Mono,monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:#635f5a;margin-bottom:12px;">Best Session Today</div>'+
+        '<div style="font-family:Unbounded,sans-serif;font-size:22px;font-weight:700;color:#c9a84c;line-height:1;margin-bottom:8px;">'+bestSess+'</div>'+
+        '<div style="font-family:DM Mono,monospace;font-size:10px;color:#b0aca6;line-height:1.5;">'+bestReason+'</div>'+
+      '</div>'+
+    '</div>'+
+
+    // ── News sentiment bar ──
+    '<div style="background:#0d0d0f;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px 20px;margin-bottom:16px;">'+
+      '<div style="font-family:DM Mono,monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:#635f5a;margin-bottom:12px;">News Sentiment — '+articleCount+' Articles</div>'+
+      '<div style="display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:8px;">'+
+        '<div style="width:'+bullPct+'%;background:#4daa7d;transition:width 1s ease;"></div>'+
+        '<div style="width:'+neutPct+'%;background:#5d8fc4;transition:width 1s ease;"></div>'+
+        '<div style="width:'+bearPct+'%;background:#bf6060;transition:width 1s ease;"></div>'+
+      '</div>'+
+      '<div style="display:flex;gap:20px;">'+
+        '<div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:2px;background:#4daa7d;"></div><span style="font-family:DM Mono,monospace;font-size:9px;color:#4daa7d;">'+bullPct+'% Bullish</span></div>'+
+        '<div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:2px;background:#5d8fc4;"></div><span style="font-family:DM Mono,monospace;font-size:9px;color:#5d8fc4;">'+neutPct+'% Neutral</span></div>'+
+        '<div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:2px;background:#bf6060;"></div><span style="font-family:DM Mono,monospace;font-size:9px;color:#bf6060;">'+bearPct+'% Bearish</span></div>'+
+      '</div>'+
+    '</div>'+
     '<div class="verdict-hero">'+
       '<div class="vh-cell"><div class="vh-lbl">Overall NQ Bias</div><div class="vh-big '+overall+'">'+be(a.overall_bias)+' '+bl(a.overall_bias)+'</div><div class="vh-sub">'+a.summary+'</div><div class="vh-articles">⚡ '+articleCount+' live articles</div></div>'+
       '<div class="vh-cell"><div class="vh-lbl">AI Confidence</div><div class="vh-conf">'+conf+'%</div><div class="conf-bar-wrap"><div class="conf-bar" id="confBar"></div></div><div class="vh-sub" style="margin-top:8px;">Based on news sentiment, macro alignment and HTF structure</div></div>'+
@@ -426,6 +456,17 @@ function renderResults(a, articleCount) {
       '<div class="info-card"><div class="ic-lbl">Macro Environment</div>'+macroHTML+'</div>'+
     '</div>'+
     '<div class="sec-lbl">Trade Plan</div><div class="plan-card">'+planHTML+'</div>'+
+    '<div class="sec-lbl">Risk Meters & Correlations</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">'+
+      '<div class="info-card"><div class="ic-lbl">Risk Assessment</div>'+riskHTML+'</div>'+
+      '<div class="info-card"><div class="ic-lbl">NQ Correlations</div>'+corrHTML+'</div>'+
+    '</div>'+
+    '<div class="sec-lbl">Bias Comparison</div>'+
+    '<div style="background:#0d0d0f;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px 20px;margin-bottom:16px;">'+
+      '<div class="ic-row"><span class="ic-key">Current</span><span style="font-family:Unbounded,sans-serif;font-size:13px;font-weight:700;color:'+(overall==='bull'?'#4daa7d':overall==='bear'?'#bf6060':'#5d8fc4')+';">'+bl(a.overall_bias)+'</span></div>'+
+      prevHTML+
+      flipWarning+
+    '</div>'+
     '<div class="sec-lbl">Analysis Log</div><div id="changelog"></div>'+
     '<div class="disclaimer" style="margin-top:16px;">⚠️ AI analysis based on live news — not financial advice.<br>Always confirm with your own 4H → 1H → 15M chart analysis. Requires MSS/CISD + IFVG confirmation before entry.</div>';
 
