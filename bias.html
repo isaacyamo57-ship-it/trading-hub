@@ -128,7 +128,16 @@ body{font-family:'Unbounded',sans-serif;background:var(--bg);color:var(--text);m
 <body>
 <nav class="topnav">
   <div class="tn-left">
+    <a href="https://trading-hub-mu.vercel.app" style="display:flex;align-items:center;gap:8px;text-decoration:none;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:7px;padding:5px 10px;transition:all 0.15s;" onmouseover="this.style.background='rgba(201,168,76,0.15)'" onmouseout="this.style.background='rgba(201,168,76,0.08)'">
+  <span style="font-size:12px;">⌂</span>
+  <span style="font-family:'DM Mono',monospace;font-size:8px;color:#c9a84c;letter-spacing:0.1em;text-transform:uppercase;">Hub</span>
+</a>
+<div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#c9a84c 0%,#8a6d2a 100%);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <span style="font-family:'Unbounded',sans-serif;font-size:9px;font-weight:700;color:#080601;">IA</span>
+    </div>
     <div class="tn-logo">⚡ Bias Engine</div>
+  </div>
     <div class="tn-sep"></div>
     <div class="tn-tag">NQ Futures · ICT + DodgyDD</div>
   </div>
@@ -145,7 +154,10 @@ body{font-family:'Unbounded',sans-serif;background:var(--bg);color:var(--text);m
       <div class="hero-tag">FVG · IFVG</div><div class="hero-tag">MSS · CISD</div><div class="hero-tag">Liq Sweep</div><div class="hero-tag">EQH · EQL</div><div class="hero-tag">LRLR · Data Wick</div><div class="hero-tag">4H · 1H · 15M</div>
     </div>
   </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
   <button class="analyse-btn" id="analyseBtn" onclick="runAnalysis()"><div class="btn-txt">⚡ Analyse Now</div></button>
+  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#635f5a;letter-spacing:0.08em;" id="autoRefreshLbl">Auto-refresh in 60s</div>
+</div>
 </div>
 <div style="max-width:1100px;margin:0 auto;padding:0 24px 20px;">
 
@@ -274,10 +286,112 @@ function renderResults(a,articleCount){
     <div class="sec-lbl">Trade Plan</div>
     <div class="plan-card">${planHTML}</div>
     <div class="disclaimer">⚠️ AI analysis based on live news — not financial advice.<br>Always confirm with your own 4H → 1H → 15M chart analysis. Requires MSS/CISD + IFVG confirmation before entry.</div>
+
+<!-- Economic Calendar -->
+<div style="margin-top:20px;">
+  <div class="sec-lbl">USD Economic Calendar — High & Medium Impact</div>
+  <div style="background:#0d0d0f;border:1px solid rgba(255,255,255,0.06);border-radius:12px;overflow:hidden;">
+    <div style="display:grid;grid-template-columns:80px 70px 60px 1fr 80px 80px 80px;gap:0;border-bottom:1px solid rgba(255,255,255,0.06);padding:8px 16px;">
+      <div style="font-family:'DM Mono',monospace;font-size:8px;color:#635f5a;letter-spacing:0.1em;text-transform:uppercase;">Time</div>
+      <div style="font-family:'DM Mono',monospace;font-size:8px;color:#635f5a;letter-spacing:0.1em;text-transform:uppercase;">Currency</div>
+      <div style="font-family:'DM Mono',monospace;font-size:8px;color:#635f5a;letter-spacing:0.1em;text-transform:uppercase;">Impact</div>
+      <div style="font-family:'DM Mono',monospace;font-size:8px;color:#635f5a;letter-spacing:0.1em;text-transform:uppercase;">Event</div>
+      <div style="font-family:'DM Mono',monospace;font-size:8px;color:#635f5a;letter-spacing:0.1em;text-transform:uppercase;text-align:right;">Forecast</div>
+      <div style="font-family:'DM Mono',monospace;font-size:8px;color:#635f5a;letter-spacing:0.1em;text-transform:uppercase;text-align:right;">Previous</div>
+      <div style="font-family:'DM Mono',monospace;font-size:8px;color:#635f5a;letter-spacing:0.1em;text-transform:uppercase;text-align:right;">Actual</div>
+    </div>
+    <div id="calBody" style="min-height:60px;display:flex;align-items:center;justify-content:center;">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:#635f5a;">Loading calendar...</div>
+    </div>
+  </div>
+  <div style="font-family:'DM Mono',monospace;font-size:8px;color:#635f5a;margin-top:6px;text-align:right;">Source: Forex Factory · USD only · High & Medium impact</div>
+</div>
+
+<!-- Changelog -->
+<div style="margin-top:20px;">
+  <div class="sec-lbl">Analysis Log</div>
+  <div id="changelog" style="display:flex;flex-direction:column;gap:8px;"></div>
+</div>
   `;
   document.getElementById('results').classList.add('show');
+  addToLog(a.overall_bias, a.confidence, a.summary);
   setTimeout(()=>{const b=document.getElementById('confBar');if(b)b.style.width=conf+'%';},200);
 }
+
+// ── ECONOMIC CALENDAR ──
+async function loadCalendar() {
+  var calEl = document.getElementById("calBody");
+  try {
+    var url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json";
+    var res = await fetch("https://corsproxy.io/?" + encodeURIComponent(url));
+    var data = await res.json();
+    var todayStr = new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+    var events = data.filter(function(e) {
+      var eDate = new Date(e.date).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+      return e.country === "USD" && (e.impact === "High" || e.impact === "Medium") && eDate === todayStr;
+    });
+    if (!events.length) {
+      calEl.innerHTML = "<div style='font-size:10px;color:#635f5a;padding:16px;'>No high/medium USD events today</div>";
+      return;
+    }
+    var html = "";
+    events.forEach(function(e) {
+      var impactColor = e.impact === "High" ? "#bf6060" : "#c9a84c";
+      var time = e.date ? new Date(e.date).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}) : "--";
+      var actual = e.actual ? e.actual : "--";
+      html += "<div style='display:grid;grid-template-columns:80px 70px 60px 1fr 80px 80px 80px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04);align-items:center;'>";
+      html += "<div style='font-size:10px;color:#edeae4;'>" + time + "</div>";
+      html += "<div style='font-size:10px;color:#c9a84c;'>USD</div>";
+      html += "<div><div style='width:8px;height:8px;border-radius:50%;background:" + impactColor + ";'></div></div>";
+      html += "<div style='font-size:11px;color:#edeae4;'>" + e.title + "</div>";
+      html += "<div style='font-size:10px;color:#b0aca6;text-align:right;'>" + (e.forecast||"--") + "</div>";
+      html += "<div style='font-size:10px;color:#635f5a;text-align:right;'>" + (e.previous||"--") + "</div>";
+      html += "<div style='font-size:10px;text-align:right;color:#edeae4;'>" + actual + "</div>";
+      html += "</div>";
+    });
+    calEl.innerHTML = html;
+  } catch(e) {
+    calEl.innerHTML = "<div style='font-size:10px;color:#635f5a;padding:16px;'>Calendar unavailable</div>";
+  }
+}
+loadCalendar();
+
+// ── CHANGELOG ──
+var analysisLog = JSON.parse(localStorage.getItem("bias_log") || "[]");
+
+function addToLog(bias, confidence, summary) {
+  var entry = {
+    time: new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}),
+    date: new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short"}),
+    bias: bias, confidence: confidence,
+    summary: summary ? summary.substring(0,100)+"..." : ""
+  };
+  analysisLog.unshift(entry);
+  if (analysisLog.length > 20) analysisLog = analysisLog.slice(0,20);
+  localStorage.setItem("bias_log", JSON.stringify(analysisLog));
+  renderLog();
+}
+
+function renderLog() {
+  var el = document.getElementById("changelog");
+  if (!el) return;
+  if (!analysisLog.length) {
+    el.innerHTML = "<div style='font-size:10px;color:#635f5a;padding:12px 0;'>No analyses logged yet</div>";
+    return;
+  }
+  function bc(b) { return b==="Bullish"?"#4daa7d":b==="Bearish"?"#bf6060":"#5d8fc4"; }
+  var html = "";
+  analysisLog.forEach(function(e) {
+    html += "<div style='background:#0d0d0f;border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:14px;'>";
+    html += "<div style='font-size:9px;color:#635f5a;white-space:nowrap;'>" + e.date + " " + e.time + "</div>";
+    html += "<div style='font-size:12px;font-weight:700;color:" + bc(e.bias) + ";white-space:nowrap;'>" + e.bias + "</div>";
+    html += "<div style='font-size:10px;color:#c9a84c;white-space:nowrap;'>" + e.confidence + "%</div>";
+    html += "<div style='font-size:11px;color:#635f5a;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>" + (e.summary||"") + "</div>";
+    html += "</div>";
+  });
+  el.innerHTML = html;
+}
+renderLog();
 </script>
 </body>
 </html>
