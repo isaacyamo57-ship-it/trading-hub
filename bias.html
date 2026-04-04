@@ -147,6 +147,74 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
   <button class="analyse-btn" id="analyseBtn" onclick="runAnalysis()"><div class="btn-txt">⚡ Analyse Now</div></button>
 </div>
+<div class="chart-section" style="max-width:1100px;margin:0 auto;padding:0 24px 20px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <div style="font-family:'Fragment Mono',monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:#635f5a;display:flex;align-items:center;gap:8px;">
+      <div style="width:5px;height:5px;border-radius:50%;background:#4daa7d;animation:pulse 2s ease infinite;"></div>
+      Live NQ Chart · TradingView
+    </div>
+    <div style="display:flex;gap:6px;" id="tfBtns">
+      <button onclick="setTF('60')" class="tf-btn active-tf" id="tf-60">1H</button>
+      <button onclick="setTF('240')" class="tf-btn" id="tf-240">4H</button>
+      <button onclick="setTF('15')" class="tf-btn" id="tf-15">15M</button>
+      <button onclick="setTF('D')" class="tf-btn" id="tf-D">1D</button>
+    </div>
+  </div>
+  <div style="border:1px solid rgba(255,255,255,0.06);border-radius:12px;overflow:hidden;background:#0d0d0f;">
+    <div id="tv-chart-container" style="height:420px;"></div>
+  </div>
+</div>
+<style>
+.tf-btn{font-family:'Fragment Mono',monospace;font-size:9px;letter-spacing:0.08em;padding:4px 12px;border-radius:5px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:#635f5a;cursor:pointer;transition:all 0.15s;}
+.tf-btn:hover{color:#edeae4;border-color:rgba(255,255,255,0.14);}
+.active-tf{background:rgba(201,168,76,0.12);border-color:rgba(201,168,76,0.25);color:#c9a84c;}
+</style>
+<script>
+var currentTF = '60';
+function setTF(tf) {
+  currentTF = tf;
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active-tf'));
+  document.getElementById('tf-'+tf).classList.add('active-tf');
+  loadChart(tf);
+}
+function loadChart(tf) {
+  var container = document.getElementById('tv-chart-container');
+  container.innerHTML = '';
+  var script = document.createElement('script');
+  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+  script.async = true;
+  script.innerHTML = JSON.stringify({
+    "autosize": true,
+    "symbol": "CME_MINI:NQ1!",
+    "interval": tf,
+    "timezone": "Europe/London",
+    "theme": "dark",
+    "style": "1",
+    "locale": "en",
+    "backgroundColor": "#0d0d0f",
+    "gridColor": "rgba(255,255,255,0.03)",
+    "hide_top_toolbar": false,
+    "hide_legend": false,
+    "allow_symbol_change": true,
+    "save_image": false,
+    "calendar": false,
+    "hide_volume": false,
+    "support_host": "https://www.tradingview.com"
+  });
+  var wrapper = document.createElement('div');
+  wrapper.className = 'tradingview-widget-container';
+  wrapper.style.height = '420px';
+  wrapper.style.width = '100%';
+  var inner = document.createElement('div');
+  inner.className = 'tradingview-widget-container__widget';
+  inner.style.height = '100%';
+  inner.style.width = '100%';
+  wrapper.appendChild(inner);
+  wrapper.appendChild(script);
+  container.appendChild(wrapper);
+}
+loadChart('60');
+</script>
 <div class="main">
   <div class="loading" id="loading">
     <div class="spin-wrap"><div class="spin-outer"></div><div class="spin-inner"></div></div>
