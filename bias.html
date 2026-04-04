@@ -189,47 +189,11 @@ function setTF(tf) {
 function loadChart(tf) {
   var container = document.getElementById('tv-chart-container');
   container.innerHTML = '';
-  var wrapper = document.createElement('div');
-  wrapper.className = 'tradingview-widget-container';
-  wrapper.style.cssText = 'height:460px;width:100%;';
-  var inner = document.createElement('div');
-  inner.className = 'tradingview-widget-container__widget';
-  inner.style.cssText = 'height:100%;width:100%;';
-  var script = document.createElement('script');
-  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-  script.async = true;
-  script.innerHTML = JSON.stringify({
-    "autosize": true,
-    "symbol": "CAPITALCOM:US100",
-    "interval": tf,
-    "timezone": "Europe/London",
-    "theme": "dark",
-    "style": "1",
-    "locale": "en",
-    "backgroundColor": "#060607",
-    "gridColor": "rgba(201,168,76,0.04)",
-    "hide_top_toolbar": false,
-    "hide_legend": false,
-    "allow_symbol_change": false,
-    "save_image": false,
-    "hide_volume": false,
-    "withdateranges": true,
-    "details": false,
-    "hotlist": false,
-    "calendar": false,
-    "support_host": "https://www.tradingview.com",
-    "overrides": {
-      "mainSeriesProperties.candleStyle.upColor": "#c9a84c",
-      "mainSeriesProperties.candleStyle.downColor": "#bf6060",
-      "mainSeriesProperties.candleStyle.borderUpColor": "#c9a84c",
-      "mainSeriesProperties.candleStyle.borderDownColor": "#bf6060",
-      "mainSeriesProperties.candleStyle.wickUpColor": "#c9a84c",
-      "mainSeriesProperties.candleStyle.wickDownColor": "#bf6060"
-    }
-  });
-  wrapper.appendChild(inner);
-  wrapper.appendChild(script);
-  container.appendChild(wrapper);
+  var iframe = document.createElement('iframe');
+  iframe.src = 'https://s.tradingview.com/widgetembed/?frameElementId=tradingview&symbol=FOREXCOM%3ANAS100&interval=' + tf + '&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=0&saveimage=0&toolbarbg=060607&studies=[]&theme=dark&style=1&timezone=Europe%2FLondon&studies_overrides={}&overrides={"mainSeriesProperties.candleStyle.upColor"%3A"%23c9a84c"%2C"mainSeriesProperties.candleStyle.downColor"%3A"%23bf6060"%2C"mainSeriesProperties.candleStyle.borderUpColor"%3A"%23c9a84c"%2C"mainSeriesProperties.candleStyle.borderDownColor"%3A"%23bf6060"%2C"mainSeriesProperties.candleStyle.wickUpColor"%3A"%23c9a84c"%2C"mainSeriesProperties.candleStyle.wickDownColor"%3A"%23bf6060"%2C"paneProperties.background"%3A"%23060607"%2C"paneProperties.backgroundType"%3A"solid"%2C"paneProperties.gridLinesMode"%3A"both"%2C"paneProperties.vertGridProperties.color"%3A"rgba(201%2C168%2C76%2C0.04)"%2C"paneProperties.horzGridProperties.color"%3A"rgba(201%2C168%2C76%2C0.04)"}&enabled_features=[]&disabled_features=["use_localstorage_for_settings"]&locale=en&utm_source=trading-hub-mu.vercel.app&utm_medium=widget&utm_campaign=chart&utm_term=FOREXCOM%3ANAS100';
+  iframe.style.cssText = 'width:100%;height:460px;border:none;';
+  iframe.allowFullscreen = true;
+  container.appendChild(iframe);
 }
 loadChart('60');
 </script>
