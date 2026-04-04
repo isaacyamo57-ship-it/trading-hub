@@ -190,7 +190,21 @@ function loadChart(tf) {
   var container = document.getElementById('tv-chart-container');
   container.innerHTML = '';
   var iframe = document.createElement('iframe');
-  iframe.src = 'https://s.tradingview.com/widgetembed/?frameElementId=tradingview&symbol=FOREXCOM%3ANAS100&interval=' + tf + '&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=0&saveimage=0&toolbarbg=060607&studies=[]&theme=dark&style=1&timezone=Europe%2FLondon&studies_overrides={}&overrides={"mainSeriesProperties.candleStyle.upColor"%3A"%23c9a84c"%2C"mainSeriesProperties.candleStyle.downColor"%3A"%23bf6060"%2C"mainSeriesProperties.candleStyle.borderUpColor"%3A"%23c9a84c"%2C"mainSeriesProperties.candleStyle.borderDownColor"%3A"%23bf6060"%2C"mainSeriesProperties.candleStyle.wickUpColor"%3A"%23c9a84c"%2C"mainSeriesProperties.candleStyle.wickDownColor"%3A"%23bf6060"%2C"paneProperties.background"%3A"%23060607"%2C"paneProperties.backgroundType"%3A"solid"%2C"paneProperties.gridLinesMode"%3A"both"%2C"paneProperties.vertGridProperties.color"%3A"rgba(201%2C168%2C76%2C0.04)"%2C"paneProperties.horzGridProperties.color"%3A"rgba(201%2C168%2C76%2C0.04)"}&enabled_features=[]&disabled_features=["use_localstorage_for_settings"]&locale=en&utm_source=trading-hub-mu.vercel.app&utm_medium=widget&utm_campaign=chart&utm_term=FOREXCOM%3ANAS100';
+  // style=1 is candlestick, overrides set gold up / red down candles
+  var overrides = {
+    "mainSeriesProperties.areaStyle.color1": "#c9a84c",
+    "mainSeriesProperties.areaStyle.color2": "rgba(201,168,76,0.0)",
+    "mainSeriesProperties.areaStyle.linecolor": "#c9a84c",
+    "mainSeriesProperties.areaStyle.linewidth": 2,
+    "mainSeriesProperties.areaStyle.priceSource": "close",
+    "paneProperties.background": "#060607",
+    "paneProperties.backgroundType": "solid",
+    "paneProperties.vertGridProperties.color": "rgba(201,168,76,0.04)",
+    "paneProperties.horzGridProperties.color": "rgba(201,168,76,0.04)",
+    "scalesProperties.textColor": "#635f5a",
+    "scalesProperties.lineColor": "rgba(255,255,255,0.06)"
+  };
+  iframe.src = 'https://s.tradingview.com/widgetembed/?symbol=FOREXCOM%3ANAS100&interval=' + tf + '&theme=dark&style=3&locale=en&timezone=Europe%2FLondon&toolbarbg=0d0d0f&hidesidetoolbar=0&hidetoptoolbar=0&saveimage=0&symboledit=0&overrides=' + encodeURIComponent(JSON.stringify(overrides)) + '&utm_source=trading-hub-mu.vercel.app';
   iframe.style.cssText = 'width:100%;height:460px;border:none;';
   iframe.allowFullscreen = true;
   container.appendChild(iframe);
