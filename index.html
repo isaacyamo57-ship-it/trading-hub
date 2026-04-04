@@ -395,6 +395,16 @@
       <div class="sb-lbl">Time</div>
       <div class="sb-val" style="color:var(--text2);font-size:13px;" id="clock">—</div>
     </div>
+    <div class="sb-divider"></div>
+    <div class="sb-item">
+      <div class="sb-lbl">NQ Price</div>
+      <div class="sb-val" style="font-size:13px;" id="nqPrice">—</div>
+    </div>
+    <div class="sb-divider"></div>
+    <div class="sb-item">
+      <div class="sb-lbl">Next Session</div>
+      <div class="sb-val" style="color:var(--gold);font-size:12px;" id="nextSession">—</div>
+    </div>
   </div>
 
   <!-- App Cards -->
@@ -479,6 +489,17 @@
     </div>
   </div>
 
+  <!-- Weekly Edge Report -->
+  <div style="margin-top:32px;animation:fadeUp 0.6s 0.4s ease both;">
+    <div style="font-family:'Fragment Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      Weekly Edge Report
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="cursor:pointer;color:var(--muted);font-size:8px;" onclick="renderWeeklyReport()">↻ Refresh</span>
+    </div>
+    <div id="weeklyReport" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;"></div>
+    <div id="weeklyInsight" style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-family:'Fragment Mono',monospace;font-size:10px;color:var(--text2);line-height:1.7;"></div>
+  </div>
+
   <!-- Footer -->
   <!-- Analysis Log from Bias Engine -->
   <div style="margin-top:32px;">
@@ -497,13 +518,138 @@
 </div>
 
 <script>
-  // Clock
+  // Clock + Session Countdown
+  function getNextSession() {
+    const now = new Date();
+    const ny = new Date(now.toLocaleString('en-US', {timeZone:'America/New_York'}));
+    const h = ny.getHours(), m = ny.getMinutes();
+    const sessions = [
+      {name:'London AM', open:[3,0], close:[8,0]},
+      {name:'NY AM', open:[9,30], close:[12,0]},
+      {name:'NY PM', open:[13,30], close:[16,0]},
+    ];
+    // Check if currently in a session
+    for (const s of sessions) {
+      const inSession = (h > s.open[0] || (h === s.open[0] && m >= s.open[1])) &&
+                        (h < s.close[0] || (h === s.close[0] && m < s.close[1]));
+      if (inSession) {
+        const closeMin = s.close[0]*60+s.close[1];
+        const nowMin = h*60+m;
+        const diff = (closeMin - nowMin) * 60000;
+        const hh = Math.floor(diff/3600000);
+        const mm = Math.floor((diff%3600000)/60000);
+        return {label: s.name + ' LIVE', time: (hh>0?hh+'h ':'')+mm+'m left', live:true};
+      }
+    }
+    // Find next session
+    let best = null, bestDiff = Infinity;
+    for (const s of sessions) {
+      let target = new Date(ny);
+      target.setHours(s.open[0], s.open[1], 0, 0);
+      if (target <= ny) target.setDate(target.getDate()+1);
+      const diff = target - ny;
+      if (diff < bestDiff) { bestDiff = diff; best = {label: s.name, diff}; }
+    }
+    const hh = Math.floor(bestDiff/3600000);
+    const mm = Math.floor((bestDiff%3600000)/60000);
+    return {label: best.label + ' opens in', time: (hh>0?hh+'h ':'')+mm+'m', live:false};
+  }
+
   function tick() {
     const n = new Date();
     document.getElementById('clock').textContent =
       n.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    const sess = getNextSession();
+    const el = document.getElementById('nextSession');
+    if (el) {
+      el.textContent = sess.time;
+      el.style.color = sess.live ? 'var(--win)' : 'var(--gold)';
+      el.previousElementSibling.textContent = sess.label;
+    }
   }
   tick(); setInterval(tick, 1000);
+
+  // NQ Live Price via Yahoo Finance
+  async function fetchNQPrice() {
+    try {
+      const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/NQ%3DF?interval=1m&range=1d');
+      const data = await res.json();
+      const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+      const prev = data?.chart?.result?.[0]?.meta?.chartPreviousClose;
+      if (price) {
+        const change = price - prev;
+        const pct = ((change/prev)*100).toFixed(2);
+        const el = document.getElementById('nqPrice');
+        if (el) {
+          el.textContent = price.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+          el.style.color = change >= 0 ? 'var(--win)' : 'var(--loss)';
+          // Add change indicator
+          const lbl = el.previousElementSibling;
+          if (lbl) lbl.textContent = 'NQ ' + (change>=0?'+':'')+pct+'%';
+        }
+      }
+    } catch(e) {}
+  }
+  fetchNQPrice();
+  setInterval(fetchNQPrice, 30000);
+
+  // Weekly Edge Report
+  function renderWeeklyReport() {
+    const trades = JSON.parse(localStorage.getItem('nq_v5_trades') || '[]');
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
+    weekStart.setHours(0,0,0,0);
+
+    const weekTrades = trades.filter(t => {
+      if (!t.date) return false;
+      return new Date(t.date) >= weekStart;
+    });
+
+    const wins = weekTrades.filter(t => t.result === 'Win').length;
+    const losses = weekTrades.filter(t => t.result === 'Loss').length;
+    const be = weekTrades.filter(t => t.result === 'Break Even').length;
+    const total = weekTrades.length;
+    const wr = total > 0 ? Math.round((wins/total)*100) : 0;
+    const totalR = weekTrades.reduce((sum, t) => sum + (parseFloat(t.r_multiple)||0), 0);
+    const avgR = total > 0 ? (totalR/total).toFixed(2) : '0.00';
+
+    const reportEl = document.getElementById('weeklyReport');
+    const insightEl = document.getElementById('weeklyInsight');
+    if (!reportEl) return;
+
+    reportEl.innerHTML = [
+      {lbl:'Trades', val:total, color:'var(--text)'},
+      {lbl:'Win Rate', val:wr+'%', color:wr>=50?'var(--win)':'var(--loss)'},
+      {lbl:'Total R', val:(totalR>=0?'+':'')+totalR.toFixed(2)+'R', color:totalR>=0?'var(--win)':'var(--loss)'},
+      {lbl:'Avg R', val:avgR+'R', color:parseFloat(avgR)>=0?'var(--win)':'var(--loss)'},
+    ].map(s => `
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+        <div style="font-family:'Fragment Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">${s.lbl}</div>
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:${s.color};">${s.val}</div>
+      </div>`).join('');
+
+    if (!insightEl) return;
+    if (total === 0) {
+      insightEl.textContent = 'No trades logged this week yet. Open the journal to log your first trade.';
+      return;
+    }
+
+    // Generate insight
+    let insight = '';
+    if (wr >= 60) insight += '✅ Strong win rate this week — your model is working. ';
+    else if (wr >= 40) insight += '⚠️ Win rate is average — review your entry confirmations. ';
+    else insight += '❌ Win rate is low — are you taking B/C grade setups? ';
+
+    if (totalR > 0) insight += `📈 You are up ${totalR.toFixed(1)}R this week — protect your gains. `;
+    else insight += `📉 You are down ${Math.abs(totalR).toFixed(1)}R this week — reduce size or sit on hands. `;
+
+    if (total > 4) insight += `⚠️ ${total} trades this week — make sure you are not overtrading. `;
+    if (be > 1) insight += `🔵 ${be} break even trades — check if you are moving SL to BE too early. `;
+
+    insightEl.textContent = insight.trim();
+  }
+  renderWeeklyReport();
 </script>
 
 <script>
