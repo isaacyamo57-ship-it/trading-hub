@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NQ Bias Engine v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Fragment+Mono&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #080809;
+    --bg2:     #0f0f11;
+    --bg3:     #161618;
+    --bg4:     #1e1e21;
+    --border:  rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text:    #f0ede8;
+    --text2:   #b8b4ae;
+    --muted:   #6b6760;
+    --dim:     #3a3835;
+    --gold:    #c9a84c;
+    --win:     #5cb88a;
+    --loss:    #c96a6a;
+    --neutral: #6b9fd4;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; overflow-x: hidden;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(201,168,76,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,168,76,0.025) 1px, transparent 1px);
+    background-size: 44px 44px;
+    pointer-events: none; z-index: 0;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 40px 20px 80px; position: relative; z-index: 1; }
+
+  /* ── HEADER ── */
+  .header { text-align: center; margin-bottom: 36px; animation: fadeDown 0.6s ease both; }
+  .header-tag {
+    font-family: 'Fragment Mono', monospace; font-size: 9px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold);
+    margin-bottom: 10px; display: inline-flex; align-items: center; gap: 8px;
+  }
+  .header-tag::before, .header-tag::after { content:''; width:28px; height:1px; background:var(--gold); opacity:0.35; }
+  .header h1 {
+    font-family: 'Syne', sans-serif; font-size: clamp(30px,6vw,50px);
+    font-weight: 800; letter-spacing: -0.03em; line-height: 1;
+    background: linear-gradient(135deg, #f0ede8 0%, #c9a84c 55%, #8a6d2a 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .header-sub { font-family:'Fragment Mono',monospace; font-size:10px; color:var(--muted); margin-top:8px; letter-spacing:0.06em; }
+  .live-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(92,184,138,0.1); border: 1px solid rgba(92,184,138,0.2);
+    border-radius: 20px; padding: 3px 10px; margin-top: 10px;
+    font-family: 'Fragment Mono', monospace; font-size: 8px;
+    color: var(--win); letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .live-dot { width:5px; height:5px; border-radius:50%; background:var(--win); animation: livePulse 1.5s ease infinite; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 18px; display: flex; align-items: center; gap: 16px;
+    margin-bottom: 20px; animation: fadeUp 0.4s 0.1s ease both;
+    font-family: 'Fragment Mono', monospace; font-size: 10px; flex-wrap: wrap;
+  }
+  .tb-item { display: flex; flex-direction: column; gap: 2px; }
+  .tb-lbl { font-size: 8px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+  .tb-val { color: var(--text); font-size: 11px; }
+  .tb-divider { width: 1px; height: 28px; background: var(--border); }
+  .tb-time { margin-left: auto; }
+
+  /* ── BUTTON ── */
+  .analyse-btn {
+    width: 100%; padding: 18px;
+    background: linear-gradient(135deg, var(--gold) 0%, #8a6d2a 100%);
+    border: none; border-radius: 12px;
+    font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700;
+    letter-spacing: 0.04em; color: #080801;
+    cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+    margin-bottom: 24px; animation: fadeUp 0.4s 0.2s ease both;
+  }
+  .analyse-btn::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+  }
+  .analyse-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(201,168,76,0.3); }
+  .analyse-btn:active { transform: none; }
+  .analyse-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+  .btn-inner { display: flex; align-items: center; justify-content: center; gap: 10px; position: relative; }
+
+  /* ── LOADING ── */
+  .loading {
+    display: none; flex-direction: column; align-items: center;
+    gap: 14px; padding: 50px 20px;
+  }
+  .loading.show { display: flex; animation: fadeIn 0.3s ease; }
+  .spin-ring {
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 2px solid rgba(201,168,76,0.15); border-top-color: var(--gold);
+    animation: spin 0.9s linear infinite;
+  }
+  .loading-title { font-family:'Fragment Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:0.1em; }
+  .loading-step { font-family:'Fragment Mono',monospace; font-size:10px; color:var(--gold); letter-spacing:0.06em; animation: pulse 1.4s ease infinite; }
+  .news-count {
+    font-family:'Fragment Mono',monospace; font-size:9px;
+    color: var(--win); letter-spacing: 0.08em;
+    background: rgba(92,184,138,0.08); border: 1px solid rgba(92,184,138,0.15);
+    padding: 4px 12px; border-radius: 20px;
+  }
+
+  /* ── RESULTS ── */
+  .results { display: none; }
+  .results.show { display: block; animation: fadeUp 0.5s ease both; }
+
+  /* ── VERDICT ── */
+  .verdict {
+    border-radius: 14px; padding: 26px; margin-bottom: 16px;
+    border: 1px solid transparent; position: relative; overflow: hidden;
+  }
+  .verdict.bull { background: linear-gradient(135deg, rgba(92,184,138,0.13) 0%, rgba(92,184,138,0.03) 100%); border-color: rgba(92,184,138,0.22); }
+  .verdict.bear { background: linear-gradient(135deg, rgba(201,106,106,0.13) 0%, rgba(201,106,106,0.03) 100%); border-color: rgba(201,106,106,0.22); }
+  .verdict.neut { background: linear-gradient(135deg, rgba(107,159,212,0.1) 0%, rgba(107,159,212,0.03) 100%); border-color: rgba(107,159,212,0.18); }
+  .verdict-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .verdict-lbl { font-family:'Fragment Mono',monospace; font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .verdict-big { font-family:'Syne',sans-serif; font-size:46px; font-weight:800; letter-spacing:-0.03em; line-height:1; }
+  .verdict-big.bull { color: var(--win); }
+  .verdict-big.bear { color: var(--loss); }
+  .verdict-big.neut { color: var(--neutral); }
+  .verdict-right { text-align: right; }
+  .conf-num { font-family:'Syne',sans-serif; font-size:38px; font-weight:800; letter-spacing:-0.02em; color:var(--gold); line-height:1; }
+  .conf-lbl { font-family:'Fragment Mono',monospace; font-size:8px; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; margin-top:3px; }
+  .verdict-summary { margin-top:14px; font-size:13px; color:var(--text2); line-height:1.65; }
+  .news-sourced {
+    margin-top: 10px; display: inline-flex; align-items: center; gap: 6px;
+    font-family:'Fragment Mono',monospace; font-size:8px; color:var(--win);
+    background: rgba(92,184,138,0.08); border:1px solid rgba(92,184,138,0.15);
+    padding: 3px 10px; border-radius: 20px; letter-spacing: 0.08em;
+  }
+
+  /* ── SECTION TITLE ── */
+  .sec-title {
+    font-family:'Fragment Mono',monospace; font-size:9px; letter-spacing:0.18em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:12px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .sec-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* ── TF CARDS ── */
+  .tf-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
+  .tf-card {
+    background:var(--bg2); border:1px solid var(--border); border-radius:12px;
+    padding:18px 16px; transition: border-color 0.2s;
+  }
+  .tf-card:hover { border-color: var(--border2); }
+  .tf-lbl { font-family:'Fragment Mono',monospace; font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .tf-bias { font-family:'Syne',sans-serif; font-size:19px; font-weight:700; margin-bottom:8px; }
+  .tf-bias.bull { color:var(--win); }
+  .tf-bias.bear { color:var(--loss); }
+  .tf-bias.neut { color:var(--neutral); }
+  .tf-reason { font-size:11px; color:var(--text2); line-height:1.5; }
+  .tf-bar-wrap { margin-top:10px; height:3px; background:var(--bg4); border-radius:2px; overflow:hidden; }
+  .tf-bar { height:100%; border-radius:2px; transition: width 1.2s ease; }
+  .tf-bar.bull { background:var(--win); }
+  .tf-bar.bear { background:var(--loss); }
+  .tf-bar.neut { background:var(--neutral); }
+
+  /* ── NEWS ── */
+  .news-list { display:flex; flex-direction:column; gap:9px; margin-bottom:16px; }
+  .news-item {
+    background:var(--bg2); border:1px solid var(--border); border-radius:10px;
+    padding:13px 15px; display:flex; gap:12px; align-items:flex-start;
+    transition: border-color 0.2s;
+  }
+  .news-item:hover { border-color:var(--border2); }
+  .news-icon {
+    flex-shrink:0; width:34px; height:34px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+  }
+  .news-icon.bull { background:rgba(92,184,138,0.1); }
+  .news-icon.bear { background:rgba(201,106,106,0.1); }
+  .news-icon.neut { background:rgba(107,159,212,0.08); }
+  .news-body { flex:1; min-width:0; }
+  .news-headline { font-size:12px; font-weight:500; color:var(--text); line-height:1.4; margin-bottom:3px; }
+  .news-source { font-family:'Fragment Mono',monospace; font-size:8px; color:var(--muted); margin-bottom:4px; }
+  .news-impact-txt { font-size:11px; color:var(--muted); line-height:1.4; }
+  .news-tag {
+    flex-shrink:0; font-family:'Fragment Mono',monospace; font-size:8px;
+    padding:2px 7px; border-radius:4px; letter-spacing:0.06em; align-self:flex-start; margin-top:2px;
+  }
+  .news-tag.bull { background:rgba(92,184,138,0.1); color:var(--win); }
+  .news-tag.bear { background:rgba(201,106,106,0.1); color:var(--loss); }
+  .news-tag.neut { background:rgba(107,159,212,0.08); color:var(--neutral); }
+
+  /* ── BOTTOM GRID ── */
+  .bottom-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+  .info-card { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:16px; }
+  .info-title { font-family:'Fragment Mono',monospace; font-size:8px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+  .info-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--border); font-size:12px; }
+  .info-row:last-child { border-bottom:none; }
+  .info-key { color:var(--text2); }
+  .info-val { font-family:'Fragment Mono',monospace; font-size:11px; }
+  .info-val.bull { color:var(--win); }
+  .info-val.bear { color:var(--loss); }
+  .info-val.neut { color:var(--neutral); }
+  .info-val.gold { color:var(--gold); }
+
+  /* ── PLAN ── */
+  .plan-row { display:flex; gap:10px; align-items:flex-start; padding:7px 0; border-bottom:1px solid var(--border); }
+  .plan-row:last-child { border-bottom:none; }
+  .plan-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+  .plan-dot.bull { background:var(--win); }
+  .plan-dot.bear { background:var(--loss); }
+  .plan-dot.warn { background:var(--gold); }
+  .plan-text { font-size:12px; color:var(--text2); line-height:1.5; }
+  .plan-text strong { color:var(--text); font-weight:600; }
+
+  /* ── TIMESTAMP / REFRESH ── */
+  .ts-bar {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:16px; flex-wrap:wrap; gap:8px;
+  }
+  .ts-left { display:flex; flex-direction:column; gap:3px; }
+  .ts-lbl { font-family:'Fragment Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:0.08em; }
+  .ts-articles { font-family:'Fragment Mono',monospace; font-size:9px; color:var(--win); letter-spacing:0.06em; }
+  .refresh-btn {
+    background:var(--bg3); border:1px solid var(--border);
+    color:var(--muted); font-family:'Fragment Mono',monospace;
+    font-size:9px; letter-spacing:0.06em; padding:5px 14px;
+    border-radius:6px; cursor:pointer; transition:all 0.15s;
+  }
+  .refresh-btn:hover { color:var(--text); border-color:var(--border2); }
+
+  /* ── DISCLAIMER ── */
+  .disclaimer {
+    background:rgba(201,168,76,0.04); border:1px solid rgba(201,168,76,0.12);
+    border-radius:8px; padding:12px 16px;
+    font-family:'Fragment Mono',monospace; font-size:9px;
+    color:var(--muted); letter-spacing:0.04em; line-height:1.6; text-align:center;
+  }
+
+  /* ── ERROR ── */
+  .error-card {
+    background:rgba(201,106,106,0.07); border:1px solid rgba(201,106,106,0.18);
+    border-radius:10px; padding:20px; text-align:center;
+    font-family:'Fragment Mono',monospace; font-size:11px; color:var(--loss);
+    line-height:1.6;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-14px)} to{opacity:1;transform:none} }
+  @keyframes fadeUp   { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
+  @keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+  @keyframes spin     { to{transform:rotate(360deg)} }
+  @keyframes pulse    { 0%,100%{opacity:0.4} 50%{opacity:1} }
+  @keyframes livePulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(92,184,138,0.4)} 50%{opacity:0.7;box-shadow:0 0 0 4px rgba(92,184,138,0)} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-tag">NQ Futures · ICT Framework</div>
+    <h1>Bias Engine</h1>
+    <div class="header-sub">Powered by live financial news · AI reasoning · ICT structure analysis</div>
+    <div class="live-badge"><div class="live-dot"></div>Live News Feed Active</div>
+  </div>
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="tb-item">
+      <span class="tb-lbl">Instrument</span>
+      <span class="tb-val">NQ / Nasdaq 100 Futures</span>
+    </div>
+    <div class="tb-divider"></div>
+    <div class="tb-item">
+      <span class="tb-lbl">Framework</span>
+      <span class="tb-val">ICT — FVG · MSS · CISD · Liq</span>
+    </div>
+    <div class="tb-divider"></div>
+    <div class="tb-item">
+      <span class="tb-lbl">News Source</span>
+      <span class="tb-val" style="color:var(--win)">NewsAPI · Live</span>
+    </div>
+    <div class="tb-item tb-time">
+      <span class="tb-lbl">Time</span>
+      <span class="tb-val" id="clock">—</span>
+    </div>
+  </div>
+
+  <!-- Button -->
+  <button class="analyse-btn" id="analyseBtn" onclick="runAnalysis()">
+    <div class="btn-inner">
+      <span>⚡</span>
+      <span>Analyse NQ Bias — Live News</span>
+    </div>
+  </button>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <div class="spin-ring"></div>
+    <div class="loading-title">Fetching live financial news...</div>
+    <div class="loading-step" id="loadingStep">Connecting to NewsAPI...</div>
+    <div class="news-count" id="newsCount" style="display:none"></div>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results"></div>
+
+</div>
+
+<script>
+const NEWS_API_KEY = '72ccc04506e24387a584a992a0b954ad';
+
+// Clock
+function tick() {
+  const n = new Date();
+  document.getElementById('clock').textContent =
+    n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+tick(); setInterval(tick, 1000);
+
+// Loading steps
+const STEPS = [
+  'Connecting to NewsAPI...','Fetching US market headlines...','Fetching Fed & macro news...',
+  'Fetching tech sector news...','Processing ' + 0 + ' articles...',
+  'Sending to AI for ICT analysis...','Analysing 4H structure...','Analysing 1H structure...',
+  'Analysing 15M structure...','Building bias report...'
+];
+let stepIdx = 0, stepTimer = null;
+function startSteps() {
+  stepIdx = 0;
+  document.getElementById('loadingStep').textContent = STEPS[0];
+  stepTimer = setInterval(() => {
+    stepIdx = Math.min(stepIdx + 1, STEPS.length - 1);
+    document.getElementById('loadingStep').textContent = STEPS[stepIdx];
+  }, 1600);
+}
+function stopSteps() { if (stepTimer) clearInterval(stepTimer); }
+
+function bc(b) {
+  if (!b) return 'neut';
+  const l = b.toLowerCase();
+  return l === 'bullish' ? 'bull' : l === 'bearish' ? 'bear' : 'neut';
+}
+function be(b) {
+  const l = (b||'').toLowerCase();
+  return l === 'bullish' ? '▲' : l === 'bearish' ? '▼' : '◆';
+}
+
+// Fetch live news from NewsAPI
+async function fetchNews() {
+  const queries = [
+    'nasdaq futures stock market',
+    'federal reserve interest rates inflation',
+    'US economy GDP jobs',
+    'technology stocks earnings',
+    'S&P 500 market rally'
+  ];
+
+  const articles = [];
+  const seenTitles = new Set();
+
+  for (const q of queries) {
+    try {
+      const url = `https://api.allorigins.win/get?url=${encodeURIComponent("https://newsapi.org/v2/everything?q="+encodeURIComponent(q)+"&language=en&sortBy=publishedAt&pageSize=5&apiKey="+NEWS_API_KEY)}`;
+      const res = await fetch(url);
+      const raw = await res.json();
+      const data = typeof raw.contents === 'string' ? JSON.parse(raw.contents) : raw;
+      if (data.articles) {
+        for (const a of data.articles) {
+          if (!seenTitles.has(a.title) && a.title && a.title !== '[Removed]') {
+            seenTitles.add(a.title);
+            articles.push({
+              title: a.title,
+              source: a.source?.name || 'Unknown',
+              description: a.description || '',
+              publishedAt: a.publishedAt
+            });
+          }
+        }
+      }
+    } catch(e) { console.warn('News fetch failed for query:', q); }
+  }
+
+  return articles.slice(0, 25); // max 25 articles to AI
+}
+
+async function runAnalysis() {
+  const btn = document.getElementById('analyseBtn');
+  const loading = document.getElementById('loading');
+  const results = document.getElementById('results');
+
+  btn.disabled = true;
+  loading.classList.add('show');
+  results.classList.remove('show');
+  results.innerHTML = '';
+  startSteps();
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const timeStr = now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+
+  // Fetch live news
+  let articles = [];
+  try {
+    articles = await fetchNews();
+    if (articles.length > 0) {
+      const countEl = document.getElementById('newsCount');
+      countEl.textContent = `✓ ${articles.length} live articles fetched`;
+      countEl.style.display = 'inline-flex';
+    }
+  } catch(e) { console.warn('News fetch error', e); }
+
+  // Build news context for AI
+  const newsContext = articles.length > 0
+    ? articles.map((a,i) => `${i+1}. [${a.source}] ${a.title}${a.description ? ' — ' + a.description.substring(0,120) : ''}`).join('\n')
+    : 'No live news fetched — use your general knowledge.';
+
+  const prompt = `You are an expert NQ (Nasdaq 100 futures) ICT trader performing a pre-session bias analysis.
+
+Today: ${dateStr} at ${timeStr} UK time.
+
+LIVE NEWS HEADLINES (just fetched — ${articles.length} articles):
+${newsContext}
+
+Using these REAL headlines AND your knowledge of:
+- ICT concepts (FVGs, MSS, CISD, liquidity sweeps, EQH/EQL, displacement)
+- Current macro environment (Fed policy, inflation, yields, risk sentiment)
+- NQ price structure and recent behaviour
+- Tech sector sentiment
+
+Provide a detailed HTF bias analysis. Respond with ONLY a valid JSON object, no markdown:
+
+{
+  "overall_bias": "Bullish" or "Bearish" or "Neutral",
+  "confidence": 0-100,
+  "summary": "3-4 sentences summarising the macro picture and what it means for NQ specifically",
+  "news_articles_used": number of articles you considered,
+  "timeframes": {
+    "4H": { "bias": "Bullish/Bearish/Neutral", "strength": 0-100, "reason": "specific ICT + macro reason" },
+    "1H": { "bias": "Bullish/Bearish/Neutral", "strength": 0-100, "reason": "specific reason" },
+    "15M": { "bias": "Bullish/Bearish/Neutral", "strength": 0-100, "reason": "specific reason" }
+  },
+  "news_drivers": [
+    { "headline": "shortened headline from the news", "source": "source name", "impact": "Bullish/Bearish/Neutral", "reason": "specific impact on NQ", "emoji": "emoji" }
+  ],
+  "key_levels": {
+    "watch_above": ["e.g. 19850 — EQH / liquidity target"],
+    "watch_below": ["e.g. 19200 — EQL / discount FVG"]
+  },
+  "session_bias": {
+    "london": "Bullish/Bearish/Neutral",
+    "london_reason": "brief reason",
+    "nyam": "Bullish/Bearish/Neutral",
+    "nyam_reason": "brief reason",
+    "nypm": "Bullish/Bearish/Neutral",
+    "nypm_reason": "brief reason"
+  },
+  "trade_plan": [
+    { "type": "bull", "text": "specific actionable idea for bulls" },
+    { "type": "bear", "text": "specific actionable idea for bears" },
+    { "type": "warn", "text": "key risk or level to watch" }
+  ],
+  "macro_factors": {
+    "fed_stance": "Hawkish/Neutral/Dovish",
+    "risk_sentiment": "Risk-On/Risk-Off/Neutral",
+    "vix_tone": "Low/Elevated/High",
+    "dollar_tone": "Strong/Neutral/Weak"
+  }
+}`;
+
+  try {
+    // Use a CORS-friendly proxy for the AI call
+    const aiPayload = JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://api.anthropic.com/v1/messages');
+    const res = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': 'sk-ant-placeholder',
+        'anthropic-version': '2023-06-01'
+      },
+      body: aiPayload
+    });
+
+    const data = await res.json();
+    stopSteps();
+
+    let text = '';
+    for (const block of (data.content || [])) {
+      if (block.type === 'text') text += block.text;
+    }
+
+    let analysis;
+    try {
+      const clean = text.replace(/```json|```/g,'').trim();
+      const match = clean.match(/\{[\s\S]*\}/);
+      analysis = JSON.parse(match ? match[0] : clean);
+    } catch(e) {
+      analysis = null;
+    }
+
+    if (!analysis) {
+      renderError('AI returned an unexpected response. Please try again.');
+    } else {
+      renderResults(analysis, articles.length, dateStr, timeStr);
+    }
+
+  } catch(err) {
+    stopSteps();
+    renderError('Could not connect to AI. Check your internet connection and try again.');
+    console.error(err);
+  }
+
+  loading.classList.remove('show');
+  document.getElementById('newsCount').style.display = 'none';
+  btn.disabled = false;
+}
+
+function renderError(msg) {
+  const r = document.getElementById('results');
+  r.innerHTML = `<div class="error-card">⚠️ ${msg}</div>`;
+  r.classList.add('show');
+}
+
+function renderResults(a, articleCount, dateStr, timeStr) {
+  const overall = bc(a.overall_bias);
+  const tfs = a.timeframes || {};
+  const sb = a.session_bias || {};
+  const mf = a.macro_factors || {};
+
+  // Timeframes
+  const tfHTML = ['4H','1H','15M'].map(tf => {
+    const t = tfs[tf] || { bias:'Neutral', strength:50, reason:'No data' };
+    const tc = bc(t.bias);
+    return `<div class="tf-card">
+      <div class="tf-lbl">${tf} Timeframe</div>
+      <div class="tf-bias ${tc}">${be(t.bias)} ${t.bias}</div>
+      <div class="tf-reason">${t.reason}</div>
+      <div class="tf-bar-wrap"><div class="tf-bar ${tc}" style="width:${t.strength||50}%"></div></div>
+    </div>`;
+  }).join('');
+
+  // News drivers
+  const newsHTML = (a.news_drivers || []).slice(0,6).map(n => {
+    const nc = bc(n.impact);
+    return `<div class="news-item">
+      <div class="news-icon ${nc}">${n.emoji||'📰'}</div>
+      <div class="news-body">
+        <div class="news-source">${n.source||'News'}</div>
+        <div class="news-headline">${n.headline}</div>
+        <div class="news-impact-txt">${n.reason}</div>
+      </div>
+      <div class="news-tag ${nc}">${n.impact}</div>
+    </div>`;
+  }).join('');
+
+  // Key levels
+  const above = (a.key_levels?.watch_above||[]).map(l =>
+    `<div class="info-row"><span class="info-key">${l}</span><span class="info-val bull">▲</span></div>`
+  ).join('') || '<div class="info-row"><span class="info-key" style="color:var(--muted)">Check TradingView</span></div>';
+  const below = (a.key_levels?.watch_below||[]).map(l =>
+    `<div class="info-row"><span class="info-key">${l}</span><span class="info-val bear">▼</span></div>`
+  ).join('') || '<div class="info-row"><span class="info-key" style="color:var(--muted)">Check TradingView</span></div>';
+
+  // Sessions
+  const sessHTML = [
+    ['london','London AM'],
+    ['nyam','NY AM'],
+    ['nypm','NY PM']
+  ].map(([k,l]) => {
+    const bias = sb[k]||'Neutral';
+    const sc = bc(bias);
+    const colMap = {bull:'var(--win)',bear:'var(--loss)',neut:'var(--neutral)'};
+    return `<div class="info-row">
+      <span class="info-key">${l}</span>
+      <span class="info-val" style="color:${colMap[sc]}">${be(bias)} ${bias}</span>
+    </div>`;
+  }).join('');
+
+  // Macro
+  const macroHTML = [
+    ['Fed Stance', mf.fed_stance||'—', mf.fed_stance==='Dovish'?'bull':mf.fed_stance==='Hawkish'?'bear':'neut'],
+    ['Risk Sentiment', mf.risk_sentiment||'—', mf.risk_sentiment==='Risk-On'?'bull':mf.risk_sentiment==='Risk-Off'?'bear':'neut'],
+    ['VIX Tone', mf.vix_tone||'—', mf.vix_tone==='Low'?'bull':mf.vix_tone==='High'?'bear':'neut'],
+    ['Dollar', mf.dollar_tone||'—', mf.dollar_tone==='Weak'?'bull':mf.dollar_tone==='Strong'?'bear':'neut'],
+  ].map(([k,v,c]) =>
+    `<div class="info-row"><span class="info-key">${k}</span><span class="info-val ${c}">${v}</span></div>`
+  ).join('');
+
+  // Trade plan
+  const planHTML = (a.trade_plan||[]).map(p =>
+    `<div class="plan-row">
+      <div class="plan-dot ${p.type}"></div>
+      <div class="plan-text">${p.text}</div>
+    </div>`
+  ).join('');
+
+  document.getElementById('results').innerHTML = `
+    <div class="ts-bar">
+      <div class="ts-left">
+        <span class="ts-lbl">Generated ${dateStr} · ${timeStr}</span>
+        <span class="ts-articles">✓ ${articleCount} live news articles analysed</span>
+      </div>
+      <button class="refresh-btn" onclick="runAnalysis()">↻ Re-analyse</button>
+    </div>
+
+    <!-- Verdict -->
+    <div class="verdict ${overall}">
+      <div class="verdict-row">
+        <div>
+          <div class="verdict-lbl">Overall NQ Bias</div>
+          <div class="verdict-big ${overall}">${be(a.overall_bias)} ${a.overall_bias}</div>
+        </div>
+        <div class="verdict-right">
+          <div class="conf-num">${a.confidence}%</div>
+          <div class="conf-lbl">Confidence</div>
+        </div>
+      </div>
+      <div class="verdict-summary">${a.summary}</div>
+      <div class="news-sourced">⚡ Based on ${a.news_articles_used||articleCount} live articles</div>
+    </div>
+
+    <!-- HTF -->
+    <div class="sec-title">HTF Bias Breakdown</div>
+    <div class="tf-grid">${tfHTML}</div>
+
+    <!-- News -->
+    <div class="sec-title">Live News Drivers</div>
+    <div class="news-list">${newsHTML}</div>
+
+    <!-- Bottom grid -->
+    <div class="bottom-grid">
+      <div class="info-card">
+        <div class="info-title">Watch Above</div>
+        ${above}
+      </div>
+      <div class="info-card">
+        <div class="info-title">Watch Below</div>
+        ${below}
+      </div>
+      <div class="info-card">
+        <div class="info-title">Session Bias</div>
+        ${sessHTML}
+      </div>
+      <div class="info-card">
+        <div class="info-title">Macro Environment</div>
+        ${macroHTML}
+      </div>
+    </div>
+
+    <!-- Trade plan -->
+    <div class="sec-title">Trade Plan</div>
+    <div class="info-card" style="margin-bottom:16px;">
+      ${planHTML}
+    </div>
+
+    <div class="disclaimer">
+      ⚠️ AI analysis based on live news headlines and macro context — not financial advice.<br>
+      Always confirm bias with your own chart analysis before entering any trade.
+    </div>
+  `;
+
+  document.getElementById('results').classList.add('show');
+}
+</script>
+</body>
+</html>
