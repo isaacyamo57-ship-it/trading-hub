@@ -355,8 +355,16 @@
 
   <!-- Header -->
   <div class="header">
-    <div class="header-tag">NQ Futures · ICT Framework · Apex Funded</div>
-    <div class="header-name">Trading Hub</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:16px;">
+      <!-- Logo mark -->
+      <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#c9a84c 0%,#8a6d2a 100%);display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;box-shadow:0 4px 20px rgba(201,168,76,0.25);">
+        <span style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#080601;letter-spacing:-0.04em;">IA</span>
+      </div>
+      <div style="text-align:left;">
+        <div class="header-tag" style="text-align:left;margin-bottom:4px;">NQ Futures · ICT Framework · Apex Funded</div>
+        <div class="header-name" style="line-height:1;">Trading Hub</div>
+      </div>
+    </div>
     <div class="header-sub">Isaac's personal trading operating system</div>
   </div>
 
@@ -394,7 +402,12 @@
     <!-- Journal -->
     <a class="app-card card-journal" href="https://trading-hub-mu.vercel.app/journal.html" target="_blank">
       <div class="card-top">
-        <div class="card-icon">📊</div>
+        <div class="card-icon" style="position:relative;">
+          <span style="font-size:20px;">📊</span>
+          <div style="position:absolute;bottom:-4px;right:-4px;width:16px;height:16px;border-radius:4px;background:linear-gradient(135deg,#c9a84c,#8a6d2a);display:flex;align-items:center;justify-content:center;">
+            <span style="font-family:'Syne',sans-serif;font-size:7px;font-weight:800;color:#080601;">IA</span>
+          </div>
+        </div>
         <div class="card-label">Tool 01</div>
         <div class="card-title">NQ Journal</div>
         <div class="card-desc">Log trades, track performance, analyse your edge. Built around your ICT + DodgyDD model with full analytics and calendar.</div>
@@ -418,7 +431,12 @@
     <!-- Bias Engine -->
     <a class="app-card card-bias" href="https://trading-hub-mu.vercel.app/bias.html" target="_blank">
       <div class="card-top">
-        <div class="card-icon">⚡</div>
+        <div class="card-icon" style="position:relative;">
+          <span style="font-size:20px;">⚡</span>
+          <div style="position:absolute;bottom:-4px;right:-4px;width:16px;height:16px;border-radius:4px;background:linear-gradient(135deg,#4daa7d,#2d7a5a);display:flex;align-items:center;justify-content:center;">
+            <span style="font-family:'Syne',sans-serif;font-size:7px;font-weight:800;color:#080601;">IA</span>
+          </div>
+        </div>
         <div class="card-label">Tool 02</div>
         <div class="card-title">Bias Engine</div>
         <div class="card-desc">AI-powered pre-session HTF bias analysis. Pulls live financial news and reasons through 4H, 1H and 15M direction for NQ.</div>
@@ -461,6 +479,16 @@
   </div>
 
   <!-- Footer -->
+  <!-- Analysis Log from Bias Engine -->
+  <div style="margin-top:32px;">
+    <div style="font-family:'Fragment Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      Analysis Log
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="cursor:pointer;color:var(--gold);" onclick="clearLog()">Clear</span>
+    </div>
+    <div id="hubLog" style="display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+
   <div class="footer">
     Isaac's Trading Hub · NQ Futures · ICT 2022 + DodgyDD Model · Apex Trader Funding
   </div>
@@ -477,5 +505,29 @@
   tick(); setInterval(tick, 1000);
 </script>
 
+<script>
+function renderHubLog() {
+  var log = JSON.parse(localStorage.getItem("bias_log") || "[]");
+  var el = document.getElementById("hubLog");
+  if (!el) return;
+  if (!log.length) {
+    el.innerHTML = "<div style='font-size:10px;color:var(--muted);padding:8px 0;'>No analyses yet — open Bias Engine to start</div>";
+    return;
+  }
+  function bc(b) { return b==="Bullish"?"var(--win)":b==="Bearish"?"var(--loss)":"var(--neutral)"; }
+  var html = "";
+  log.slice(0,5).forEach(function(e) {
+    html += "<div style='background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:14px;'>";
+    html += "<div style='font-size:9px;color:var(--muted);white-space:nowrap;'>" + e.date + " " + e.time + "</div>";
+    html += "<div style='font-size:13px;font-weight:700;color:" + bc(e.bias) + ";white-space:nowrap;'>" + e.bias + "</div>";
+    html += "<div style='font-size:10px;color:var(--gold);white-space:nowrap;'>" + e.confidence + "%</div>";
+    html += "<div style='font-size:11px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>" + (e.summary||"") + "</div>";
+    html += "</div>";
+  });
+  el.innerHTML = html;
+}
+function clearLog() { localStorage.removeItem("bias_log"); renderHubLog(); }
+renderHubLog();
+</script>
 </body>
 </html>
