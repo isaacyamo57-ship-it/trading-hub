@@ -65,7 +65,10 @@ export default async function handler(req, res) {
   const CLAUDE_KEY  = process.env.ANTHROPIC_API_KEY;
   const PERIGON_KEY = process.env.PERIGON_API_KEY;
 
-  if (!CLAUDE_KEY) { res.status(500).json({ error: 'ANTHROPIC_API_KEY missing in Vercel environment variables.' }); return; }
+  if (!CLAUDE_KEY) {
+    res.status(500).json({ error: 'ANTHROPIC_API_KEY missing in Vercel environment variables.' });
+    return;
+  }
 
   const articles = [];
   const seen = new Set();
@@ -104,10 +107,11 @@ export default async function handler(req, res) {
   const sources = [...new Set(finalArticles.map(a => a.source))].join(', ');
 
   const userPrompt = `Analyse NQ futures HTF bias. Time: ${new Date().toUTCString()}
-News (${finalArticles.length} articles): ${newsContext.substring(0, 1800)}
+News (${finalArticles.length} articles from ${sources}):
+${newsContext.substring(0, 1800)}
 
-Output ONLY this JSON, nothing else before or after:
-{"overall_bias":"Bullish","confidence":70,"summary":"2 sentences on macro and NQ.","news_articles_used":${finalArticles.length},"session_score":7,"best_session":"NY AM","best_session_reason":"one line reason","sentiment_breakdown":{"bullish_pct":60,"bearish_pct":25,"neutral_pct":15},"risk_meters":{"tariff_risk":"High","geopolitical_risk":"Medium","fed_risk":"Low","overall_risk":"Medium"},"correlations":{"dollar":"Bearish for NQ","vix":"Elevated - caution","tech_sector":"Strong - supports NQ","bonds":"Neutral"},"timeframes":{"4H":{"bias":"Bullish","strength":72,"reason":"one line"},"1H":{"bias":"Bullish","strength":65,"reason":"one line"},"15M":{"bias":"Neutral","strength":50,"reason":"one line"}},"news_drivers":[{"headline":"real headline","source":"source","impact":"Bullish","reason":"NQ impact","emoji":"📈"},{"headline":"real headline 2","source":"source","impact":"Bearish","reason":"NQ impact","emoji":"📉"},{"headline":"real headline 3","source":"source","impact":"Neutral","reason":"NQ impact","emoji":"📊"}],"key_levels":{"watch_above":["19850 - EQH"],"watch_below":["19200 - EQL"]},"session_bias":{"london":"Bullish","london_reason":"one line","nyam":"Bullish","nyam_reason":"one line","nypm":"Neutral","nypm_reason":"one line"},"trade_plan":[{"type":"bull","text":"long idea"},{"type":"bear","text":"short idea"},{"type":"warn","text":"main risk"}],"macro_factors":{"fed_stance":"Hawkish","risk_sentiment":"Risk-Off","vix_tone":"Elevated","dollar_tone":"Strong"}}`;
+Output ONLY this JSON object, nothing else:
+{"overall_bias":"Bullish","confidence":70,"summary":"2 sentences on macro and NQ bias.","news_articles_used":${finalArticles.length},"session_score":7,"best_session":"NY AM","best_session_reason":"one line reason why","sentiment_breakdown":{"bullish_pct":60,"bearish_pct":25,"neutral_pct":15},"risk_meters":{"tariff_risk":"High","geopolitical_risk":"Medium","fed_risk":"Low","overall_risk":"Medium"},"correlations":{"dollar":"Bearish for NQ","vix":"Elevated - caution","tech_sector":"Strong - supports NQ","bonds":"Neutral"},"timeframes":{"4H":{"bias":"Bullish","strength":72,"reason":"one line"},"1H":{"bias":"Bullish","strength":65,"reason":"one line"},"15M":{"bias":"Neutral","strength":50,"reason":"one line"}},"news_drivers":[{"headline":"real headline from news","source":"source name","impact":"Bullish","reason":"NQ impact","emoji":"📈"},{"headline":"real headline 2","source":"source","impact":"Bearish","reason":"NQ impact","emoji":"📉"},{"headline":"real headline 3","source":"source","impact":"Neutral","reason":"NQ impact","emoji":"📊"}],"key_levels":{"watch_above":["19850 - EQH"],"watch_below":["19200 - EQL"]},"session_bias":{"london":"Bullish","london_reason":"one line","nyam":"Bullish","nyam_reason":"one line","nypm":"Neutral","nypm_reason":"one line"},"trade_plan":[{"type":"bull","text":"specific long idea"},{"type":"bear","text":"specific short idea"},{"type":"warn","text":"main risk today"}],"macro_factors":{"fed_stance":"Hawkish","risk_sentiment":"Risk-Off","vix_tone":"Elevated","dollar_tone":"Strong"}}`;
 
   const body = JSON.stringify({
     model: 'claude-haiku-4-5-20251001',
@@ -119,7 +123,12 @@ Output ONLY this JSON, nothing else before or after:
   try {
     const aiRes = await httpsPost(
       'api.anthropic.com', '/v1/messages',
-      { 'Content-Type': 'application/json', 'x-api-key': CLAUDE_KEY, 'anthropic-version': '2023-06-01', 'Content-Length': Buffer.byteLength(body) },
+      {
+        'Content-Type': 'application/json',
+        'x-api-key': CLAUDE_KEY,
+        'anthropic-version': '2023-06-01',
+        'Content-Length': Buffer.byteLength(body)
+      },
       body
     );
 
@@ -148,6 +157,7 @@ Output ONLY this JSON, nothing else before or after:
     }
 
     res.status(200).json({ analysis, articleCount: finalArticles.length, sources });
+
   } catch(e) {
     res.status(500).json({ error: 'Server error: ' + e.message });
   }
