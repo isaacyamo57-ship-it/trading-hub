@@ -477,37 +477,24 @@ Provide a detailed HTF bias analysis. Respond with ONLY a valid JSON object, no 
 }`;
 
   try {
-    // Use a CORS-friendly proxy for the AI call
-    const aiPayload = JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      messages: [{ role: 'user', content: prompt }]
-    });
-
-    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://api.anthropic.com/v1/messages');
-    const res = await fetch(proxyUrl, {
+    // Call Vercel serverless function
+    const res = await fetch('/api/analyse', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': 'sk-ant-placeholder',
-        'anthropic-version': '2023-06-01'
-      },
-      body: aiPayload
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}'
     });
 
-    const data = await res.json();
+    const json = await res.json();
     stopSteps();
 
-    let text = '';
-    for (const block of (data.content || [])) {
-      if (block.type === 'text') text += block.text;
-    }
+    if (json.error) { renderError(json.error); loading.classList.remove('show'); btn.disabled=false; return; }
 
-    let analysis;
+    let analysis = json.analysis;
+    let articleCount = json.articleCount || 0;
+    document.getElementById('newsCount') && (document.getElementById('newsCount').textContent = '✓ ' + articleCount + ' live articles fetched');
+
     try {
-      const clean = text.replace(/```json|```/g,'').trim();
-      const match = clean.match(/\{[\s\S]*\}/);
-      analysis = JSON.parse(match ? match[0] : clean);
+      const dummy = analysis; // already parsed
     } catch(e) {
       analysis = null;
     }
