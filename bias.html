@@ -60,10 +60,25 @@ body{font-family:'Unbounded',sans-serif;background:var(--bg);color:var(--text);m
 .sec-lbl{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .sec-lbl::after{content:'';flex:1;height:1px;background:var(--border);}
 .cal-table{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-.cal-head{display:grid;grid-template-columns:80px 70px 50px 1fr 80px 80px 80px;padding:8px 16px;border-bottom:1px solid var(--border);}
-.cal-head-cell{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;}
+.cal-head{display:grid;grid-template-columns:90px 70px 60px 1fr 90px 90px 90px;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--bg3);}
+.cal-head-cell{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;}
 .cal-head-cell.r{text-align:right;}
-#calBody{min-height:50px;}
+/* calBody is now a plain block — rows stack naturally */
+#calBody{display:block;}
+
+.cal-row{display:grid;grid-template-columns:90px 70px 60px 1fr 90px 90px 90px;padding:13px 20px;border-bottom:1px solid rgba(255,255,255,0.04);align-items:center;transition:background 0.15s;}
+.cal-row:last-child{border-bottom:none;}
+.cal-row:hover{background:rgba(255,255,255,0.02);}
+.cal-row.high-impact{border-left:2px solid #bf6060;}
+.cal-row.med-impact{border-left:2px solid #c9a84c;}
+.cal-cell{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);}
+.cal-cell.r{text-align:right;}
+.cal-cell.time{color:var(--text);font-size:12px;}
+.cal-cell.event{font-size:12px;color:var(--text);font-family:'Unbounded',sans-serif;font-size:11px;font-weight:500;}
+.cal-cell.actual-val{color:var(--text);font-weight:600;}
+.impact-pill{display:inline-flex;align-items:center;gap:5px;}
+.impact-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.impact-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.08em;}
 
 /* MAIN */
 .main{max-width:1100px;margin:0 auto;padding:0 24px 80px;}
@@ -157,7 +172,13 @@ body{font-family:'Unbounded',sans-serif;background:var(--bg);color:var(--text);m
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{0%,100%{opacity:0.4}50%{opacity:1}}
-@media(max-width:700px){.verdict-hero,.tf-grid,.ict-grid,.two-grid{grid-template-columns:1fr;}.hero{grid-template-columns:1fr;}}
+@media(max-width:700px){
+  .verdict-hero,.tf-grid,.ict-grid,.two-grid{grid-template-columns:1fr;}
+  .hero{grid-template-columns:1fr;}
+  .cal-head{grid-template-columns:70px 50px 40px 1fr 60px;}
+  .cal-row{grid-template-columns:70px 50px 40px 1fr 60px;}
+  .cal-hide-mob{display:none;}
+}
 </style>
 </head>
 <body>
@@ -226,15 +247,15 @@ body{font-family:'Unbounded',sans-serif;background:var(--bg);color:var(--text);m
   <div class="cal-table">
     <div class="cal-head">
       <div class="cal-head-cell">Time</div>
-      <div class="cal-head-cell">Currency</div>
+      <div class="cal-head-cell">Ccy</div>
       <div class="cal-head-cell">Impact</div>
       <div class="cal-head-cell">Event</div>
-      <div class="cal-head-cell r">Forecast</div>
-      <div class="cal-head-cell r">Previous</div>
+      <div class="cal-head-cell r cal-hide-mob">Forecast</div>
+      <div class="cal-head-cell r cal-hide-mob">Previous</div>
       <div class="cal-head-cell r">Actual</div>
     </div>
-    <div id="calBody" style="min-height:52px;display:flex;align-items:center;justify-content:center;">
-      <div style="font-family:'DM Mono',monospace;font-size:11px;color:#635f5a;">Loading calendar...</div>
+    <div id="calBody">
+      <div style="padding:20px;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:#635f5a;">Loading calendar...</div>
     </div>
   </div>
   <div style="font-family:'DM Mono',monospace;font-size:8px;color:#635f5a;margin-top:6px;text-align:right;">Source: Forex Factory · USD only · High & Medium impact</div>
@@ -298,7 +319,7 @@ function bc(b){var l=(b||'').toLowerCase();return l==='bullish'?'bull':l==='bear
 function be(b){var l=(b||'').toLowerCase();return l==='bullish'?'▲':l==='bearish'?'▼':'◆';}
 function bl(b){var l=(b||'').toLowerCase();return l==='bullish'?'Bullish':l==='bearish'?'Bearish':'Neutral';}
 
-// Analysis log (must be declared before renderResults)
+// Analysis log
 var analysisLog = JSON.parse(localStorage.getItem('bias_log')||'[]');
 
 // Run Analysis
@@ -341,7 +362,6 @@ function renderResults(a, articleCount) {
   var mf=a.macro_factors||{};
   var conf=a.confidence||50;
 
-  // ── Pre-session score ──
   var score=a.session_score||5;
   var scoreColor=score>=7?'#4daa7d':score>=5?'#c9a84c':'#bf6060';
   var scoreLabel=score>=7?'Strong conditions — look for setups':score>=5?'Moderate — be selective':'Poor conditions — stand aside';
@@ -350,17 +370,14 @@ function renderResults(a, articleCount) {
     scoreDots+='<div style="width:16px;height:6px;border-radius:2px;background:'+(d<=score?scoreColor:'rgba(255,255,255,0.07)')+'"></div>';
   }
 
-  // ── Best session ──
   var bestSess=a.best_session||'NY AM';
   var bestReason=a.best_session_reason||'Highest liquidity window';
 
-  // ── Sentiment breakdown ──
   var sent=a.sentiment_breakdown||{};
   var bullPct=sent.bullish_pct||50;
   var neutPct=sent.neutral_pct||30;
   var bearPct=sent.bearish_pct||20;
 
-  // ── Risk meters ──
   var rm=a.risk_meters||{};
   function riskColor(v){v=(v||'').toLowerCase();return v==='high'?'#bf6060':v==='medium'?'#c9a84c':'#4daa7d';}
   function riskPct(v){v=(v||'').toLowerCase();return v==='high'?85:v==='medium'?50:25;}
@@ -373,7 +390,6 @@ function renderResults(a, articleCount) {
     riskHTML+='</div>';
   });
 
-  // ── Correlations ──
   var corr=a.correlations||{};
   var corrHTML='';
   [['Dollar Index',corr.dollar],['VIX',corr.vix],['Tech Sector',corr.tech_sector],['Bonds',corr.bonds]].forEach(function(row){
@@ -382,7 +398,6 @@ function renderResults(a, articleCount) {
     corrHTML+='<div class="ic-row"><span class="ic-key">'+row[0]+'</span><span class="ic-val '+cc+'" style="font-size:9px;text-align:right;max-width:60%;">'+v+'</span></div>';
   });
 
-  // ── Bias comparison (vs previous from localStorage) ──
   var prevEntry=analysisLog.length>0?analysisLog[0]:null;
   var prevHTML='';var flipWarning='';
   if(prevEntry){
@@ -395,7 +410,6 @@ function renderResults(a, articleCount) {
     prevHTML='<div class="ic-row"><span class="ic-key">Previous</span><span class="ic-val neut">No prior data</span></div>';
   }
 
-  // ── TF cards ──
   var tfHTML='';
   ['4H','1H','15M'].forEach(function(tf){
     var t=tfs[tf]||{bias:'Neutral',strength:50,reason:'No data'};
@@ -409,7 +423,6 @@ function renderResults(a, articleCount) {
     tfSnap+='<div class="tf-snap-row"><span class="tf-snap-lbl">'+tf+'</span><span class="tf-snap-val '+tc+'">'+be(t.bias)+' '+bl(t.bias)+'</span></div>';
   });
 
-  // ── ICT conditions ──
   var htfAlign=tfs['4H']&&tfs['1H']&&tfs['4H'].bias===tfs['1H'].bias;
   var liqSwept=conf>55;var hasDisp=conf>60;var mssConf=conf>65;var ifvgForm=conf>60;var targetClear=conf>50;
   function chk(c){return '<div class="ict-check '+(c?'yes':'wait')+'">'+(c?'✓':'?')+'</div>';}
@@ -424,20 +437,17 @@ function renderResults(a, articleCount) {
   });
   ictHTML+='<div class="ict-item"><div class="ict-check wait">ℹ</div><div class="ict-text"><strong>Model:</strong> ICT 2022 + DodgyDD IFVG Entry</div></div></div>';
 
-  // ── News drivers ──
   var newsHTML='';
   (a.news_drivers||[]).slice(0,5).forEach(function(n){
     var nc=bc(n.impact);
     newsHTML+='<div class="news-item"><div class="news-icon '+nc+'">'+(n.emoji||'📰')+'</div><div class="news-body"><div class="news-src">'+(n.source||'News')+'</div><div class="news-hl">'+n.headline+'</div><div class="news-why">'+n.reason+'</div></div><div class="news-badge '+nc+'">'+bl(n.impact)+'</div></div>';
   });
 
-  // ── Key levels ──
   var above='';(a.key_levels&&a.key_levels.watch_above||[]).forEach(function(l){above+='<div class="level-item"><span class="level-name">'+l+'</span><span class="level-dir bull">▲</span></div>';});
   if(!above)above='<div class="level-item"><span class="level-name" style="color:var(--muted)">Check TradingView</span></div>';
   var below='';(a.key_levels&&a.key_levels.watch_below||[]).forEach(function(l){below+='<div class="level-item"><span class="level-name">'+l+'</span><span class="level-dir bear">▼</span></div>';});
   if(!below)below='<div class="level-item"><span class="level-name" style="color:var(--muted)">Check TradingView</span></div>';
 
-  // ── Macro & sessions ──
   var macroHTML='';
   [['Fed Stance',mf.fed_stance,'Dovish','Hawkish'],['Risk Sentiment',mf.risk_sentiment,'Risk-On','Risk-Off'],['VIX Tone',mf.vix_tone,'Low','High'],['Dollar',mf.dollar_tone,'Weak','Strong']].forEach(function(row){
     var c=row[2]===row[1]?'bull':row[3]===row[1]?'bear':'neut';
@@ -449,17 +459,14 @@ function renderResults(a, articleCount) {
     sessHTML+='<div class="ic-row"><span class="ic-key">'+pair[0]+'</span><span class="ic-val '+sc+'">'+be(bias)+' '+bl(bias)+'</span></div>';
   });
 
-  // ── Trade plan ──
   var planHTML='';
   (a.trade_plan||[]).forEach(function(p){
     var icons={bull:'▲',bear:'▼',warn:'⚠'};
     planHTML+='<div class="plan-row"><div class="plan-icon '+p.type+'">'+(icons[p.type]||'•')+'</div><div class="plan-text">'+p.text+'</div></div>';
   });
 
-  // ── Render ──
   document.getElementById('results').innerHTML =
     '<div class="ts-bar"><div><div class="ts-date">'+dateStr+' · '+timeStr+'</div><div class="ts-count">✓ '+articleCount+' live articles analysed</div></div><button class="reanalyse" onclick="runAnalysis()">↻ Re-analyse</button></div>'+
-
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">'+
       '<div style="background:#0d0d0f;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:20px;">'+
         '<div style="font-family:DM Mono,monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:#635f5a;margin-bottom:12px;">Pre-Session Score</div>'+
@@ -473,7 +480,6 @@ function renderResults(a, articleCount) {
         '<div style="font-family:DM Mono,monospace;font-size:10px;color:#b0aca6;line-height:1.5;">'+bestReason+'</div>'+
       '</div>'+
     '</div>'+
-
     '<div style="background:#0d0d0f;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px 20px;margin-bottom:16px;">'+
       '<div style="font-family:DM Mono,monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:#635f5a;margin-bottom:12px;">News Sentiment — '+articleCount+' Articles</div>'+
       '<div style="display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:8px;">'+
@@ -487,17 +493,14 @@ function renderResults(a, articleCount) {
         '<div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:2px;background:#bf6060;"></div><span style="font-family:DM Mono,monospace;font-size:9px;color:#bf6060;">'+bearPct+'% Bearish</span></div>'+
       '</div>'+
     '</div>'+
-
     '<div class="verdict-hero">'+
       '<div class="vh-cell"><div class="vh-lbl">Overall NQ Bias</div><div class="vh-big '+overall+'">'+be(a.overall_bias)+' '+bl(a.overall_bias)+'</div><div class="vh-sub">'+a.summary+'</div><div class="vh-articles">⚡ '+articleCount+' live articles</div></div>'+
       '<div class="vh-cell"><div class="vh-lbl">AI Confidence</div><div class="vh-conf">'+conf+'%</div><div class="conf-bar-wrap"><div class="conf-bar" id="confBar"></div></div><div class="vh-sub" style="margin-top:8px;">Based on news sentiment, macro alignment and HTF structure</div></div>'+
       '<div class="vh-cell"><div class="vh-lbl">Timeframe Snapshot</div>'+tfSnap+'</div>'+
     '</div>'+
-
     '<div class="sec-lbl">HTF Bias Breakdown</div><div class="tf-grid">'+tfHTML+'</div>'+
     '<div class="sec-lbl">ICT Setup Conditions</div><div class="ict-grid">'+ictHTML+'</div>'+
     '<div class="sec-lbl">Live News Drivers</div><div class="news-list">'+newsHTML+'</div>'+
-
     '<div class="sec-lbl">Key Levels & Sessions</div>'+
     '<div class="two-grid">'+
       '<div class="info-card"><div class="ic-lbl">Watch Above</div>'+above+'</div>'+
@@ -505,21 +508,17 @@ function renderResults(a, articleCount) {
       '<div class="info-card"><div class="ic-lbl">Session Bias</div>'+sessHTML+'</div>'+
       '<div class="info-card"><div class="ic-lbl">Macro Environment</div>'+macroHTML+'</div>'+
     '</div>'+
-
     '<div class="sec-lbl">Trade Plan</div><div class="plan-card">'+planHTML+'</div>'+
-
     '<div class="sec-lbl">Risk Meters & Correlations</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">'+
       '<div class="info-card"><div class="ic-lbl">Risk Assessment</div>'+riskHTML+'</div>'+
       '<div class="info-card"><div class="ic-lbl">NQ Correlations</div>'+corrHTML+'</div>'+
     '</div>'+
-
     '<div class="sec-lbl">Bias Comparison</div>'+
     '<div style="background:#0d0d0f;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px 20px;margin-bottom:16px;">'+
       '<div class="ic-row"><span class="ic-key">Current</span><span style="font-family:Unbounded,sans-serif;font-size:13px;font-weight:700;color:'+(overall==='bull'?'#4daa7d':overall==='bear'?'#bf6060':'#5d8fc4')+';">'+bl(a.overall_bias)+'</span></div>'+
       prevHTML+flipWarning+
     '</div>'+
-
     '<div class="sec-lbl">Analysis Log</div><div id="changelog"></div>'+
     '<div class="disclaimer" style="margin-top:16px;">⚠️ AI analysis based on live news — not financial advice.<br>Always confirm with your own 4H → 1H → 15M chart analysis. Requires MSS/CISD + IFVG confirmation before entry.</div>';
 
@@ -529,7 +528,7 @@ function renderResults(a, articleCount) {
   renderLog();
 }
 
-// Economic Calendar
+// ── Economic Calendar — stacked list like Forex Factory ──
 async function loadCalendar() {
   var calEl = document.getElementById('calBody');
   if (!calEl) return;
@@ -537,32 +536,56 @@ async function loadCalendar() {
     var res = await fetch('/api/calendar');
     if (!res.ok) throw new Error('Failed');
     var data = await res.json();
+
     var todayStr = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
     var events = data.filter(function(e){
       var eDate = new Date(e.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
       return e.country==='USD' && (e.impact==='High'||e.impact==='Medium') && eDate===todayStr;
     });
+
     if (!events.length) {
-      calEl.innerHTML='<div style="font-family:DM Mono,monospace;font-size:11px;color:#635f5a;padding:16px;text-align:center;">No high/medium USD events today</div>';
+      calEl.innerHTML='<div style="padding:20px;text-align:center;font-family:DM Mono,monospace;font-size:11px;color:#635f5a;">No high/medium USD events today</div>';
       return;
     }
-    var html='';
+
+    // Sort by time
+    events.sort(function(a,b){ return new Date(a.date) - new Date(b.date); });
+
+    var html = '';
     events.forEach(function(e){
-      var ic=e.impact==='High'?'#bf6060':'#c9a84c';
-      var time=e.date?new Date(e.date).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'--';
-      html+='<div style="display:grid;grid-template-columns:80px 70px 50px 1fr 80px 80px 80px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04);align-items:center;">';
-      html+='<div style="font-size:11px;color:#edeae4;">'+time+'</div>';
-      html+='<div style="font-size:11px;color:#c9a84c;font-weight:600;">USD</div>';
-      html+='<div><div style="width:8px;height:8px;border-radius:50%;background:'+ic+';"></div></div>';
-      html+='<div style="font-size:12px;color:#edeae4;">'+e.title+'</div>';
-      html+='<div style="font-size:11px;color:#b0aca6;text-align:right;">'+(e.forecast||'--')+'</div>';
-      html+='<div style="font-size:11px;color:#635f5a;text-align:right;">'+(e.previous||'--')+'</div>';
-      html+='<div style="font-size:11px;color:#edeae4;text-align:right;">'+(e.actual||'--')+'</div>';
-      html+='</div>';
+      var isHigh = e.impact === 'High';
+      var dotColor = isHigh ? '#bf6060' : '#c9a84c';
+      var impactLabel = isHigh ? 'High' : 'Med';
+      var impactColor = isHigh ? '#bf6060' : '#c9a84c';
+      var rowClass = isHigh ? 'cal-row high-impact' : 'cal-row med-impact';
+
+      // Parse time — FF uses EST, show in local + EST
+      var dateObj = new Date(e.date);
+      var timeStr = dateObj.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+
+      // Actual value highlighted if present
+      var actualStr = e.actual || '--';
+      var actualColor = e.actual ? 'var(--text)' : 'var(--muted)';
+
+      // Forecast vs previous — colour actual vs forecast
+      var forecastVal = e.forecast || '--';
+      var previousVal = e.previous || '--';
+
+      html += '<div class="'+rowClass+'">';
+      html += '<div class="cal-cell time">'+timeStr+'</div>';
+      html += '<div class="cal-cell" style="color:#c9a84c;font-weight:600;">USD</div>';
+      html += '<div class="cal-cell"><span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:'+dotColor+';display:inline-block;"></span><span style="font-family:DM Mono,monospace;font-size:9px;color:'+impactColor+';">'+impactLabel+'</span></span></div>';
+      html += '<div class="cal-cell event">'+e.title+'</div>';
+      html += '<div class="cal-cell r cal-hide-mob" style="color:var(--muted);">'+forecastVal+'</div>';
+      html += '<div class="cal-cell r cal-hide-mob" style="color:var(--muted);">'+previousVal+'</div>';
+      html += '<div class="cal-cell r" style="color:'+actualColor+';font-weight:'+(e.actual?'600':'400')+';">'+actualStr+'</div>';
+      html += '</div>';
     });
-    calEl.innerHTML=html;
-  } catch(err){
-    calEl.innerHTML='<div style="font-family:DM Mono,monospace;font-size:11px;color:#635f5a;padding:16px;text-align:center;">Calendar unavailable — check Forex Factory directly</div>';
+
+    calEl.innerHTML = html;
+
+  } catch(err) {
+    calEl.innerHTML='<div style="padding:20px;text-align:center;font-family:DM Mono,monospace;font-size:11px;color:#635f5a;">Calendar unavailable — check Forex Factory directly</div>';
   }
 }
 loadCalendar();
