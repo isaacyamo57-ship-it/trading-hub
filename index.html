@@ -8,198 +8,79 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Fragment+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:      #080809;
-    --bg2:     #0f0f11;
-    --bg3:     #161618;
-    --bg4:     #1e1e21;
-    --border:  rgba(255,255,255,0.07);
-    --border2: rgba(255,255,255,0.14);
-    --text:    #f0ede8;
-    --text2:   #b8b4ae;
-    --muted:   #6b6760;
-    --gold:    #c9a84c;
-    --gold2:   rgba(201,168,76,0.1);
-    --gold3:   rgba(201,168,76,0.2);
-    --win:     #5cb88a;
-    --loss:    #c96a6a;
-    --blue:    #6b9fd4;
+    --bg:#080809;--bg2:#0f0f11;--bg3:#161618;--bg4:#1e1e21;
+    --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
+    --text:#f0ede8;--text2:#b8b4ae;--muted:#6b6760;
+    --gold:#c9a84c;--gold2:rgba(201,168,76,0.1);--gold3:rgba(201,168,76,0.2);
+    --win:#5cb88a;--loss:#c96a6a;--blue:#6b9fd4;
   }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-
-  body {
-    font-family: 'Barlow Condensed', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow-x: hidden;
-  }
-
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image:
-      linear-gradient(rgba(201,168,76,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(201,168,76,0.03) 1px, transparent 1px);
-    background-size: 50px 50px;
-    pointer-events: none; z-index: 0;
-    animation: gridShift 20s linear infinite;
-  }
-
-  @keyframes gridShift {
-    0% { background-position: 0 0; }
-    100% { background-position: 50px 50px; }
-  }
-
-  .orb {
-    position: fixed; border-radius: 50%;
-    filter: blur(80px); pointer-events: none; z-index: 0;
-    animation: orbFloat 8s ease-in-out infinite;
-  }
-  .orb1 { width:400px;height:400px;background:rgba(201,168,76,0.06);top:-100px;left:-100px; }
-  .orb2 { width:300px;height:300px;background:rgba(92,184,138,0.05);bottom:-50px;right:-50px;animation-delay:-4s; }
-  @keyframes orbFloat {
-    0%,100% { transform:translate(0,0); }
-    50% { transform:translate(20px,20px); }
-  }
-
-  .page {
-    position: relative; z-index: 1;
-    max-width: 1000px; margin: 0 auto;
-    padding: 60px 24px 80px;
-    flex: 1; display: flex; flex-direction: column;
-  }
-
-  /* HEADER */
-  .header { text-align:center; margin-bottom:60px; animation:fadeDown 0.7s ease both; }
-  .header-tag {
-    display:inline-flex; align-items:center; gap:8px;
-    font-family:'Fragment Mono',monospace;
-    font-size:9px; letter-spacing:0.25em; text-transform:uppercase; color:var(--gold);
-    margin-bottom:16px;
-  }
-  .header-tag::before, .header-tag::after {
-    content:''; width:40px; height:1px;
-    background:linear-gradient(90deg,transparent,var(--gold)); opacity:0.4;
-  }
-  .header-tag::after { transform:scaleX(-1); }
-  .header-name {
-    font-family:'Barlow Condensed',sans-serif;
-    font-size:clamp(36px,7vw,64px); font-weight:800; letter-spacing:-0.02em; line-height:1;
-    background:linear-gradient(135deg,#f0ede8 0%,#c9a84c 50%,#8a6d2a 100%);
-    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-    margin-bottom:10px;
-  }
-  .header-sub { font-family:'Fragment Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:0.08em; }
-
-  /* STATS BAR */
-  .stats-bar {
-    display:flex; align-items:center; justify-content:center; gap:28px; flex-wrap:wrap;
-    background:var(--bg2); border:1px solid var(--border); border-radius:12px;
-    padding:14px 24px; margin-bottom:48px; animation:fadeUp 0.5s 0.2s ease both;
-  }
-  .sb-item { display:flex; flex-direction:column; align-items:center; gap:2px; }
-  .sb-lbl { font-family:'Fragment Mono',monospace; font-size:8px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
-  .sb-val { font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:700; }
-  .sb-divider { width:1px; height:32px; background:var(--border); }
-  .live-dot {
-    width:6px; height:6px; border-radius:50%; background:var(--win);
-    animation:livePulse 1.5s ease infinite; display:inline-block; margin-right:4px;
-  }
-  @keyframes livePulse {
-    0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(92,184,138,0.4);}
-    50%{opacity:0.7;box-shadow:0 0 0 5px rgba(92,184,138,0);}
-  }
-
-  /* APP CARDS */
-  .apps-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:32px; }
-  .app-card {
-    background:var(--bg2); border:1px solid var(--border); border-radius:18px;
-    overflow:hidden; position:relative; cursor:pointer;
-    transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-    text-decoration:none; display:flex; flex-direction:column;
-    animation:fadeUp 0.6s ease both;
-  }
-  .app-card:nth-child(1){animation-delay:0.1s;}
-  .app-card:nth-child(2){animation-delay:0.2s;}
-  .app-card:hover { transform:translateY(-6px); border-color:var(--border2); box-shadow:0 20px 60px rgba(0,0,0,0.5); }
-  .app-card::before {
-    content:''; position:absolute; top:0; left:0; right:0; height:2px;
-    transition:opacity 0.3s; opacity:0.7;
-  }
-  .app-card:hover::before { opacity:1; }
-  .card-journal::before { background:linear-gradient(90deg,var(--gold),#8a6d2a); }
-  .card-bias::before    { background:linear-gradient(90deg,var(--win),#2d7a5a); }
-
-  .card-top { padding:28px 28px 20px; flex:1; }
-  .card-icon {
-    width:52px; height:52px; border-radius:14px;
-    display:flex; align-items:center; justify-content:center;
-    font-size:22px; margin-bottom:18px; position:relative;
-  }
-  .card-journal .card-icon { background:rgba(201,168,76,0.1); border:1px solid rgba(201,168,76,0.2); }
-  .card-bias .card-icon   { background:rgba(92,184,138,0.1);  border:1px solid rgba(92,184,138,0.2); }
-
-  .card-label { font-family:'Fragment Mono',monospace; font-size:8px; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
-  .card-title { font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:800; letter-spacing:-0.01em; line-height:1; margin-bottom:10px; }
-  .card-journal .card-title { color:var(--gold); }
-  .card-bias .card-title   { color:var(--win);  }
-
-  .card-desc { font-size:13px; color:var(--text2); line-height:1.6; font-weight:400; margin-bottom:16px; }
-  .card-features { display:flex; flex-direction:column; gap:6px; }
-  .card-feature { display:flex; align-items:center; gap:8px; font-family:'Fragment Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:0.04em; }
-  .cf-dot { width:4px; height:4px; border-radius:50%; flex-shrink:0; }
-  .card-journal .cf-dot { background:var(--gold); }
-  .card-bias .cf-dot    { background:var(--win);  }
-
-  .card-bottom {
-    padding:16px 28px; border-top:1px solid var(--border);
-    display:flex; align-items:center; justify-content:space-between; background:var(--bg3);
-  }
-  .card-status { font-family:'Fragment Mono',monospace; font-size:9px; letter-spacing:0.1em; text-transform:uppercase; display:flex; align-items:center; gap:6px; }
-  .status-dot { width:5px; height:5px; border-radius:50%; background:var(--win); animation:livePulse 2s ease infinite; }
-  .card-arrow { font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:700; transition:transform 0.2s; }
-  .card-journal .card-arrow { color:var(--gold); }
-  .card-bias .card-arrow    { color:var(--win);  }
-  .app-card:hover .card-arrow { transform:translateX(4px); }
-
-  /* BOTTOM CARDS */
-  .bottom-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; animation:fadeUp 0.6s 0.3s ease both; }
-  .info-card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:18px 20px; transition:border-color 0.2s; }
-  .info-card:hover { border-color:var(--border2); }
-  .ic-lbl { font-family:'Fragment Mono',monospace; font-size:8px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
-  .ic-val { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:700; line-height:1; margin-bottom:4px; }
-  .ic-sub { font-family:'Fragment Mono',monospace; font-size:9px; color:var(--muted); }
-
-  /* SECTION LABEL */
-  .section-lbl {
-    font-family:'Fragment Mono',monospace; font-size:9px; letter-spacing:0.18em;
-    text-transform:uppercase; color:var(--muted);
-    display:flex; align-items:center; gap:10px; margin-bottom:12px;
-  }
-  .section-lbl-line { flex:1; height:1px; background:var(--border); }
-
-  /* WEEKLY REPORT */
-  .report-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:12px; }
-  .report-card { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
-  .report-lbl { font-family:'Fragment Mono',monospace; font-size:8px; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:6px; }
-  .report-val { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:700; }
-
-  /* FOOTER */
-  .footer { text-align:center; margin-top:48px; font-family:'Fragment Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:0.08em; animation:fadeUp 0.5s 0.4s ease both; }
-
-  @keyframes fadeDown { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:none} }
-  @keyframes fadeUp   { from{opacity:0;transform:translateY(16px)}  to{opacity:1;transform:none} }
-
-  @media(max-width:600px) {
-    .apps-grid { grid-template-columns:1fr; }
-    .bottom-grid { grid-template-columns:1fr; }
-    .stats-bar { gap:16px; }
-    .sb-divider { display:none; }
-    .page { padding:40px 16px 60px; }
-    .report-grid { grid-template-columns:1fr 1fr; }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Barlow Condensed',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(201,168,76,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.03) 1px,transparent 1px);background-size:50px 50px;pointer-events:none;z-index:0;animation:gridShift 20s linear infinite;}
+  @keyframes gridShift{0%{background-position:0 0}100%{background-position:50px 50px}}
+  .orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;animation:orbFloat 8s ease-in-out infinite;}
+  .orb1{width:400px;height:400px;background:rgba(201,168,76,0.06);top:-100px;left:-100px;}
+  .orb2{width:300px;height:300px;background:rgba(92,184,138,0.05);bottom:-50px;right:-50px;animation-delay:-4s;}
+  @keyframes orbFloat{0%,100%{transform:translate(0,0)}50%{transform:translate(20px,20px)}}
+  .page{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:60px 24px 80px;flex:1;display:flex;flex-direction:column;}
+  .header{text-align:center;margin-bottom:60px;animation:fadeDown 0.7s ease both;}
+  .header-tag{display:inline-flex;align-items:center;gap:8px;font-family:'Fragment Mono',monospace;font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
+  .header-tag::before,.header-tag::after{content:'';width:40px;height:1px;background:linear-gradient(90deg,transparent,var(--gold));opacity:0.4;}
+  .header-tag::after{transform:scaleX(-1);}
+  .header-name{font-family:'Barlow Condensed',sans-serif;font-size:clamp(36px,7vw,64px);font-weight:800;letter-spacing:-0.02em;line-height:1;background:linear-gradient(135deg,#f0ede8 0%,#c9a84c 50%,#8a6d2a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;}
+  .header-sub{font-family:'Fragment Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:0.08em;}
+  .stats-bar{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 24px;margin-bottom:48px;animation:fadeUp 0.5s 0.2s ease both;}
+  .sb-item{display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .sb-lbl{font-family:'Fragment Mono',monospace;font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);}
+  .sb-val{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;}
+  .sb-divider{width:1px;height:32px;background:var(--border);}
+  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--win);animation:livePulse 1.5s ease infinite;display:inline-block;margin-right:4px;}
+  @keyframes livePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(92,184,138,0.4)}50%{opacity:0.7;box-shadow:0 0 0 5px rgba(92,184,138,0)}}
+  .apps-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px;}
+  .app-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;overflow:hidden;position:relative;cursor:pointer;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);text-decoration:none;display:flex;flex-direction:column;animation:fadeUp 0.6s ease both;}
+  .app-card:nth-child(1){animation-delay:0.1s;}.app-card:nth-child(2){animation-delay:0.2s;}
+  .app-card:hover{transform:translateY(-6px);border-color:var(--border2);box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+  .app-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;transition:opacity 0.3s;opacity:0.7;}
+  .app-card:hover::before{opacity:1;}
+  .card-journal::before{background:linear-gradient(90deg,var(--gold),#8a6d2a);}
+  .card-bias::before{background:linear-gradient(90deg,var(--win),#2d7a5a);}
+  .card-top{padding:28px 28px 20px;flex:1;}
+  .card-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:18px;position:relative;}
+  .card-journal .card-icon{background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);}
+  .card-bias .card-icon{background:rgba(92,184,138,0.1);border:1px solid rgba(92,184,138,0.2);}
+  .card-label{font-family:'Fragment Mono',monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  .card-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;letter-spacing:-0.01em;line-height:1;margin-bottom:10px;}
+  .card-journal .card-title{color:var(--gold);}.card-bias .card-title{color:var(--win);}
+  .card-desc{font-size:13px;color:var(--text2);line-height:1.6;font-weight:400;margin-bottom:16px;}
+  .card-features{display:flex;flex-direction:column;gap:6px;}
+  .card-feature{display:flex;align-items:center;gap:8px;font-family:'Fragment Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.04em;}
+  .cf-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0;}
+  .card-journal .cf-dot{background:var(--gold);}.card-bias .cf-dot{background:var(--win);}
+  .card-bottom{padding:16px 28px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg3);}
+  .card-status{font-family:'Fragment Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+  .status-dot{width:5px;height:5px;border-radius:50%;background:var(--win);animation:livePulse 2s ease infinite;}
+  .card-arrow{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;transition:transform 0.2s;}
+  .card-journal .card-arrow{color:var(--gold);}.card-bias .card-arrow{color:var(--win);}
+  .app-card:hover .card-arrow{transform:translateX(4px);}
+  .bottom-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;animation:fadeUp 0.6s 0.3s ease both;}
+  .info-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:border-color 0.2s;}
+  .info-card:hover{border-color:var(--border2);}
+  .ic-lbl{font-family:'Fragment Mono',monospace;font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+  .ic-val{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;line-height:1;margin-bottom:4px;}
+  .ic-sub{font-family:'Fragment Mono',monospace;font-size:9px;color:var(--muted);}
+  .section-lbl{font-family:'Fragment Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .section-lbl-line{flex:1;height:1px;background:var(--border);}
+  .report-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
+  .report-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+  .report-lbl{font-family:'Fragment Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;}
+  .report-val{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;}
+  .footer{text-align:center;margin-top:48px;font-family:'Fragment Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.08em;animation:fadeUp 0.5s 0.4s ease both;}
+  @keyframes fadeDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:none}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  @media(max-width:600px){
+    .apps-grid{grid-template-columns:1fr;}.bottom-grid{grid-template-columns:1fr;}
+    .stats-bar{gap:16px;}.sb-divider{display:none;}.page{padding:40px 16px 60px;}
+    .report-grid{grid-template-columns:1fr 1fr;}
   }
 </style>
 </head>
@@ -210,7 +91,6 @@
 
 <div class="page">
 
-  <!-- Header -->
   <div class="header">
     <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:16px;">
       <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#c9a84c 0%,#8a6d2a 100%);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 20px rgba(201,168,76,0.25);">
@@ -224,7 +104,6 @@
     <div class="header-sub">Isaac's personal trading operating system</div>
   </div>
 
-  <!-- Stats bar -->
   <div class="stats-bar">
     <div class="sb-item">
       <div class="sb-lbl"><span class="live-dot"></span>Status</div>
@@ -262,7 +141,6 @@
     </div>
   </div>
 
-  <!-- App Cards -->
   <div class="apps-grid">
 
     <a class="app-card card-journal" href="https://trading-hub-mu.vercel.app/journal.html">
@@ -323,7 +201,6 @@
 
   </div>
 
-  <!-- Bottom info cards -->
   <div class="bottom-grid">
     <div class="info-card">
       <div class="ic-lbl">Primary Setup</div>
@@ -342,7 +219,6 @@
     </div>
   </div>
 
-  <!-- Weekly Edge Report -->
   <div style="margin-top:32px;animation:fadeUp 0.6s 0.4s ease both;">
     <div class="section-lbl">
       Weekly Edge Report
@@ -353,7 +229,6 @@
     <div id="weeklyInsight" style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-family:'Fragment Mono',monospace;font-size:10px;color:var(--text2);line-height:1.7;"></div>
   </div>
 
-  <!-- Analysis Log -->
   <div style="margin-top:32px;">
     <div class="section-lbl">
       Analysis Log
@@ -370,165 +245,154 @@
 </div>
 
 <script>
-// ── Supabase ──
 var SUPABASE_URL = 'https://lzvkfrqwupgnvhmphzem.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6dmtmcnF3dXBnbnZobXBoemVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI5MDMsImV4cCI6MjA5MDYyODkwM30.YpzJ-616pSbImH9e2f3vRXGzwXjCzTvHV-hgPQais3Q';
 
 // ── Clock + Session ──
 function getNextSession() {
   var now = new Date();
-  var ny = new Date(now.toLocaleString('en-US', {timeZone:'America/New_York'}));
+  var ny = new Date(now.toLocaleString('en-US',{timeZone:'America/New_York'}));
   var h = ny.getHours(), m = ny.getMinutes();
   var sessions = [
-    {name:'London AM', open:[3,0],   close:[8,0]},
-    {name:'NY AM',     open:[9,30],  close:[12,0]},
-    {name:'NY PM',     open:[13,30], close:[16,0]},
+    {name:'London AM',open:[3,0],close:[8,0]},
+    {name:'NY AM',open:[9,30],close:[12,0]},
+    {name:'NY PM',open:[13,30],close:[16,0]},
   ];
-  for (var i = 0; i < sessions.length; i++) {
-    var s = sessions[i];
-    var inSess = (h > s.open[0] || (h === s.open[0] && m >= s.open[1])) &&
-                 (h < s.close[0] || (h === s.close[0] && m < s.close[1]));
-    if (inSess) {
-      var closeMin = s.close[0]*60+s.close[1];
-      var nowMin   = h*60+m;
-      var diff     = (closeMin - nowMin) * 60000;
-      var hh = Math.floor(diff/3600000), mm = Math.floor((diff%3600000)/60000);
-      return {label: s.name+' LIVE', time: (hh>0?hh+'h ':'')+mm+'m left', live: true};
+  for (var i=0;i<sessions.length;i++) {
+    var s=sessions[i];
+    if ((h>s.open[0]||(h===s.open[0]&&m>=s.open[1]))&&(h<s.close[0]||(h===s.close[0]&&m<s.close[1]))) {
+      var diff=((s.close[0]*60+s.close[1])-(h*60+m))*60000;
+      return {label:s.name+' LIVE',time:(Math.floor(diff/3600000)>0?Math.floor(diff/3600000)+'h ':'')+Math.floor((diff%3600000)/60000)+'m left',live:true};
     }
   }
-  var best = null, bestDiff = Infinity;
-  for (var i = 0; i < sessions.length; i++) {
-    var s = sessions[i];
-    var target = new Date(ny);
-    target.setHours(s.open[0], s.open[1], 0, 0);
-    if (target <= ny) target.setDate(target.getDate()+1);
-    var diff = target - ny;
-    if (diff < bestDiff) { bestDiff = diff; best = s; }
+  var best=null,bestDiff=Infinity;
+  for (var i=0;i<sessions.length;i++) {
+    var s=sessions[i],target=new Date(ny);
+    target.setHours(s.open[0],s.open[1],0,0);
+    if(target<=ny)target.setDate(target.getDate()+1);
+    var diff=target-ny;
+    if(diff<bestDiff){bestDiff=diff;best=s;}
   }
-  var hh = Math.floor(bestDiff/3600000), mm = Math.floor((bestDiff%3600000)/60000);
-  return {label: best.name+' opens in', time: (hh>0?hh+'h ':'')+mm+'m', live: false};
+  return {label:best.name+' opens in',time:(Math.floor(bestDiff/3600000)>0?Math.floor(bestDiff/3600000)+'h ':'')+Math.floor((bestDiff%3600000)/60000)+'m',live:false};
 }
 
 function tick() {
-  var n = new Date();
-  var clockEl = document.getElementById('clock');
-  if (clockEl) clockEl.textContent = n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  var sess = getNextSession();
-  var sessEl  = document.getElementById('nextSession');
-  var sessLbl = document.getElementById('sessLabel');
-  if (sessEl)  { sessEl.textContent = sess.time; sessEl.style.color = sess.live ? 'var(--win)' : 'var(--gold)'; }
-  if (sessLbl)   sessLbl.textContent = sess.label;
+  var el=document.getElementById('clock');
+  if(el)el.textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  var sess=getNextSession();
+  var se=document.getElementById('nextSession'),sl=document.getElementById('sessLabel');
+  if(se){se.textContent=sess.time;se.style.color=sess.live?'var(--win)':'var(--gold)';}
+  if(sl)sl.textContent=sess.label;
 }
-tick(); setInterval(tick, 1000);
+tick();setInterval(tick,1000);
 
 // ── NQ Price ──
 async function fetchNQPrice() {
   try {
-    var res  = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/NQ%3DF?interval=1m&range=1d');
-    var data = await res.json();
-    var price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
-    var prev  = data?.chart?.result?.[0]?.meta?.chartPreviousClose;
-    if (price) {
-      var change = price - prev;
-      var pct    = ((change/prev)*100).toFixed(2);
-      var el  = document.getElementById('nqPrice');
-      var lbl = document.getElementById('nqLabel');
-      if (el)  { el.textContent = price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); el.style.color = change >= 0 ? 'var(--win)' : 'var(--loss)'; }
-      if (lbl)   lbl.textContent = 'NQ '+(change>=0?'+':'')+pct+'%';
+    var res=await fetch('https://query1.finance.yahoo.com/v8/finance/chart/NQ%3DF?interval=1m&range=1d');
+    var data=await res.json();
+    var price=data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+    var prev=data?.chart?.result?.[0]?.meta?.chartPreviousClose;
+    if(price){
+      var change=price-prev,pct=((change/prev)*100).toFixed(2);
+      var el=document.getElementById('nqPrice'),lbl=document.getElementById('nqLabel');
+      if(el){el.textContent=price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});el.style.color=change>=0?'var(--win)':'var(--loss)';}
+      if(lbl)lbl.textContent='NQ '+(change>=0?'+':'')+pct+'%';
     }
-  } catch(e) {}
+  }catch(e){}
 }
-fetchNQPrice();
-setInterval(fetchNQPrice, 30000);
+fetchNQPrice();setInterval(fetchNQPrice,30000);
 
-// ── Weekly Edge Report (Supabase with localStorage fallback) ──
+// ── Weekly Edge Report ──
+// Confirmed field names from Supabase data blob:
+// date = "date", result = "result", R = "rm", type = "acct" (eval=live, backtest=backtest)
 async function renderWeeklyReport() {
-  var reportEl  = document.getElementById('weeklyReport');
-  var insightEl = document.getElementById('weeklyInsight');
-  if (!reportEl) return;
+  var reportEl=document.getElementById('weeklyReport');
+  var insightEl=document.getElementById('weeklyInsight');
+  if(!reportEl)return;
 
-  // Loading state
-  reportEl.innerHTML = ['Trades','Win Rate','Total R','Avg R'].map(function(l) {
+  reportEl.innerHTML=['Trades','Win Rate','Total R','Avg R'].map(function(l){
     return '<div class="report-card"><div class="report-lbl">'+l+'</div><div class="report-val" style="color:var(--muted);">—</div></div>';
   }).join('');
 
-  // Week start = Monday
-  var now  = new Date();
-  var day  = now.getDay();
-  var diff = day === 0 ? 6 : day - 1;
-  var weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - diff);
+  var now=new Date(),day=now.getDay();
+  var weekStart=new Date(now);
+  weekStart.setDate(now.getDate()-(day===0?6:day-1));
   weekStart.setHours(0,0,0,0);
-  var weekStartStr = weekStart.toISOString().split('T')[0];
+  var weekStartStr=weekStart.toISOString().split('T')[0];
 
-  var weekTrades = [];
+  var weekTrades=[];
   try {
-    var res = await fetch(
-      SUPABASE_URL + '/rest/v1/trades?date=gte.' + weekStartStr + '&select=result,r_multiple,date',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    var res=await fetch(
+      SUPABASE_URL+'/rest/v1/trades?select=data&created_at=gte.'+weekStart.toISOString(),
+      {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}}
     );
-    if (!res.ok) throw new Error('failed');
-    weekTrades = await res.json();
+    if(!res.ok)throw new Error(''+res.status);
+    var rows=await res.json();
+    weekTrades=rows
+      .map(function(r){return r.data;})
+      .filter(function(t){
+        if(!t||!t.date)return false;
+        if(t.date<weekStartStr)return false;
+        if(t.acct==='backtest')return false;
+        return true;
+      });
   } catch(e) {
-    var all = JSON.parse(localStorage.getItem('nq_v5_trades') || '[]');
-    weekTrades = all.filter(function(t){ return t.date && t.date >= weekStartStr; });
+    // localStorage fallback
+    var all=JSON.parse(localStorage.getItem('nq_v5_trades')||'[]');
+    weekTrades=all.filter(function(t){return t.date&&t.date>=weekStartStr&&t.acct!=='backtest';});
   }
 
-  var wins   = weekTrades.filter(function(t){ return t.result === 'Win'; }).length;
-  var losses = weekTrades.filter(function(t){ return t.result === 'Loss'; }).length;
-  var be     = weekTrades.filter(function(t){ return t.result === 'Break Even'; }).length;
-  var total  = weekTrades.length;
-  var wr     = total > 0 ? Math.round((wins/total)*100) : 0;
-  var totalR = weekTrades.reduce(function(sum,t){ return sum + (parseFloat(t.r_multiple)||0); }, 0);
-  var avgR   = total > 0 ? (totalR/total).toFixed(2) : '0.00';
+  var wins=weekTrades.filter(function(t){return t.result==='Win';}).length;
+  var losses=weekTrades.filter(function(t){return t.result==='Loss';}).length;
+  var be=weekTrades.filter(function(t){return t.result==='Break Even';}).length;
+  var total=weekTrades.length;
+  var wr=total>0?Math.round((wins/total)*100):0;
+  // R is stored as "rm" in the data blob
+  var totalR=weekTrades.reduce(function(sum,t){return sum+(parseFloat(t.rm)||0);},0);
+  var avgR=total>0?(totalR/total).toFixed(2):'0.00';
 
-  reportEl.innerHTML = [
-    {lbl:'Trades',   val: total,                                           color:'var(--text)'},
-    {lbl:'Win Rate', val: wr+'%',                                          color: wr>=50 ? 'var(--win)' : 'var(--loss)'},
-    {lbl:'Total R',  val: (totalR>=0?'+':'')+totalR.toFixed(2)+'R',       color: totalR>=0 ? 'var(--win)' : 'var(--loss)'},
-    {lbl:'Avg R',    val: avgR+'R',                                        color: parseFloat(avgR)>=0 ? 'var(--win)' : 'var(--loss)'},
-  ].map(function(s) {
+  reportEl.innerHTML=[
+    {lbl:'Trades',val:total,color:'var(--text)'},
+    {lbl:'Win Rate',val:wr+'%',color:wr>=50?'var(--win)':'var(--loss)'},
+    {lbl:'Total R',val:(totalR>=0?'+':'')+totalR.toFixed(2)+'R',color:totalR>=0?'var(--win)':'var(--loss)'},
+    {lbl:'Avg R',val:avgR+'R',color:parseFloat(avgR)>=0?'var(--win)':'var(--loss)'},
+  ].map(function(s){
     return '<div class="report-card"><div class="report-lbl">'+s.lbl+'</div><div class="report-val" style="color:'+s.color+';">'+s.val+'</div></div>';
   }).join('');
 
-  if (!insightEl) return;
-  if (total === 0) { insightEl.textContent = 'No trades logged this week yet. Open the journal to log your first trade.'; return; }
+  if(!insightEl)return;
+  if(total===0){insightEl.textContent='No trades logged this week yet. Open the journal to log your first trade.';return;}
 
-  var insight = '';
-  if (wr >= 60)      insight += '✅ Strong win rate this week — your model is working. ';
-  else if (wr >= 40) insight += '⚠️ Win rate is average — review your entry confirmations. ';
-  else               insight += '❌ Win rate is low — are you taking B/C grade setups? ';
-
-  if (totalR > 0)  insight += '📈 You are up '+totalR.toFixed(1)+'R this week — protect your gains. ';
-  else             insight += '📉 You are down '+Math.abs(totalR).toFixed(1)+'R this week — reduce size or sit on hands. ';
-
-  if (total > 4)   insight += '⚠️ '+total+' trades this week — make sure you are not overtrading. ';
-  if (be > 1)      insight += '🔵 '+be+' break even trades — check if you are moving SL to BE too early. ';
-
-  insightEl.textContent = insight.trim();
+  var insight='';
+  if(wr>=60)insight+='✅ Strong win rate this week — your model is working. ';
+  else if(wr>=40)insight+='⚠️ Win rate is average — review your entry confirmations. ';
+  else insight+='❌ Win rate is low — are you taking B/C grade setups? ';
+  if(totalR>0)insight+='📈 You are up '+totalR.toFixed(1)+'R this week — protect your gains. ';
+  else insight+='📉 You are down '+Math.abs(totalR).toFixed(1)+'R this week — reduce size or sit on hands. ';
+  if(total>4)insight+='⚠️ '+total+' trades this week — make sure you are not overtrading. ';
+  if(be>1)insight+='🔵 '+be+' break even trades — check if you are moving SL to BE too early. ';
+  insightEl.textContent=insight.trim();
 }
 renderWeeklyReport();
 
 // ── Analysis Log ──
 function renderHubLog() {
-  var log = JSON.parse(localStorage.getItem('bias_log') || '[]');
-  var el  = document.getElementById('hubLog');
-  if (!el) return;
-  if (!log.length) {
-    el.innerHTML = '<div style="font-size:10px;color:var(--muted);padding:8px 0;">No analyses yet — open Bias Engine to run your first analysis</div>';
-    return;
-  }
-  function bc(b) { return b==='Bullish'?'var(--win)':b==='Bearish'?'var(--loss)':'var(--blue)'; }
-  el.innerHTML = log.slice(0,5).map(function(e) {
-    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:14px;">' +
-      '<div style="font-family:Fragment Mono,monospace;font-size:9px;color:var(--muted);white-space:nowrap;">'+e.date+' '+e.time+'</div>' +
-      '<div style="font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:700;color:'+bc(e.bias)+';white-space:nowrap;">'+e.bias+'</div>' +
-      '<div style="font-family:Fragment Mono,monospace;font-size:10px;color:var(--gold);white-space:nowrap;">'+e.confidence+'%</div>' +
-      '<div style="font-family:Fragment Mono,monospace;font-size:11px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(e.summary||'')+'</div>' +
+  var log=JSON.parse(localStorage.getItem('bias_log')||'[]');
+  var el=document.getElementById('hubLog');
+  if(!el)return;
+  if(!log.length){el.innerHTML='<div style="font-size:10px;color:var(--muted);padding:8px 0;">No analyses yet — open Bias Engine to run your first analysis</div>';return;}
+  function bc(b){return b==='Bullish'?'var(--win)':b==='Bearish'?'var(--loss)':'var(--blue)';}
+  el.innerHTML=log.slice(0,5).map(function(e){
+    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:14px;">'+
+      '<div style="font-family:Fragment Mono,monospace;font-size:9px;color:var(--muted);white-space:nowrap;">'+e.date+' '+e.time+'</div>'+
+      '<div style="font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:700;color:'+bc(e.bias)+';white-space:nowrap;">'+e.bias+'</div>'+
+      '<div style="font-family:Fragment Mono,monospace;font-size:10px;color:var(--gold);white-space:nowrap;">'+e.confidence+'%</div>'+
+      '<div style="font-family:Fragment Mono,monospace;font-size:11px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(e.summary||'')+'</div>'+
     '</div>';
   }).join('');
 }
-function clearLog() { localStorage.removeItem('bias_log'); renderHubLog(); }
+function clearLog(){localStorage.removeItem('bias_log');renderHubLog();}
 renderHubLog();
 </script>
 </body>
