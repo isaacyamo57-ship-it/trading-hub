@@ -12,7 +12,7 @@
     --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
     --text:#f0ede8;--text2:#b8b4ae;--muted:#6b6760;
     --gold:#c9a84c;--gold2:rgba(201,168,76,0.1);--gold3:rgba(201,168,76,0.2);
-    --win:#5cb88a;--loss:#c96a6a;--blue:#6b9fd4;
+    --win:#5cb88a;--loss:#c96a6a;--blue:#6b9fd4;--purple:#9b7fd4;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   body{font-family:'Barlow Condensed',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;}
@@ -36,7 +36,11 @@
   .sb-divider{width:1px;height:32px;background:var(--border);}
   .live-dot{width:6px;height:6px;border-radius:50%;background:var(--win);animation:livePulse 1.5s ease infinite;display:inline-block;margin-right:4px;}
   @keyframes livePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(92,184,138,0.4)}50%{opacity:0.7;box-shadow:0 0 0 5px rgba(92,184,138,0)}}
-  .apps-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px;}
+
+  /* APPS GRID — 2 col top, then single wide card */
+  .apps-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+  .apps-grid-bottom{display:grid;grid-template-columns:1fr;gap:20px;margin-bottom:32px;}
+
   .app-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;overflow:hidden;position:relative;cursor:pointer;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);text-decoration:none;display:flex;flex-direction:column;animation:fadeUp 0.6s ease both;}
   .app-card:nth-child(1){animation-delay:0.1s;}.app-card:nth-child(2){animation-delay:0.2s;}
   .app-card:hover{transform:translateY(-6px);border-color:var(--border2);box-shadow:0 20px 60px rgba(0,0,0,0.5);}
@@ -44,24 +48,31 @@
   .app-card:hover::before{opacity:1;}
   .card-journal::before{background:linear-gradient(90deg,var(--gold),#8a6d2a);}
   .card-bias::before{background:linear-gradient(90deg,var(--win),#2d7a5a);}
+  .card-drawdown::before{background:linear-gradient(90deg,var(--blue),#3a6a9a);}
   .card-top{padding:28px 28px 20px;flex:1;}
   .card-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:18px;position:relative;}
   .card-journal .card-icon{background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);}
   .card-bias .card-icon{background:rgba(92,184,138,0.1);border:1px solid rgba(92,184,138,0.2);}
+  .card-drawdown .card-icon{background:rgba(107,159,212,0.1);border:1px solid rgba(107,159,212,0.2);}
   .card-label{font-family:'Fragment Mono',monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
   .card-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;letter-spacing:-0.01em;line-height:1;margin-bottom:10px;}
-  .card-journal .card-title{color:var(--gold);}.card-bias .card-title{color:var(--win);}
+  .card-journal .card-title{color:var(--gold);}.card-bias .card-title{color:var(--win);}.card-drawdown .card-title{color:var(--blue);}
   .card-desc{font-size:13px;color:var(--text2);line-height:1.6;font-weight:400;margin-bottom:16px;}
   .card-features{display:flex;flex-direction:column;gap:6px;}
+
+  /* wide card features go horizontal */
+  .card-drawdown .card-features{flex-direction:row;flex-wrap:wrap;gap:6px 20px;}
+
   .card-feature{display:flex;align-items:center;gap:8px;font-family:'Fragment Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.04em;}
   .cf-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0;}
-  .card-journal .cf-dot{background:var(--gold);}.card-bias .cf-dot{background:var(--win);}
+  .card-journal .cf-dot{background:var(--gold);}.card-bias .cf-dot{background:var(--win);}.card-drawdown .cf-dot{background:var(--blue);}
   .card-bottom{padding:16px 28px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg3);}
   .card-status{font-family:'Fragment Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
   .status-dot{width:5px;height:5px;border-radius:50%;background:var(--win);animation:livePulse 2s ease infinite;}
   .card-arrow{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;transition:transform 0.2s;}
-  .card-journal .card-arrow{color:var(--gold);}.card-bias .card-arrow{color:var(--win);}
+  .card-journal .card-arrow{color:var(--gold);}.card-bias .card-arrow{color:var(--win);}.card-drawdown .card-arrow{color:var(--blue);}
   .app-card:hover .card-arrow{transform:translateX(4px);}
+
   .bottom-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;animation:fadeUp 0.6s 0.3s ease both;}
   .info-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:border-color 0.2s;}
   .info-card:hover{border-color:var(--border2);}
@@ -81,6 +92,7 @@
     .apps-grid{grid-template-columns:1fr;}.bottom-grid{grid-template-columns:1fr;}
     .stats-bar{gap:16px;}.sb-divider{display:none;}.page{padding:40px 16px 60px;}
     .report-grid{grid-template-columns:1fr 1fr;}
+    .card-drawdown .card-features{flex-direction:column;}
   }
 </style>
 </head>
@@ -141,6 +153,7 @@
     </div>
   </div>
 
+  <!-- Top 2 cards -->
   <div class="apps-grid">
 
     <a class="app-card card-journal" href="https://trading-hub-mu.vercel.app/journal.html">
@@ -199,6 +212,41 @@
       </div>
     </a>
 
+  </div>
+
+  <!-- Tool 03 — full width -->
+  <div class="apps-grid-bottom">
+    <a class="app-card card-drawdown" href="https://trading-hub-mu.vercel.app/drawdown.html" style="animation-delay:0.3s;">
+      <div class="card-top">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+          <div class="card-icon" style="position:relative;">
+            <span style="font-size:20px;">📉</span>
+            <div style="position:absolute;bottom:-4px;right:-4px;width:16px;height:16px;border-radius:4px;background:linear-gradient(135deg,#6b9fd4,#3a6a9a);display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:800;color:#080601;">IA</span>
+            </div>
+          </div>
+          <div style="font-family:'Fragment Mono',monospace;font-size:8px;color:var(--blue);background:rgba(107,159,212,0.08);border:1px solid rgba(107,159,212,0.2);border-radius:6px;padding:4px 10px;letter-spacing:0.1em;">AUTO · LIVE FROM JOURNAL</div>
+        </div>
+        <div class="card-label" style="margin-top:14px;">Tool 03</div>
+        <div class="card-title">R Tracker</div>
+        <div class="card-desc">Pure R performance monitoring — automatically pulled from your journal trades. No manual entry. Tracks your equity curve, drawdown from peak, streaks and distribution across Eval and Live accounts.</div>
+        <div class="card-features">
+          <div class="card-feature"><div class="cf-dot"></div>Cumulative R curve — live from Supabase</div>
+          <div class="card-feature"><div class="cf-dot"></div>Drawdown from peak with smart alerts</div>
+          <div class="card-feature"><div class="cf-dot"></div>Daily & monthly R bars</div>
+          <div class="card-feature"><div class="cf-dot"></div>Avg win R · avg loss R · profit factor</div>
+          <div class="card-feature"><div class="cf-dot"></div>R distribution chart</div>
+          <div class="card-feature"><div class="cf-dot"></div>Eval / Live / All account tabs</div>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="card-status" style="color:var(--blue);">
+          <div class="status-dot" style="background:var(--blue);"></div>
+          trading-hub-mu.vercel.app/drawdown
+        </div>
+        <div class="card-arrow">→</div>
+      </div>
+    </a>
   </div>
 
   <div class="bottom-grid">
@@ -304,8 +352,6 @@ async function fetchNQPrice() {
 fetchNQPrice();setInterval(fetchNQPrice,30000);
 
 // ── Weekly Edge Report ──
-// Confirmed field names from Supabase data blob:
-// date = "date", result = "result", R = "rm", type = "acct" (eval=live, backtest=backtest)
 async function renderWeeklyReport() {
   var reportEl=document.getElementById('weeklyReport');
   var insightEl=document.getElementById('weeklyInsight');
@@ -338,7 +384,6 @@ async function renderWeeklyReport() {
         return true;
       });
   } catch(e) {
-    // localStorage fallback
     var all=JSON.parse(localStorage.getItem('nq_v5_trades')||'[]');
     weekTrades=all.filter(function(t){return t.date&&t.date>=weekStartStr&&t.acct!=='backtest';});
   }
@@ -348,7 +393,6 @@ async function renderWeeklyReport() {
   var be=weekTrades.filter(function(t){return t.result==='Break Even';}).length;
   var total=weekTrades.length;
   var wr=total>0?Math.round((wins/total)*100):0;
-  // R is stored as "rm" in the data blob
   var totalR=weekTrades.reduce(function(sum,t){return sum+(parseFloat(t.rm)||0);},0);
   var avgR=total>0?(totalR/total).toFixed(2):'0.00';
 
