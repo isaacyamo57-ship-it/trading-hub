@@ -95,49 +95,59 @@
     .card-drawdown .card-features{flex-direction:column;}
   }
 
-  /* ── NEW SECTIONS ── */
-  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:32px;}
-  .panel{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
-  .panel-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-  .panel-title{font-family:'Fragment Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);}
-  .panel-body{padding:16px 18px;}
+  /* ── SECTIONS ── */
+  .sec-row{margin-top:28px;animation:fadeUp 0.6s ease both;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .one-col{display:grid;grid-template-columns:1fr;gap:16px;}
+
+  /* Panel base */
+  .panel{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:border-color 0.2s;}
+  .panel:hover{border-color:var(--border2);}
+  .panel-hdr{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;}
+  .panel-tag{display:flex;align-items:center;gap:7px;}
+  .panel-icon{font-size:14px;}
+  .panel-title{font-family:'Fragment Mono',monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);}
+  .panel-badge{font-family:'Fragment Mono',monospace;font-size:8px;letter-spacing:0.1em;padding:3px 8px;border-radius:4px;}
+  .panel-body{padding:0 20px 20px;}
+
+  /* TOTW */
+  .totw-hero{display:flex;align-items:center;gap:0;padding:4px 20px 20px;border-bottom:1px solid var(--border);margin-bottom:0;}
+  .totw-grade{font-family:'Barlow Condensed',sans-serif;font-size:72px;font-weight:800;line-height:1;background:linear-gradient(135deg,#c9a84c,#8a6d2a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-right:20px;}
+  .totw-hero-right{display:flex;flex-direction:column;gap:4px;}
+  .totw-r{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;line-height:1;}
+  .totw-meta{font-family:'Fragment Mono',monospace;font-size:9px;color:var(--muted);}
+  .totw-pills{display:flex;gap:6px;flex-wrap:wrap;padding:14px 20px 16px;}
+  .totw-pill{font-family:'Fragment Mono',monospace;font-size:9px;padding:4px 10px;border-radius:6px;border:1px solid var(--border2);color:var(--text2);background:var(--bg3);}
+  .totw-pill.win{border-color:rgba(92,184,138,0.3);color:var(--win);background:rgba(92,184,138,0.07);}
+  .totw-pill.loss{border-color:rgba(201,106,106,0.3);color:var(--loss);background:rgba(201,106,106,0.07);}
+  .totw-pill.gold{border-color:rgba(201,168,76,0.3);color:var(--gold);background:rgba(201,168,76,0.07);}
+  .totw-chart-link{display:inline-flex;align-items:center;gap:6px;margin:0 20px 20px;font-family:'Fragment Mono',monospace;font-size:9px;color:var(--gold);text-decoration:none;letter-spacing:0.08em;opacity:0.8;transition:opacity 0.15s;}
+  .totw-chart-link:hover{opacity:1;}
 
   /* Checklist */
-  .chk-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;user-select:none;transition:opacity 0.15s;}
-  .chk-item:last-child{border-bottom:none;}
-  .chk-item.done{opacity:0.45;}
-  .chk-box{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;}
+  .chk-progress{height:2px;background:var(--bg4);overflow:hidden;margin:0 20px 16px;}
+  .chk-fill{height:100%;background:linear-gradient(90deg,var(--win),#3a8a5a);transition:width 0.5s ease;}
+  .chk-item{display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer;user-select:none;transition:background 0.1s;}
+  .chk-item:hover{background:rgba(255,255,255,0.02);}
+  .chk-item.done .chk-lhs{opacity:0.4;}
+  .chk-box{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;background:var(--bg3);}
   .chk-item.done .chk-box{background:var(--win);border-color:var(--win);}
+  .chk-check{font-size:10px;font-weight:700;color:#080601;display:none;}
+  .chk-item.done .chk-check{display:block;}
   .chk-txt{font-family:'Fragment Mono',monospace;font-size:10px;color:var(--text2);line-height:1.4;}
   .chk-item.done .chk-txt{text-decoration:line-through;color:var(--muted);}
-  .chk-progress{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:14px;}
-  .chk-fill{height:100%;background:var(--win);border-radius:2px;transition:width 0.4s ease;}
-  .chk-reset{font-size:8px;color:var(--muted);cursor:pointer;letter-spacing:0.1em;}
-  .chk-reset:hover{color:var(--gold);}
-
-  /* Econ calendar */
-  .cal-event{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
-  .cal-event:last-child{border-bottom:none;}
-  .cal-imp{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
-  .cal-imp.high{background:var(--loss);}
-  .cal-imp.medium{background:var(--gold);}
-  .cal-imp.low{background:var(--muted);}
-  .cal-time{font-family:'Fragment Mono',monospace;font-size:9px;color:var(--muted);width:52px;flex-shrink:0;}
-  .cal-name{font-family:'Fragment Mono',monospace;font-size:10px;color:var(--text2);flex:1;}
-  .cal-cur{font-size:9px;color:var(--muted);width:28px;text-align:right;}
-
-  /* Trade of week */
-  .totw-grade{font-family:'Barlow Condensed',sans-serif;font-size:48px;font-weight:800;line-height:1;color:var(--gold);}
-  .totw-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-family:'Fragment Mono',monospace;font-size:10px;}
-  .totw-row:last-child{border-bottom:none;}
-  .totw-lbl{color:var(--muted);}
-  .totw-val{color:var(--text2);}
+  .chk-reset{font-family:'Fragment Mono',monospace;font-size:8px;color:var(--muted);cursor:pointer;letter-spacing:0.1em;padding:3px 8px;border-radius:4px;border:1px solid var(--border);transition:all 0.15s;}
+  .chk-reset:hover{color:var(--gold);border-color:rgba(201,168,76,0.3);}
+  .chk-footer{padding:12px 20px 0;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);margin-top:4px;}
+  .chk-count{font-family:'Fragment Mono',monospace;font-size:9px;color:var(--muted);}
 
   /* Rules */
-  .rule-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+  .rule-item{display:flex;align-items:flex-start;gap:14px;padding:11px 20px;border-bottom:1px solid rgba(255,255,255,0.03);transition:background 0.1s;}
   .rule-item:last-child{border-bottom:none;}
-  .rule-num{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--gold);width:20px;flex-shrink:0;line-height:1.2;}
-  .rule-txt{font-family:'Fragment Mono',monospace;font-size:10px;color:var(--text2);line-height:1.5;}
+  .rule-item:hover{background:rgba(255,255,255,0.02);}
+  .rule-num{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:rgba(201,168,76,0.25);width:24px;flex-shrink:0;line-height:1.1;transition:color 0.15s;}
+  .rule-item:hover .rule-num{color:var(--gold);}
+  .rule-txt{font-family:'Fragment Mono',monospace;font-size:10px;color:var(--text2);line-height:1.6;padding-top:3px;}
 
   @media(max-width:700px){.two-col{grid-template-columns:1fr;}}
 
@@ -348,47 +358,54 @@
   </div>
 
   <!-- ── TRADE OF THE WEEK ── -->
-  <div class="two-col" style="animation:fadeUp 0.6s 0.5s ease both;">
-
-    <!-- Trade of the Week -->
-    <div class="panel">
-      <div class="panel-hdr">
-        <div class="panel-title">⭐ Trade of the Week</div>
-        <span style="font-family:'Fragment Mono',monospace;font-size:8px;color:var(--muted);">highest grade this week</span>
-      </div>
-      <div class="panel-body" id="totwBody">
-        <div style="font-size:10px;color:var(--muted);padding:8px 0;">Loading...</div>
+  <div class="sec-row" style="animation-delay:0.45s;">
+    <div class="one-col">
+      <div class="panel" id="totwPanel">
+        <div class="panel-hdr">
+          <div class="panel-tag">
+            <span class="panel-icon">⭐</span>
+            <span class="panel-title">Trade of the Week</span>
+          </div>
+          <span style="font-family:'Fragment Mono',monospace;font-size:8px;color:var(--muted);">highest grade · this week</span>
+        </div>
+        <div id="totwBody"><div style="padding:20px;font-size:10px;color:var(--muted);">Loading...</div></div>
       </div>
     </div>
-
   </div>
 
   <!-- ── PRE-SESSION CHECKLIST + RULES ── -->
-  <div class="two-col" style="animation:fadeUp 0.6s 0.6s ease both;">
+  <div class="sec-row" style="animation-delay:0.55s;">
+    <div class="two-col">
 
-    <!-- Checklist -->
-    <div class="panel">
-      <div class="panel-hdr">
-        <div class="panel-title">☑ Pre-Session Checklist</div>
-        <span class="chk-reset" onclick="resetChecklist()">↺ Reset</span>
-      </div>
-      <div class="panel-body">
-        <div class="chk-progress"><div class="chk-fill" id="chkFill" style="width:0%"></div></div>
+      <!-- Checklist -->
+      <div class="panel">
+        <div class="panel-hdr">
+          <div class="panel-tag">
+            <span class="panel-icon">☑</span>
+            <span class="panel-title">Pre-Session Checklist</span>
+          </div>
+          <span class="chk-reset" onclick="resetChecklist()">↺ Reset</span>
+        </div>
+        <div class="chk-progress"><div class="chk-fill" id="chkFill"></div></div>
         <div id="chkList"></div>
+        <div class="chk-footer">
+          <span class="chk-count" id="chkCount">0 / 9 complete</span>
+        </div>
       </div>
-    </div>
 
-    <!-- Rules Card -->
-    <div class="panel">
-      <div class="panel-hdr">
-        <div class="panel-title">📋 Trading Rules</div>
-        <span style="font-family:'Fragment Mono',monospace;font-size:8px;color:var(--gold);">non-negotiable</span>
-      </div>
-      <div class="panel-body">
+      <!-- Rules -->
+      <div class="panel">
+        <div class="panel-hdr">
+          <div class="panel-tag">
+            <span class="panel-icon">📋</span>
+            <span class="panel-title">Trading Rules</span>
+          </div>
+          <span class="panel-badge" style="color:var(--gold);background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);">non-negotiable</span>
+        </div>
         <div id="rulesList"></div>
       </div>
-    </div>
 
+    </div>
   </div>
 
   <div style="margin-top:32px;">
@@ -641,12 +658,16 @@ function renderChecklist() {
     var checked = !!saved.checks[i];
     if (checked) done++;
     return '<div class="chk-item' + (checked ? ' done' : '') + '" onclick="toggleCheck(' + i + ')">' +
-      '<div class="chk-box">' + (checked ? '<span style="color:#080601;font-size:11px;font-weight:700;">✓</span>' : '') + '</div>' +
-      '<div class="chk-txt">' + txt + '</div>' +
+      '<div class="chk-lhs" style="display:flex;align-items:center;gap:12px;flex:1;">' +
+        '<div class="chk-box"><span class="chk-check">✓</span></div>' +
+        '<div class="chk-txt">' + txt + '</div>' +
+      '</div>' +
     '</div>';
   }).join('');
   var pct = Math.round((done / CHECKLIST.length) * 100);
   if (fill) fill.style.width = pct + '%';
+  var countEl = document.getElementById('chkCount');
+  if (countEl) countEl.textContent = done + ' / ' + CHECKLIST.length + ' complete';
 }
 
 function toggleCheck(i) {
@@ -752,7 +773,7 @@ async function loadTradeOfWeek() {
   }
 
   if (!trades.length) {
-    el.innerHTML = '<div style="font-size:10px;color:var(--muted);padding:8px 0;">No trades this week yet.</div>';
+    el.innerHTML = '<div style="padding:20px;font-size:10px;color:var(--muted);">No trades logged this week yet.</div>';
     return;
   }
 
@@ -765,26 +786,24 @@ async function loadTradeOfWeek() {
 
   var rmVal = parseFloat(best.rm) || 0;
   var rmColor = rmVal > 0 ? 'var(--win)' : rmVal < 0 ? 'var(--loss)' : 'var(--muted)';
-  var poi = Array.isArray(best.poi) ? best.poi.join(', ') : (best.poi || '—');
+  var poi = Array.isArray(best.poi) ? best.poi.join(' · ') : (best.poi || '—');
+  var resultCls = best.result === 'Win' ? 'win' : best.result === 'Loss' ? 'loss' : '';
 
   el.innerHTML =
-    '<div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">' +
+    '<div class="totw-hero">' +
       '<div class="totw-grade">' + (best.grade || '—') + '</div>' +
-      '<div>' +
-        '<div style="font-family:Barlow Condensed,sans-serif;font-size:20px;font-weight:700;color:' + rmColor + ';">' + (rmVal > 0 ? '+' : '') + rmVal.toFixed(2) + 'R</div>' +
-        '<div style="font-family:Fragment Mono,monospace;font-size:9px;color:var(--muted);">' + (best.date || '—') + ' · ' + (best.session || '—') + '</div>' +
+      '<div class="totw-hero-right">' +
+        '<div class="totw-r" style="color:' + rmColor + ';">' + (rmVal > 0 ? '+' : '') + rmVal.toFixed(2) + 'R</div>' +
+        '<div class="totw-meta">' + (best.date || '—') + ' · ' + (best.session || '—') + '</div>' +
+        '<div class="totw-meta" style="margin-top:2px;">' + (best.dir || '') + (best.dir && best.exec ? ' · ' : '') + (best.exec || '') + '</div>' +
       '</div>' +
     '</div>' +
-    [
-      ['Result', best.result || '—'],
-      ['POI', poi],
-      ['Execution', best.exec || '—'],
-      ['Direction', best.dir || '—'],
-      ['Emotion', best.emotion || '—'],
-    ].map(function(r) {
-      return '<div class="totw-row"><div class="totw-lbl">' + r[0] + '</div><div class="totw-val">' + r[1] + '</div></div>';
-    }).join('') +
-    (best.chart ? '<div style="margin-top:12px;"><a href="' + best.chart + '" target="_blank" style="font-family:Fragment Mono,monospace;font-size:9px;color:var(--gold);text-decoration:none;">→ View Chart</a></div>' : '');
+    '<div class="totw-pills">' +
+      '<span class="totw-pill ' + resultCls + '">' + (best.result || '—') + '</span>' +
+      (poi !== '—' ? poi.split(' · ').map(function(p) { return '<span class="totw-pill gold">' + p + '</span>'; }).join('') : '') +
+      (best.emotion ? '<span class="totw-pill">' + best.emotion + '</span>' : '') +
+    '</div>' +
+    (best.chart ? '<a class="totw-chart-link" href="' + best.chart + '" target="_blank">→ View on TradingView</a>' : '');
 }
 
 loadTradeOfWeek();
@@ -810,7 +829,7 @@ function renderRules() {
       '<div class="rule-num">' + (i + 1) + '</div>' +
       '<div class="rule-txt">' + r + '</div>' +
     '</div>';
-  }).join('');
+  }).join('') + '<div style="height:8px;"></div>';
 }
 renderRules();
 
