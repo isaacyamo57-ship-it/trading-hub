@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>R Tracker — IA</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iI2M5YTg0YyIvPjx0ZXh0IHg9IjE2IiB5PSIyMiIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZvbnQtd2VpZ2h0PSI5MDAiIGZpbGw9IiMwODA2MDEiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSItMSI+SUE8L3RleHQ+PC9zdmc+">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#060607;--bg2:#0d0d0f;--bg3:#131315;--bg4:#1a1a1d;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#edeae4;--text2:#b0aca6;--muted:#635f5a;--dim:#2e2c29;
+  --gold:#c9a84c;--gold2:#a8893a;
+  --win:#4daa7d;--win2:rgba(77,170,125,0.12);
+  --loss:#bf6060;--loss2:rgba(191,96,96,0.12);
+  --warn:#e8a838;--warn2:rgba(232,168,56,0.12);
+  --blue:#5d8fc4;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-height:100vh;}
+
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:100;}
+.tn-left{display:flex;align-items:center;gap:12px;}
+.tn-home{display:flex;align-items:center;gap:8px;text-decoration:none;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:7px;padding:5px 10px;transition:all 0.15s;}
+.tn-home:hover{background:rgba(201,168,76,0.15);}
+.tn-home-txt{font-size:8px;color:#c9a84c;letter-spacing:0.1em;text-transform:uppercase;}
+.tn-ia{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#c9a84c,#8a6d2a);display:flex;align-items:center;justify-content:center;}
+.tn-ia span{font-family:'Unbounded',sans-serif;font-size:9px;font-weight:700;color:#080601;}
+.tn-logo{font-family:'Unbounded',sans-serif;font-size:13px;font-weight:700;color:var(--gold);}
+.tn-sep{width:1px;height:16px;background:var(--border2);}
+.tn-tag{font-size:8px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;}
+.sync-status{display:flex;align-items:center;gap:6px;font-size:9px;}
+.sync-dot{width:6px;height:6px;border-radius:50%;}
+.sync-dot.ok{background:var(--win);}
+.sync-dot.err{background:var(--loss);}
+.sync-dot.loading{background:var(--warn);animation:pulse 1s infinite;}
+
+.page{max-width:1100px;margin:0 auto;padding:32px 24px 80px;}
+
+.page-header{margin-bottom:28px;}
+.page-title{font-family:'Unbounded',sans-serif;font-size:clamp(22px,3.5vw,36px);font-weight:700;letter-spacing:-0.03em;line-height:1.1;}
+.page-title span{background:linear-gradient(135deg,#edeae4 0%,#c9a84c 60%,#7a5e28 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.page-sub{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.6;}
+
+.sec-lbl{font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:12px;margin-top:24px;}
+.sec-lbl::after{content:'';flex:1;height:1px;background:var(--border);}
+.sec-lbl:first-of-type{margin-top:0;}
+
+/* ACCT TABS */
+.acct-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px;}
+.acct-tab{padding:10px 18px;cursor:pointer;font-size:11px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;transition:all 0.15s;display:flex;align-items:center;gap:6px;user-select:none;}
+.acct-tab:hover{color:var(--text2);}
+.acct-tab.eval{color:var(--blue);border-bottom-color:var(--blue);}
+.acct-tab.live{color:var(--win);border-bottom-color:var(--win);}
+.acct-tab.all{color:var(--gold);border-bottom-color:var(--gold);}
+.acct-dot{width:6px;height:6px;border-radius:50%;}
+
+/* STAT CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.sc-gold::before{background:var(--gold);}
+.sc-win::before{background:var(--win);}
+.sc-loss::before{background:var(--loss);}
+.sc-blue::before{background:var(--blue);}
+.sc-warn::before{background:var(--warn);}
+.stat-lbl{font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.stat-val{font-family:'Unbounded',sans-serif;font-size:26px;font-weight:700;line-height:1;}
+.stat-sub{font-size:9px;color:var(--muted);margin-top:5px;}
+.prog-wrap{height:3px;background:var(--dim);border-radius:2px;overflow:hidden;margin-top:10px;}
+.prog-fill{height:100%;border-radius:2px;transition:width 0.8s ease;}
+
+/* CHARTS */
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.chart-full{grid-column:1/-1;}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.chart-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.chart-title{font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);}
+.chart-meta{font-size:10px;color:var(--muted);}
+.chart-body{padding:16px 18px;}
+
+/* WARN BANNERS */
+.banner{border-radius:10px;padding:14px 18px;margin-bottom:14px;display:none;align-items:center;gap:12px;}
+.banner.show{display:flex;}
+.banner.danger{background:var(--loss2);border:1px solid rgba(191,96,96,0.3);}
+.banner.warn{background:var(--warn2);border:1px solid rgba(232,168,56,0.3);}
+.banner-txt{font-size:11px;line-height:1.5;}
+.banner.danger .banner-txt{color:var(--loss);}
+.banner.warn .banner-txt{color:var(--warn);}
+
+/* TABLE */
+.tbl-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.tbl-head{display:grid;grid-template-columns:100px 90px 80px 80px 80px 1fr;padding:10px 18px;border-bottom:1px solid var(--border);background:var(--bg3);}
+.th{font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
+.th.r{text-align:right;}
+.tbl-row{display:grid;grid-template-columns:100px 90px 80px 80px 80px 1fr;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,0.03);align-items:center;transition:background 0.1s;}
+.tbl-row:last-child{border-bottom:none;}
+.tbl-row:hover{background:rgba(255,255,255,0.02);}
+.tc{font-size:11px;color:var(--text2);}
+.tc.r{text-align:right;}
+.tc.win{color:var(--win);}
+.tc.loss{color:var(--loss);}
+.tc.muted{color:var(--muted);}
+.tc.gold{color:var(--gold);}
+
+.empty{padding:48px;text-align:center;font-size:11px;color:var(--muted);}
+
+/* STREAK DOTS */
+.streak-row{display:flex;gap:3px;flex-wrap:wrap;margin-top:4px;}
+.s-dot{width:10px;height:10px;border-radius:2px;}
+
+@keyframes pulse{0%,100%{opacity:0.4}50%{opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.fadeup{animation:fadeUp 0.35s ease both;}
+
+@media(max-width:800px){
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .chart-row{grid-template-columns:1fr;}
+  .tbl-head,.tbl-row{grid-template-columns:80px 80px 70px 70px 1fr;}
+  .hide-mob{display:none;}
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="tn-left">
+    <a href="https://trading-hub-mu.vercel.app" class="tn-home">
+      <span style="font-size:12px;color:#c9a84c;">⌂</span>
+      <span class="tn-home-txt">Hub</span>
+    </a>
+    <div class="tn-ia"><span>IA</span></div>
+    <div class="tn-logo">📊 R Tracker</div>
+    <div class="tn-sep"></div>
+    <div class="tn-tag">Live from Journal · Auto</div>
+  </div>
+  <div class="sync-status">
+    <div class="sync-dot loading" id="syncDot"></div>
+    <span id="syncTxt" style="color:var(--muted);">Loading...</span>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-header fadeup">
+    <div class="page-title"><span>R Performance<br>Tracker</span></div>
+    <div class="page-sub">Automatically pulled from your journal · Pure R tracking · No manual entry</div>
+  </div>
+
+  <!-- Account tabs -->
+  <div class="acct-tabs">
+    <div class="acct-tab eval" id="tab-eval" onclick="setTab('eval')">
+      <div class="acct-dot" style="background:var(--blue);"></div>Apex Eval
+    </div>
+    <div class="acct-tab" id="tab-live" onclick="setTab('live')">
+      <div class="acct-dot" style="background:var(--win);"></div>Apex Live / Funded
+    </div>
+    <div class="acct-tab" id="tab-all" onclick="setTab('all')">All Trades</div>
+  </div>
+
+  <!-- Banners -->
+  <div class="banner danger" id="bannerDanger">
+    <span style="font-size:22px;">🚨</span>
+    <div class="banner-txt" id="bannerDangerTxt"></div>
+  </div>
+  <div class="banner warn" id="bannerWarn">
+    <span style="font-size:22px;">⚠️</span>
+    <div class="banner-txt" id="bannerWarnTxt"></div>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="sec-lbl">R Summary</div>
+  <div class="stat-grid fadeup">
+
+    <div class="stat-card sc-gold">
+      <div class="stat-lbl">Total R</div>
+      <div class="stat-val" id="sTotalR" style="color:var(--gold)">—</div>
+      <div class="stat-sub" id="sTotalRSub">—</div>
+    </div>
+
+    <div class="stat-card sc-win">
+      <div class="stat-lbl">Peak R</div>
+      <div class="stat-val" id="sPeakR" style="color:var(--win)">—</div>
+      <div class="stat-sub">highest point</div>
+    </div>
+
+    <div class="stat-card sc-loss" id="sDDCard">
+      <div class="stat-lbl">Current DD</div>
+      <div class="stat-val" id="sCurDD" style="color:var(--muted)">—</div>
+      <div class="stat-sub" id="sCurDDSub">from peak</div>
+      <div class="prog-wrap"><div class="prog-fill" id="sDDBar" style="width:0%;background:var(--loss);"></div></div>
+    </div>
+
+    <div class="stat-card sc-blue">
+      <div class="stat-lbl">Max DD (ever)</div>
+      <div class="stat-val" id="sMaxDD" style="color:var(--muted)">—</div>
+      <div class="stat-sub">worst drawdown</div>
+    </div>
+
+    <div class="stat-card sc-gold">
+      <div class="stat-lbl">Avg R / Trade</div>
+      <div class="stat-val" id="sAvgR" style="color:var(--muted)">—</div>
+      <div class="stat-sub" id="sAvgRSub">trades with R logged</div>
+    </div>
+
+  </div>
+
+  <!-- Win/Loss R stats -->
+  <div class="stat-grid fadeup" style="grid-template-columns:repeat(4,1fr);">
+
+    <div class="stat-card sc-win">
+      <div class="stat-lbl">Avg Win R</div>
+      <div class="stat-val" id="sAvgWinR" style="color:var(--win)">—</div>
+      <div class="stat-sub">per winning trade</div>
+    </div>
+
+    <div class="stat-card sc-loss">
+      <div class="stat-lbl">Avg Loss R</div>
+      <div class="stat-val" id="sAvgLossR" style="color:var(--loss)">—</div>
+      <div class="stat-sub">per losing trade</div>
+    </div>
+
+    <div class="stat-card sc-gold">
+      <div class="stat-lbl">Profit Factor</div>
+      <div class="stat-val" id="sPF" style="color:var(--gold)">—</div>
+      <div class="stat-sub">wins R ÷ losses R</div>
+    </div>
+
+    <div class="stat-card sc-blue">
+      <div class="stat-lbl">Best Streak</div>
+      <div class="stat-val" id="sStreak" style="color:var(--blue)">—</div>
+      <div class="stat-sub" id="sStreakSub">consecutive wins</div>
+      <div class="streak-row" id="sStreakDots"></div>
+    </div>
+
+  </div>
+
+  <!-- Charts -->
+  <div class="sec-lbl">Curves</div>
+
+  <div class="chart-row fadeup">
+    <div class="chart-card chart-full">
+      <div class="chart-hdr">
+        <div class="chart-title">Cumulative R Curve</div>
+        <div class="chart-meta" id="mCurveTotal">—</div>
+      </div>
+      <div class="chart-body">
+        <canvas id="cCurve" style="height:200px;"></canvas>
+        <div id="cCurveEmpty" class="empty" style="display:none;">No R multiples logged yet — add them in the journal</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-row fadeup">
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div class="chart-title">R Drawdown From Peak</div>
+        <div class="chart-meta" id="mDDTotal">—</div>
+      </div>
+      <div class="chart-body">
+        <canvas id="cDD" style="height:180px;"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div class="chart-title">Daily R</div>
+        <div class="chart-meta" id="mDailyMeta">—</div>
+      </div>
+      <div class="chart-body">
+        <canvas id="cDaily" style="height:180px;"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-row fadeup">
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div class="chart-title">Monthly R</div>
+        <div class="chart-meta" id="mMonthMeta">—</div>
+      </div>
+      <div class="chart-body">
+        <canvas id="cMonthly" style="height:180px;"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div class="chart-title">R Distribution</div>
+        <div class="chart-meta">win vs loss size</div>
+      </div>
+      <div class="chart-body">
+        <canvas id="cDist" style="height:180px;"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trade table -->
+  <div class="sec-lbl">Trade Log</div>
+  <div class="tbl-card fadeup">
+    <div class="tbl-head">
+      <div class="th">Date</div>
+      <div class="th">Result</div>
+      <div class="th">R</div>
+      <div class="th">Cum R</div>
+      <div class="th hide-mob">Session</div>
+      <div class="th r hide-mob">POI</div>
+    </div>
+    <div id="tblBody"><div class="empty">Loading trades...</div></div>
+  </div>
+
+</div>
+
+<script>
+var SUPABASE_URL = 'https://lzvkfrqwupgnvhmphzem.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6dmtmcnF3dXBnbnZobXBoemVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI5MDMsImV4cCI6MjA5MDYyODkwM30.YpzJ-616pSbImH9e2f3vRXGzwXjCzTvHV-hgPQais3Q';
+
+var allTrades = [];
+var currentTab = 'eval';
+var charts = {};
+
+// ── BOOT ──
+loadTrades();
+
+// ── LOAD ──
+async function loadTrades() {
+  setSyncStatus('loading', 'Loading...');
+  try {
+    var res = await fetch(
+      SUPABASE_URL + '/rest/v1/trades?select=data&order=id.asc&limit=500',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    );
+    if (!res.ok) throw new Error(res.status);
+    var rows = await res.json();
+    allTrades = rows
+      .map(function(r) { return r.data; })
+      .filter(function(t) { return t && t.date && t.acct !== 'backtest'; })
+      .sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+    setSyncStatus('ok', allTrades.length + ' trades · auto');
+    refresh();
+  } catch(e) {
+    setSyncStatus('err', 'Failed to load');
+    document.getElementById('tblBody').innerHTML = '<div class="empty">Could not connect to Supabase.<br>Check your connection and refresh.</div>';
+  }
+}
+
+// ── TAB ──
+function setTab(tab) {
+  currentTab = tab;
+  ['eval','live','all'].forEach(function(t) {
+    var el = document.getElementById('tab-' + t);
+    el.className = 'acct-tab';
+    if (t === tab) el.classList.add(t);
+  });
+  refresh();
+}
+
+function getFiltered() {
+  if (currentTab === 'all') return allTrades;
+  return allTrades.filter(function(t) { return t.acct === currentTab; });
+}
+
+// ── REFRESH ──
+function refresh() {
+  var trades  = getFiltered();
+  var rTrades = trades.filter(function(t) { return typeof t.rm === 'number' && t.rm !== 0; });
+
+  updateStats(trades, rTrades);
+  updateBanners(rTrades);
+  drawCurve(rTrades);
+  drawDD(rTrades);
+  drawDaily(trades);
+  drawMonthly(trades);
+  drawDist(rTrades);
+  drawTable(trades, rTrades);
+}
+
+// ── STATS ──
+function updateStats(trades, rTrades) {
+  // Total R
+  var totalR = rTrades.reduce(function(s, t) { return s + t.rm; }, 0);
+  totalR = parseFloat(totalR.toFixed(2));
+
+  // Peak & drawdown
+  var cum = 0, peak = 0, maxDD = 0;
+  rTrades.forEach(function(t) {
+    cum += t.rm;
+    if (cum > peak) peak = cum;
+    var dd = cum - peak;
+    if (dd < maxDD) maxDD = dd;
+  });
+  var curDD = parseFloat((cum - peak).toFixed(2));
+  peak   = parseFloat(peak.toFixed(2));
+  maxDD  = parseFloat(maxDD.toFixed(2));
+
+  // Avg R
+  var avgR = rTrades.length ? parseFloat((totalR / rTrades.length).toFixed(2)) : 0;
+
+  // Avg win / loss R
+  var winRs  = rTrades.filter(function(t) { return t.rm > 0; }).map(function(t) { return t.rm; });
+  var lossRs = rTrades.filter(function(t) { return t.rm < 0; }).map(function(t) { return Math.abs(t.rm); });
+  var avgWin  = winRs.length  ? parseFloat((winRs.reduce(function(a,b){return a+b;},0)  / winRs.length).toFixed(2))  : 0;
+  var avgLoss = lossRs.length ? parseFloat((lossRs.reduce(function(a,b){return a+b;},0) / lossRs.length).toFixed(2)) : 0;
+
+  // Profit factor
+  var pf = (winRs.length && lossRs.length && avgLoss > 0)
+    ? parseFloat(((winRs.length * avgWin) / (lossRs.length * avgLoss)).toFixed(2))
+    : null;
+
+  // Best win streak
+  var streak = 0, bestStreak = 0, lastStreak = 0;
+  rTrades.forEach(function(t) {
+    if (t.rm > 0) { streak++; if (streak > bestStreak) bestStreak = streak; lastStreak = streak; }
+    else streak = 0;
+  });
+
+  // DD % vs a reasonable benchmark (10R = 100%)
+  var ddPct = peak > 0 ? Math.min(100, Math.abs(curDD) / Math.max(peak, 1) * 100) : 0;
+
+  // ── Render ──
+  setText('sTotalR', (totalR >= 0 ? '+' : '') + totalR + 'R', totalR >= 0 ? 'var(--win)' : 'var(--loss)');
+  document.getElementById('sTotalRSub').textContent = rTrades.length + ' trades with R logged';
+
+  setText('sPeakR', '+' + peak + 'R', 'var(--win)');
+
+  var ddColor = curDD === 0 ? 'var(--win)' : Math.abs(curDD) < 2 ? 'var(--warn)' : 'var(--loss)';
+  setText('sCurDD', curDD === 0 ? '0R ✓' : curDD.toFixed(2) + 'R', ddColor);
+  document.getElementById('sCurDDSub').textContent = 'max ever: ' + maxDD.toFixed(2) + 'R';
+  document.getElementById('sDDBar').style.width = ddPct + '%';
+  document.getElementById('sDDBar').style.background = ddPct < 30 ? 'var(--win)' : ddPct < 60 ? 'var(--warn)' : 'var(--loss)';
+
+  setText('sMaxDD', maxDD.toFixed(2) + 'R', Math.abs(maxDD) < 2 ? 'var(--warn)' : 'var(--loss)');
+
+  setText('sAvgR', (avgR >= 0 ? '+' : '') + avgR + 'R', avgR >= 0 ? 'var(--gold)' : 'var(--loss)');
+  document.getElementById('sAvgRSub').textContent = rTrades.length + ' / ' + trades.length + ' trades have R';
+
+  setText('sAvgWinR',  winRs.length  ? '+' + avgWin  + 'R' : '—', 'var(--win)');
+  setText('sAvgLossR', lossRs.length ? '-' + avgLoss + 'R' : '—', 'var(--loss)');
+  setText('sPF', pf !== null ? pf.toFixed(2) : '—', pf !== null && pf >= 1 ? 'var(--gold)' : 'var(--loss)');
+
+  setText('sStreak', bestStreak, 'var(--blue)');
+  document.getElementById('sStreakSub').textContent = lastStreak + ' current · ' + bestStreak + ' best';
+
+  // Streak dots — last 20 trades
+  var dotsHTML = rTrades.slice(-20).map(function(t) {
+    var c = t.rm > 0 ? 'var(--win)' : t.rm < 0 ? 'var(--loss)' : 'var(--dim)';
+    return '<div class="s-dot" style="background:' + c + ';opacity:0.8;"></div>';
+  }).join('');
+  document.getElementById('sStreakDots').innerHTML = dotsHTML;
+}
+
+// ── BANNERS ──
+function updateBanners(rTrades) {
+  var cum = 0, peak = 0;
+  rTrades.forEach(function(t) { cum += t.rm; if (cum > peak) peak = cum; });
+  var curDD = cum - peak;
+  var ddPct = peak > 0 ? Math.abs(curDD) / Math.max(peak, 1) : 0;
+
+  var d = document.getElementById('bannerDanger');
+  var w = document.getElementById('bannerWarn');
+
+  if (ddPct >= 0.5 && Math.abs(curDD) >= 3) {
+    d.classList.add('show');
+    document.getElementById('bannerDangerTxt').innerHTML =
+      '<strong>🚨 Large drawdown detected.</strong> You are ' + Math.abs(curDD).toFixed(2) + 'R below your peak. Consider reducing size or pausing until you review your recent trades.';
+  } else { d.classList.remove('show'); }
+
+  if (ddPct >= 0.25 && ddPct < 0.5 && Math.abs(curDD) >= 1.5) {
+    w.classList.add('show');
+    document.getElementById('bannerWarnTxt').innerHTML =
+      '<strong>Heads up.</strong> You are ' + Math.abs(curDD).toFixed(2) + 'R from peak. Be selective — A+ setups only.';
+  } else { w.classList.remove('show'); }
+}
+
+// ── CURVE ──
+function drawCurve(rTrades) {
+  var el = document.getElementById('cCurve');
+  var empty = document.getElementById('cCurveEmpty');
+  killChart('curve');
+
+  if (!rTrades.length) {
+    el.style.display = 'none'; empty.style.display = 'block';
+    document.getElementById('mCurveTotal').textContent = '—';
+    return;
+  }
+  el.style.display = 'block'; empty.style.display = 'none';
+
+  var cum = 0;
+  var data   = rTrades.map(function(t) { cum += t.rm; return parseFloat(cum.toFixed(2)); });
+  var labels = rTrades.map(function(t) { return fmtD(t.date); });
+  var total  = data[data.length - 1] || 0;
+  document.getElementById('mCurveTotal').textContent = (total >= 0 ? '+' : '') + total.toFixed(2) + 'R total';
+
+  var ctx = el.getContext('2d');
+  var color = total >= 0 ? '#4daa7d' : '#bf6060';
+  var grad = ctx.createLinearGradient(0, 0, 0, 200);
+  grad.addColorStop(0, total >= 0 ? 'rgba(77,170,125,0.28)' : 'rgba(191,96,96,0.28)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+  charts['curve'] = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ data, borderColor: color, backgroundColor: grad, borderWidth: 2, fill: true, tension: 0.3, pointRadius: data.length > 40 ? 0 : 3, pointBackgroundColor: color, pointHoverRadius: 5 }] },
+    options: chOpts({ x: false, y: { suffix: 'R' } })
+  });
+}
+
+// ── DD CURVE ──
+function drawDD(rTrades) {
+  killChart('dd');
+  if (!rTrades.length) return;
+
+  var cum = 0, peak = 0, maxDD = 0;
+  var data   = rTrades.map(function(t) { cum += t.rm; if (cum > peak) peak = cum; var dd = parseFloat((cum - peak).toFixed(2)); if (dd < maxDD) maxDD = dd; return dd; });
+  var labels = rTrades.map(function(t) { return fmtD(t.date); });
+  document.getElementById('mDDTotal').textContent = 'max: ' + maxDD.toFixed(2) + 'R';
+
+  var ctx  = document.getElementById('cDD').getContext('2d');
+  var grad = ctx.createLinearGradient(0, 0, 0, 180);
+  grad.addColorStop(0, 'rgba(191,96,96,0.3)');
+  grad.addColorStop(1, 'rgba(191,96,96,0)');
+
+  charts['dd'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { data, borderColor: '#bf6060', backgroundColor: grad, borderWidth: 1.5, fill: true, tension: 0.3, pointRadius: 0, pointHoverRadius: 4 },
+        { data: labels.map(function() { return 0; }), borderColor: 'rgba(77,170,125,0.3)', borderWidth: 1, borderDash: [4,4], pointRadius: 0, fill: false }
+      ]
+    },
+    options: chOpts({ x: false, y: { suffix: 'R', max: 0.5 }, multiDs: true })
+  });
+}
+
+// ── DAILY R ──
+function drawDaily(trades) {
+  killChart('daily');
+  var dayMap = {};
+  trades.forEach(function(t) {
+    if (!t.date || typeof t.rm !== 'number' || t.rm === 0) return;
+    dayMap[t.date] = (dayMap[t.date] || 0) + t.rm;
+  });
+  var days   = Object.keys(dayMap).sort().slice(-30);
+  var data   = days.map(function(d) { return parseFloat(dayMap[d].toFixed(2)); });
+  var labels = days.map(fmtD);
+  document.getElementById('mDailyMeta').textContent = 'last ' + days.length + ' days';
+  if (!days.length) return;
+
+  charts['daily'] = new Chart(document.getElementById('cDaily').getContext('2d'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: data.map(function(v) { return v >= 0 ? 'rgba(77,170,125,0.75)' : 'rgba(191,96,96,0.7)'; }), borderRadius: 3, borderSkipped: false }] },
+    options: chOpts({ x: true, y: { suffix: 'R' }, bar: true })
+  });
+}
+
+// ── MONTHLY R ──
+function drawMonthly(trades) {
+  killChart('monthly');
+  var moMap = {};
+  trades.forEach(function(t) {
+    if (!t.date || typeof t.rm !== 'number' || t.rm === 0) return;
+    var d = new Date(t.date);
+    var k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    if (!moMap[k]) moMap[k] = { r: 0, label: d.toLocaleDateString('en-GB',{month:'short',year:'2-digit'}) };
+    moMap[k].r += t.rm;
+  });
+  var keys   = Object.keys(moMap).sort();
+  var data   = keys.map(function(k) { return parseFloat(moMap[k].r.toFixed(2)); });
+  var labels = keys.map(function(k) { return moMap[k].label; });
+  var best   = data.length ? Math.max.apply(null, data).toFixed(2) : '—';
+  document.getElementById('mMonthMeta').textContent = 'best: +' + best + 'R';
+  if (!keys.length) return;
+
+  charts['monthly'] = new Chart(document.getElementById('cMonthly').getContext('2d'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: data.map(function(v) { return v >= 0 ? 'rgba(201,168,76,0.7)' : 'rgba(191,96,96,0.65)'; }), borderRadius: 4, borderSkipped: false }] },
+    options: chOpts({ x: true, y: { suffix: 'R' }, bar: true })
+  });
+}
+
+// ── DISTRIBUTION ──
+function drawDist(rTrades) {
+  killChart('dist');
+  if (!rTrades.length) return;
+
+  // Bucket R values into ranges
+  var buckets = { '-3+': 0, '-2to-3': 0, '-1to-2': 0, '0to1': 0, '1to2': 0, '2to3': 0, '3+': 0 };
+  rTrades.forEach(function(t) {
+    var r = t.rm;
+    if (r <= -3)       buckets['-3+']++;
+    else if (r <= -2)  buckets['-2to-3']++;
+    else if (r < 0)    buckets['-1to-2']++;
+    else if (r <= 1)   buckets['0to1']++;
+    else if (r <= 2)   buckets['1to2']++;
+    else if (r <= 3)   buckets['2to3']++;
+    else               buckets['3+']++;
+  });
+  var labels = ['≤-3R', '-3to-2R', '-2to0R', '0to1R', '1to2R', '2to3R', '3R+'];
+  var data   = Object.values(buckets);
+  var colors = ['rgba(191,96,96,0.9)','rgba(191,96,96,0.7)','rgba(191,96,96,0.5)','rgba(201,168,76,0.5)','rgba(77,170,125,0.5)','rgba(77,170,125,0.7)','rgba(77,170,125,0.9)'];
+
+  charts['dist'] = new Chart(document.getElementById('cDist').getContext('2d'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: 4, borderSkipped: false }] },
+    options: chOpts({ x: true, y: { suffix: '' }, bar: true })
+  });
+}
+
+// ── TABLE ──
+function drawTable(trades, rTrades) {
+  var el = document.getElementById('tblBody');
+  var sorted = [...trades].sort(function(a,b) { return new Date(b.date)-new Date(a.date); });
+  if (!sorted.length) { el.innerHTML = '<div class="empty">No trades found.</div>'; return; }
+
+  // Build cumulative R map (oldest → newest)
+  var cumMap = {};
+  var cum = 0;
+  [...trades].sort(function(a,b){return new Date(a.date)-new Date(b.date);}).forEach(function(t) {
+    cum += (parseFloat(t.rm) || 0);
+    cumMap[t.id] = parseFloat(cum.toFixed(2));
+  });
+
+  el.innerHTML = sorted.slice(0, 80).map(function(t) {
+    var rm  = parseFloat(t.rm) || 0;
+    var cumR = cumMap[t.id] !== undefined ? cumMap[t.id] : 0;
+    var rcls  = t.result === 'Win' ? 'win' : t.result === 'Loss' ? 'loss' : 'muted';
+    var rmcls = rm > 0 ? 'win' : rm < 0 ? 'loss' : 'muted';
+    var cumcls= cumR > 0 ? 'win' : cumR < 0 ? 'loss' : 'muted';
+    var poi   = (t.poi||[]).slice(0,2).join(', ') || '—';
+    return '<div class="tbl-row">' +
+      '<div class="tc">' + fmtD(t.date) + '</div>' +
+      '<div class="tc ' + rcls + '">' + (t.result||'—') + '</div>' +
+      '<div class="tc ' + rmcls + '">' + (rm !== 0 ? (rm>0?'+':'') + rm.toFixed(2) + 'R' : '—') + '</div>' +
+      '<div class="tc ' + cumcls + '">' + (cumR>=0?'+':'') + cumR.toFixed(2) + 'R</div>' +
+      '<div class="tc muted hide-mob">' + (t.session||'—') + '</div>' +
+      '<div class="tc r muted hide-mob">' + poi + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ── CHART OPTIONS ──
+function chOpts(o) {
+  var tickFont = { family: 'DM Mono', size: 9 };
+  var tickColor = '#635f5a';
+  var gridColor = 'rgba(255,255,255,0.04)';
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#0d0d0f', borderColor: 'rgba(201,168,76,0.15)', borderWidth: 1,
+        titleColor: tickColor, bodyColor: '#edeae4',
+        titleFont: tickFont, bodyFont: { family: 'DM Mono', size: 11 },
+        callbacks: {
+          label: function(c) {
+            if (o.multiDs && c.datasetIndex !== 0) return '';
+            var v = c.parsed.y;
+            return ' ' + (v >= 0 ? '+' : '') + v.toFixed(2) + (o.y.suffix || '');
+          }
+        }
+      }
+    },
+    scales: {
+      x: o.x === false ? { display: false } : {
+        ticks: { color: tickColor, font: tickFont, maxRotation: o.bar ? 45 : 0 },
+        grid: { display: false }, border: { display: false }
+      },
+      y: {
+        max: o.y.max || undefined,
+        ticks: { color: tickColor, font: tickFont, callback: function(v) { return v + (o.y.suffix || ''); } },
+        grid: { color: gridColor }, border: { display: false }
+      }
+    }
+  };
+}
+
+// ── HELPERS ──
+function killChart(k) { if (charts[k]) { try { charts[k].destroy(); } catch(e){} charts[k] = null; } }
+
+function setSyncStatus(state, msg) {
+  document.getElementById('syncDot').className = 'sync-dot ' + state;
+  var t = document.getElementById('syncTxt');
+  t.textContent = msg;
+  t.style.color = state === 'ok' ? 'var(--win)' : state === 'err' ? 'var(--loss)' : 'var(--warn)';
+}
+
+function setText(id, val, color) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = val;
+  if (color) el.style.color = color;
+}
+
+function fmtD(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+</script>
+</body>
+</html>
