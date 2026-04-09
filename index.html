@@ -29,7 +29,7 @@
   .header-tag::after{transform:scaleX(-1);}
   .header-name{font-family:'Barlow Condensed',sans-serif;font-size:clamp(36px,7vw,64px);font-weight:800;letter-spacing:-0.02em;line-height:1;background:linear-gradient(135deg,#f0ede8 0%,#c9a84c 50%,#8a6d2a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;}
   .header-sub{font-family:'Fragment Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:0.08em;}
-  .stats-bar{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 24px;margin-bottom:16px;animation:fadeUp 0.5s 0.2s ease both;}
+  .stats-bar{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 24px;margin-bottom:8px;animation:fadeUp 0.5s 0.2s ease both;}
   .sb-item{display:flex;flex-direction:column;align-items:center;gap:2px;}
   .sb-lbl{font-family:'Fragment Mono',monospace;font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);}
   .sb-val{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;}
@@ -150,19 +150,71 @@
   .rule-txt{font-family:'Fragment Mono',monospace;font-size:10px;color:var(--text2);line-height:1.6;padding-top:3px;}
 
   @media(max-width:700px){.two-col{grid-template-columns:1fr;}}
+  /* ── APEX PROGRESS BAR ── */
+  /* slim apex strip */
+  .apex-strip{display:flex;align-items:center;gap:0;background:var(--bg2);border:1px solid var(--border);border-radius:7px;margin-bottom:8px;overflow:hidden;animation:fadeUp 0.5s 0.22s ease both;}
+  .apex-strip-label{flex-shrink:0;padding:0 10px;height:26px;display:flex;align-items:center;gap:5px;border-right:1px solid var(--border);background:rgba(107,159,212,0.07);}
+  .apex-strip-lbl-txt{font-family:'Fragment Mono',monospace;font-size:7px;letter-spacing:0.16em;text-transform:uppercase;color:var(--blue);white-space:nowrap;}
+  .apex-strip-r{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;padding:0 10px;white-space:nowrap;border-right:1px solid var(--border);}
+  .apex-strip-track{flex:1;height:26px;display:flex;align-items:center;padding:0 10px;gap:8px;position:relative;overflow:hidden;}
+  .apex-strip-bg{position:absolute;left:0;top:0;bottom:0;transition:width 1.2s cubic-bezier(0.34,1.56,0.64,1);opacity:0.15;}
+  .apex-strip-pct{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--gold);position:relative;z-index:1;}
+  .apex-strip-sub{font-family:'Fragment Mono',monospace;font-size:8px;color:var(--muted);position:relative;z-index:1;flex:1;}
+  .apex-strip-cfg{display:flex;align-items:center;gap:6px;padding:0 10px;border-left:1px solid var(--border);}
+  .apex-cfg input{background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:3px 6px;font-family:'Fragment Mono',monospace;font-size:9px;color:var(--text);width:52px;outline:none;height:18px;}
+  .apex-cfg input:focus{border-color:rgba(201,168,76,0.4);}
+  .apex-cfg-lbl{font-family:'Fragment Mono',monospace;font-size:7px;color:var(--muted);letter-spacing:0.08em;}
+  .apex-cfg-btn{font-family:'Fragment Mono',monospace;font-size:7px;color:var(--gold);cursor:pointer;padding:3px 7px;border:1px solid rgba(201,168,76,0.25);border-radius:4px;background:rgba(201,168,76,0.06);transition:all 0.15s;white-space:nowrap;}
+  .apex-cfg-btn:hover{background:rgba(201,168,76,0.12);}
+
+  /* ── TILT ALERT ── */
+  .tilt-banner{display:none;background:rgba(201,96,96,0.1);border:1px solid rgba(201,96,96,0.4);border-radius:14px;padding:18px 24px;margin-top:28px;animation:fadeUp 0.4s ease both;position:relative;overflow:hidden;}
+  .tilt-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--loss);}
+  .tilt-banner.show{display:block;}
+  .tilt-banner-inner{display:flex;align-items:center;gap:16px;}
+  .tilt-icon{font-size:32px;flex-shrink:0;}
+  .tilt-title{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--loss);letter-spacing:-0.01em;margin-bottom:4px;}
+  .tilt-msg{font-family:'Fragment Mono',monospace;font-size:10px;color:var(--text2);line-height:1.6;}
+  .tilt-rule{font-family:'Fragment Mono',monospace;font-size:9px;color:var(--loss);margin-top:6px;letter-spacing:0.06em;}
+  .tilt-dismiss{position:absolute;top:12px;right:16px;font-size:10px;color:var(--muted);cursor:pointer;font-family:'Fragment Mono',monospace;}
+  .tilt-dismiss:hover{color:var(--text);}
+
+  /* ── WEEKLY REVIEW MODAL ── */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:32px;max-width:560px;width:100%;position:relative;max-height:90vh;overflow-y:auto;}
+  .modal-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.02em;color:var(--gold);margin-bottom:4px;}
+  .modal-sub{font-family:'Fragment Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:24px;letter-spacing:0.08em;}
+  .modal-q{margin-bottom:18px;}
+  .modal-qlbl{font-family:'Fragment Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  .modal-textarea{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;font-family:'Fragment Mono',monospace;font-size:11px;color:var(--text);resize:vertical;min-height:64px;outline:none;line-height:1.6;transition:border-color 0.15s;}
+  .modal-textarea:focus{border-color:rgba(201,168,76,0.4);}
+  .modal-btns{display:flex;gap:10px;margin-top:8px;}
+  .modal-btn-save{flex:1;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:8px;padding:10px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:#080601;cursor:pointer;transition:all 0.2s;}
+  .modal-btn-save:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(201,168,76,0.3);}
+  .modal-btn-skip{background:transparent;border:1px solid var(--border2);border-radius:8px;padding:10px 18px;font-family:'Fragment Mono',monospace;font-size:10px;color:var(--muted);cursor:pointer;transition:all 0.15s;}
+  .modal-btn-skip:hover{border-color:var(--border2);color:var(--text2);}
+  .modal-close{position:absolute;top:16px;right:20px;font-size:18px;color:var(--muted);cursor:pointer;background:none;border:none;line-height:1;}
+  .modal-close:hover{color:var(--text);}
+  .review-history{margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
+  .review-entry{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:10px;}
+  .review-date{font-family:'Fragment Mono',monospace;font-size:8px;color:var(--gold);margin-bottom:8px;letter-spacing:0.1em;}
+  .review-item{font-family:'Fragment Mono',monospace;font-size:10px;color:var(--text2);line-height:1.6;margin-bottom:4px;}
+  .review-item span{color:var(--muted);}
+
 
   /* ── NEWS TICKER ── */
-  .ticker-wrap{width:100%;overflow:hidden;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:28px;padding:0;display:flex;align-items:center;animation:fadeUp 0.5s 0.25s ease both;}
-  .ticker-label{flex-shrink:0;padding:0 14px;height:36px;display:flex;align-items:center;gap:6px;border-right:1px solid var(--border);background:rgba(201,168,76,0.08);}
-  .ticker-label-txt{font-family:'Fragment Mono',monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);white-space:nowrap;}
-  .ticker-dot{width:5px;height:5px;border-radius:50%;background:var(--win);animation:livePulse 1.5s ease infinite;flex-shrink:0;}
-  .ticker-track{flex:1;overflow:hidden;height:36px;position:relative;}
+  .ticker-wrap{width:100%;overflow:hidden;background:var(--bg2);border:1px solid var(--border);border-radius:7px;margin-bottom:16px;padding:0;display:flex;align-items:center;animation:fadeUp 0.5s 0.25s ease both;}
+  .ticker-label{flex-shrink:0;padding:0 10px;height:26px;display:flex;align-items:center;gap:5px;border-right:1px solid var(--border);background:rgba(201,168,76,0.07);}
+  .ticker-label-txt{font-family:'Fragment Mono',monospace;font-size:7px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold);white-space:nowrap;}
+  .ticker-dot{width:4px;height:4px;border-radius:50%;background:var(--win);animation:livePulse 1.5s ease infinite;flex-shrink:0;}
+  .ticker-track{flex:1;overflow:hidden;height:26px;position:relative;}
   .ticker-inner{display:flex;align-items:center;height:100%;white-space:nowrap;will-change:transform;}
   .ticker-inner.running{animation:tickerScroll linear infinite;}
   @keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-  .ticker-item{display:inline-flex;align-items:center;gap:8px;padding:0 28px;font-family:'Fragment Mono',monospace;font-size:10px;color:var(--text2);}
-  .ticker-item::after{content:'·';color:var(--muted);padding-left:28px;}
-  .ticker-src{font-size:8px;color:var(--muted);letter-spacing:0.06em;}
+  .ticker-item{display:inline-flex;align-items:center;gap:6px;padding:0 20px;font-family:'Fragment Mono',monospace;font-size:9px;color:var(--text2);}
+  .ticker-item::after{content:'·';color:var(--dim);padding-left:20px;}
+  .ticker-src{font-size:7px;color:var(--muted);letter-spacing:0.05em;}
 </style>
 </head>
 <body>
@@ -223,6 +275,7 @@
   </div>
 
 
+
   <!-- ── NEWS TICKER ── -->
   <div class="ticker-wrap">
     <div class="ticker-label">
@@ -233,6 +286,26 @@
       <div class="ticker-inner" id="tickerInner">
         <span class="ticker-item" style="color:var(--muted);">Loading headlines...</span>
       </div>
+    </div>
+  </div>
+
+  <!-- ── APEX STRIP ── -->
+  <div class="apex-strip" id="apexBarWrap">
+    <div class="apex-strip-label">
+      <span style="font-size:10px;">🎯</span>
+      <span class="apex-strip-lbl-txt">Apex Eval</span>
+    </div>
+    <div class="apex-strip-r" id="apexCurR" style="color:var(--gold);">—</div>
+    <div class="apex-strip-track">
+      <div class="apex-strip-bg" id="apexFill" style="width:0%;background:var(--gold);"></div>
+      <div class="apex-strip-pct" id="apexPct">—%</div>
+      <div class="apex-strip-sub" id="apexSub">set target →</div>
+      <div style="font-family:'Fragment Mono',monospace;font-size:8px;color:var(--muted);position:relative;z-index:1;" id="apexRemaining"></div>
+    </div>
+    <div class="apex-strip-cfg apex-cfg">
+      <span class="apex-cfg-lbl">Target R</span>
+      <input type="number" id="apexTargetInput" placeholder="20" min="1">
+      <span class="apex-cfg-btn" onclick="saveApexTarget()">Set</span>
     </div>
   </div>
 
@@ -405,6 +478,47 @@
         <div id="rulesList"></div>
       </div>
 
+    </div>
+  </div>
+
+
+  <!-- ── APEX PROGRESS BAR ── -->
+  <!-- ── TILT ALERT ── -->
+  <div class="tilt-banner" id="tiltBanner">
+    <span class="tilt-dismiss" onclick="document.getElementById('tiltBanner').classList.remove('show')">✕ Dismiss</span>
+    <div class="tilt-banner-inner">
+      <div class="tilt-icon">🛑</div>
+      <div>
+        <div class="tilt-title">Stop Trading.</div>
+        <div class="tilt-msg" id="tiltMsg">You have taken 2 losses this session.</div>
+        <div class="tilt-rule">Rule 8: Max 2 trades per session — stop after 2 losses. Close the platform.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── WEEKLY REVIEW MODAL ── -->
+  <div class="modal-overlay" id="reviewModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeReview()">✕</button>
+      <div class="modal-title">Weekly Review</div>
+      <div class="modal-sub" id="reviewModalSub">Friday · End of week reflection</div>
+      <div class="modal-q">
+        <div class="modal-qlbl">Best trade this week — what made it work?</div>
+        <textarea class="modal-textarea" id="rq1" placeholder="Grade, setup, execution, what you did right..."></textarea>
+      </div>
+      <div class="modal-q">
+        <div class="modal-qlbl">Worst trade or mistake — what went wrong?</div>
+        <textarea class="modal-textarea" id="rq2" placeholder="What rule did you break? What were you feeling?"></textarea>
+      </div>
+      <div class="modal-q">
+        <div class="modal-qlbl">One thing to focus on next week</div>
+        <textarea class="modal-textarea" id="rq3" placeholder="Be specific — one concrete thing to improve..."></textarea>
+      </div>
+      <div class="modal-btns">
+        <button class="modal-btn-save" onclick="saveReview()">Save Review</button>
+        <button class="modal-btn-skip" onclick="closeReview()">Skip this week</button>
+      </div>
+      <div class="review-history" id="reviewHistory"></div>
     </div>
   </div>
 
