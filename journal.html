@@ -2459,10 +2459,14 @@ function renderCalendar() {
         cellContent += '<a class="bc-link" href="' + url + '" target="_blank" onclick="event.stopPropagation()">↗ chart</a>';
       }
     } else {
-      // Multiple trades — show count and overall
+      // Multiple trades — show count, overall result, and total R
       var resLabel = wins > losses ? 'Win' : losses > wins ? 'Loss' : 'B/E';
       var resColor = wins > losses ? 'win' : losses > wins ? 'loss' : 'be';
+      var dayTotalR = ts.reduce(function(sum, t){ return sum + (parseFloat(t.rm) || 0); }, 0);
       cellContent += '<div class="bc-result ' + resColor + '">' + resLabel + '</div>';
+      if (dayTotalR !== 0) {
+        cellContent += '<div class="bc-r">' + (dayTotalR > 0 ? '+' : '') + dayTotalR.toFixed(2) + 'R</div>';
+      }
       cellContent += '<div class="bc-multi">' + ts.length + ' trades</div>';
     }
 
