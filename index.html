@@ -153,10 +153,9 @@
     </div>
   </div>
 
-  <!-- Top 2 cards -->
-  <div class="apps-grid">
-
-    <a class="app-card card-journal" href="https://trading-hub-mu.vercel.app/journal.html">
+  <!-- Tool 01 — full width -->
+  <div class="apps-grid-bottom">
+    <a class="app-card card-journal" href="https://trading-hub-mu.vercel.app/journal.html" style="animation-delay:0.1s;">
       <div class="card-top">
         <div class="card-icon" style="position:relative;">
           <span style="font-size:20px;">📊</span>
@@ -167,10 +166,10 @@
         <div class="card-label">Tool 01</div>
         <div class="card-title">NQ Journal</div>
         <div class="card-desc">Log trades, track performance, analyse your edge. Built around your ICT + DodgyDD model with full analytics and calendar.</div>
-        <div class="card-features">
-          <div class="card-feature"><div class="cf-dot"></div>Trade logging & R tracking</div>
-          <div class="card-feature"><div class="cf-dot"></div>Cumulative R curve & analytics</div>
-          <div class="card-feature"><div class="cf-dot"></div>Trade calendar & monthly stats</div>
+        <div class="card-features" style="flex-direction:row;flex-wrap:wrap;gap:6px 20px;">
+          <div class="card-feature"><div class="cf-dot"></div>Trade logging &amp; R tracking</div>
+          <div class="card-feature"><div class="cf-dot"></div>Cumulative R curve &amp; analytics</div>
+          <div class="card-feature"><div class="cf-dot"></div>Trade calendar &amp; monthly stats</div>
           <div class="card-feature"><div class="cf-dot"></div>Backtesting database</div>
           <div class="card-feature"><div class="cf-dot"></div>Cloud sync across all devices</div>
         </div>
@@ -183,8 +182,12 @@
         <div class="card-arrow">→</div>
       </div>
     </a>
+  </div>
 
-    <a class="app-card card-bias" href="https://trading-hub-mu.vercel.app/bias.html">
+  <!-- Tools 02 + 03 — side by side -->
+  <div class="apps-grid">
+
+    <a class="app-card card-bias" href="https://trading-hub-mu.vercel.app/bias.html" style="animation-delay:0.2s;">
       <div class="card-top">
         <div class="card-icon" style="position:relative;">
           <span style="font-size:20px;">⚡</span>
@@ -199,7 +202,7 @@
           <div class="card-feature"><div class="cf-dot"></div>Live news feed — NewsAPI</div>
           <div class="card-feature"><div class="cf-dot"></div>4H · 1H · 15M bias breakdown</div>
           <div class="card-feature"><div class="cf-dot"></div>Session bias — London · NYAM · NYPM</div>
-          <div class="card-feature"><div class="cf-dot"></div>Key levels & trade plan</div>
+          <div class="card-feature"><div class="cf-dot"></div>Key levels &amp; trade plan</div>
           <div class="card-feature"><div class="cf-dot"></div>Macro environment analysis</div>
         </div>
       </div>
@@ -212,41 +215,34 @@
       </div>
     </a>
 
-  </div>
-
-  <!-- Tool 03 — full width -->
-  <div class="apps-grid-bottom">
     <a class="app-card card-drawdown" href="https://trading-hub-mu.vercel.app/drawdown.html" style="animation-delay:0.3s;">
       <div class="card-top">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;">
-          <div class="card-icon" style="position:relative;">
-            <span style="font-size:20px;">📉</span>
-            <div style="position:absolute;bottom:-4px;right:-4px;width:16px;height:16px;border-radius:4px;background:linear-gradient(135deg,#6b9fd4,#3a6a9a);display:flex;align-items:center;justify-content:center;">
-              <span style="font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:800;color:#080601;">IA</span>
-            </div>
+        <div class="card-icon" style="position:relative;">
+          <span style="font-size:20px;">📉</span>
+          <div style="position:absolute;bottom:-4px;right:-4px;width:16px;height:16px;border-radius:4px;background:linear-gradient(135deg,#6b9fd4,#3a6a9a);display:flex;align-items:center;justify-content:center;">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:800;color:#080601;">IA</span>
           </div>
-          <div style="font-family:'Fragment Mono',monospace;font-size:8px;color:var(--blue);background:rgba(107,159,212,0.08);border:1px solid rgba(107,159,212,0.2);border-radius:6px;padding:4px 10px;letter-spacing:0.1em;">AUTO · LIVE FROM JOURNAL</div>
         </div>
-        <div class="card-label" style="margin-top:14px;">Tool 03</div>
+        <div class="card-label">Tool 03</div>
         <div class="card-title">R Tracker</div>
-        <div class="card-desc">Pure R performance monitoring — automatically pulled from your journal trades. No manual entry. Tracks your equity curve, drawdown from peak, streaks and distribution across Eval and Live accounts.</div>
+        <div class="card-desc">Pure R performance monitoring — automatically pulled from your journal trades. No manual entry needed.</div>
         <div class="card-features">
           <div class="card-feature"><div class="cf-dot"></div>Cumulative R curve — live from Supabase</div>
           <div class="card-feature"><div class="cf-dot"></div>Drawdown from peak with smart alerts</div>
-          <div class="card-feature"><div class="cf-dot"></div>Daily & monthly R bars</div>
-          <div class="card-feature"><div class="cf-dot"></div>Avg win R · avg loss R · profit factor</div>
-          <div class="card-feature"><div class="cf-dot"></div>R distribution chart</div>
-          <div class="card-feature"><div class="cf-dot"></div>Eval / Live / All account tabs</div>
+          <div class="card-feature"><div class="cf-dot"></div>Daily &amp; monthly R bars</div>
+          <div class="card-feature"><div class="cf-dot"></div>Profit factor · avg win/loss R</div>
+          <div class="card-feature"><div class="cf-dot"></div>Eval / Live / All tabs</div>
         </div>
       </div>
       <div class="card-bottom">
         <div class="card-status" style="color:var(--blue);">
           <div class="status-dot" style="background:var(--blue);"></div>
-          trading-hub-mu.vercel.app/drawdown
+          Auto · Live from Journal
         </div>
         <div class="card-arrow">→</div>
       </div>
     </a>
+
   </div>
 
   <div class="bottom-grid">
