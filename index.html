@@ -29,7 +29,7 @@
   .header-tag::after{transform:scaleX(-1);}
   .header-name{font-family:'Barlow Condensed',sans-serif;font-size:clamp(36px,7vw,64px);font-weight:800;letter-spacing:-0.02em;line-height:1;background:linear-gradient(135deg,#f0ede8 0%,#c9a84c 50%,#8a6d2a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;}
   .header-sub{font-family:'Fragment Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:0.08em;}
-  .stats-bar{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 24px;margin-bottom:48px;animation:fadeUp 0.5s 0.2s ease both;}
+  .stats-bar{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 24px;margin-bottom:16px;animation:fadeUp 0.5s 0.2s ease both;}
   .sb-item{display:flex;flex-direction:column;align-items:center;gap:2px;}
   .sb-lbl{font-family:'Fragment Mono',monospace;font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);}
   .sb-val{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;}
@@ -94,6 +94,65 @@
     .report-grid{grid-template-columns:1fr 1fr;}
     .card-drawdown .card-features{flex-direction:column;}
   }
+
+  /* ── NEW SECTIONS ── */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:32px;}
+  .panel{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+  .panel-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .panel-title{font-family:'Fragment Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);}
+  .panel-body{padding:16px 18px;}
+
+  /* Checklist */
+  .chk-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;user-select:none;transition:opacity 0.15s;}
+  .chk-item:last-child{border-bottom:none;}
+  .chk-item.done{opacity:0.45;}
+  .chk-box{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;}
+  .chk-item.done .chk-box{background:var(--win);border-color:var(--win);}
+  .chk-txt{font-family:'Fragment Mono',monospace;font-size:10px;color:var(--text2);line-height:1.4;}
+  .chk-item.done .chk-txt{text-decoration:line-through;color:var(--muted);}
+  .chk-progress{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:14px;}
+  .chk-fill{height:100%;background:var(--win);border-radius:2px;transition:width 0.4s ease;}
+  .chk-reset{font-size:8px;color:var(--muted);cursor:pointer;letter-spacing:0.1em;}
+  .chk-reset:hover{color:var(--gold);}
+
+  /* Econ calendar */
+  .cal-event{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+  .cal-event:last-child{border-bottom:none;}
+  .cal-imp{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .cal-imp.high{background:var(--loss);}
+  .cal-imp.medium{background:var(--gold);}
+  .cal-imp.low{background:var(--muted);}
+  .cal-time{font-family:'Fragment Mono',monospace;font-size:9px;color:var(--muted);width:52px;flex-shrink:0;}
+  .cal-name{font-family:'Fragment Mono',monospace;font-size:10px;color:var(--text2);flex:1;}
+  .cal-cur{font-size:9px;color:var(--muted);width:28px;text-align:right;}
+
+  /* Trade of week */
+  .totw-grade{font-family:'Barlow Condensed',sans-serif;font-size:48px;font-weight:800;line-height:1;color:var(--gold);}
+  .totw-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-family:'Fragment Mono',monospace;font-size:10px;}
+  .totw-row:last-child{border-bottom:none;}
+  .totw-lbl{color:var(--muted);}
+  .totw-val{color:var(--text2);}
+
+  /* Rules */
+  .rule-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+  .rule-item:last-child{border-bottom:none;}
+  .rule-num{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--gold);width:20px;flex-shrink:0;line-height:1.2;}
+  .rule-txt{font-family:'Fragment Mono',monospace;font-size:10px;color:var(--text2);line-height:1.5;}
+
+  @media(max-width:700px){.two-col{grid-template-columns:1fr;}}
+
+  /* ── NEWS TICKER ── */
+  .ticker-wrap{width:100%;overflow:hidden;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:28px;padding:0;display:flex;align-items:center;animation:fadeUp 0.5s 0.25s ease both;}
+  .ticker-label{flex-shrink:0;padding:0 14px;height:36px;display:flex;align-items:center;gap:6px;border-right:1px solid var(--border);background:rgba(201,168,76,0.08);}
+  .ticker-label-txt{font-family:'Fragment Mono',monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);white-space:nowrap;}
+  .ticker-dot{width:5px;height:5px;border-radius:50%;background:var(--win);animation:livePulse 1.5s ease infinite;flex-shrink:0;}
+  .ticker-track{flex:1;overflow:hidden;height:36px;position:relative;}
+  .ticker-inner{display:flex;align-items:center;height:100%;white-space:nowrap;will-change:transform;}
+  .ticker-inner.running{animation:tickerScroll linear infinite;}
+  @keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  .ticker-item{display:inline-flex;align-items:center;gap:8px;padding:0 28px;font-family:'Fragment Mono',monospace;font-size:10px;color:var(--text2);}
+  .ticker-item::after{content:'·';color:var(--muted);padding-left:28px;}
+  .ticker-src{font-size:8px;color:var(--muted);letter-spacing:0.06em;}
 </style>
 </head>
 <body>
@@ -150,6 +209,20 @@
     <div class="sb-item">
       <div class="sb-lbl" id="sessLabel">Next Session</div>
       <div class="sb-val" style="color:var(--gold);font-size:12px;" id="nextSession">—</div>
+    </div>
+  </div>
+
+
+  <!-- ── NEWS TICKER ── -->
+  <div class="ticker-wrap">
+    <div class="ticker-label">
+      <div class="ticker-dot"></div>
+      <div class="ticker-label-txt">Live News</div>
+    </div>
+    <div class="ticker-track">
+      <div class="ticker-inner" id="tickerInner">
+        <span class="ticker-item" style="color:var(--muted);">Loading headlines...</span>
+      </div>
     </div>
   </div>
 
@@ -263,6 +336,7 @@
     </div>
   </div>
 
+
   <div style="margin-top:32px;animation:fadeUp 0.6s 0.4s ease both;">
     <div class="section-lbl">
       Weekly Edge Report
@@ -271,6 +345,50 @@
     </div>
     <div class="report-grid" id="weeklyReport"></div>
     <div id="weeklyInsight" style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-family:'Fragment Mono',monospace;font-size:10px;color:var(--text2);line-height:1.7;"></div>
+  </div>
+
+  <!-- ── TRADE OF THE WEEK ── -->
+  <div class="two-col" style="animation:fadeUp 0.6s 0.5s ease both;">
+
+    <!-- Trade of the Week -->
+    <div class="panel">
+      <div class="panel-hdr">
+        <div class="panel-title">⭐ Trade of the Week</div>
+        <span style="font-family:'Fragment Mono',monospace;font-size:8px;color:var(--muted);">highest grade this week</span>
+      </div>
+      <div class="panel-body" id="totwBody">
+        <div style="font-size:10px;color:var(--muted);padding:8px 0;">Loading...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── PRE-SESSION CHECKLIST + RULES ── -->
+  <div class="two-col" style="animation:fadeUp 0.6s 0.6s ease both;">
+
+    <!-- Checklist -->
+    <div class="panel">
+      <div class="panel-hdr">
+        <div class="panel-title">☑ Pre-Session Checklist</div>
+        <span class="chk-reset" onclick="resetChecklist()">↺ Reset</span>
+      </div>
+      <div class="panel-body">
+        <div class="chk-progress"><div class="chk-fill" id="chkFill" style="width:0%"></div></div>
+        <div id="chkList"></div>
+      </div>
+    </div>
+
+    <!-- Rules Card -->
+    <div class="panel">
+      <div class="panel-hdr">
+        <div class="panel-title">📋 Trading Rules</div>
+        <span style="font-family:'Fragment Mono',monospace;font-size:8px;color:var(--gold);">non-negotiable</span>
+      </div>
+      <div class="panel-body">
+        <div id="rulesList"></div>
+      </div>
+    </div>
+
   </div>
 
   <div style="margin-top:32px;">
@@ -434,6 +552,268 @@ function renderHubLog() {
 }
 function clearLog(){localStorage.removeItem('bias_log');renderHubLog();}
 renderHubLog();
+
+
+// ── NEWS TICKER ──
+var NEWS_API_KEY = '72ccc04506e24387a584a992a0b954ad';
+
+async function loadTicker() {
+  var inner = document.getElementById('tickerInner');
+  if (!inner) return;
+
+  var headlines = [];
+
+  // Try NewsAPI
+  try {
+    var res = await fetch(
+      'https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=15&apiKey=' + NEWS_API_KEY
+    );
+    var data = await res.json();
+    if (data.articles && data.articles.length) {
+      headlines = data.articles
+        .filter(function(a) { return a.title && !a.title.includes('[Removed]'); })
+        .map(function(a) { return { text: a.title, src: a.source && a.source.name ? a.source.name : '' }; });
+    }
+  } catch(e) {}
+
+  // Fallback headlines if API fails
+  if (!headlines.length) {
+    headlines = [
+      { text: 'NQ Futures — check ForexFactory for high-impact events today', src: 'Reminder' },
+      { text: 'FOMC minutes and CPI are the highest-impact events for NQ', src: 'Info' },
+      { text: 'London AM: 03:00–08:00 ET · NY AM: 09:30–12:00 ET · NY PM: 13:30–16:00 ET', src: 'Sessions' },
+      { text: 'Only trade A/A+ setups in valid killzones — patience is the edge', src: 'Rule' },
+      { text: 'Liquidity sweep + displacement + IFVG respect = valid entry', src: 'Model' },
+    ];
+  }
+
+  // Double the items so the scroll loops seamlessly
+  var allItems = headlines.concat(headlines);
+  inner.innerHTML = allItems.map(function(h) {
+    return '<span class="ticker-item">' + 
+      (h.src ? '<span class="ticker-src">[' + h.src + ']</span> ' : '') +
+      h.text +
+    '</span>';
+  }).join('');
+
+  // Set scroll speed based on content width (~80px per second)
+  inner.classList.add('running');
+  var totalWidth = inner.scrollWidth / 2; // half because doubled
+  var speed = totalWidth / 80; // seconds
+  inner.style.animationDuration = speed + 's';
+
+  // Pause on hover
+  inner.parentElement.addEventListener('mouseenter', function() { inner.style.animationPlayState = 'paused'; });
+  inner.parentElement.addEventListener('mouseleave', function() { inner.style.animationPlayState = 'running'; });
+}
+
+loadTicker();
+
+// ── PRE-SESSION CHECKLIST ──
+var CHECKLIST = [
+  'HTF bias done (4H direction confirmed)',
+  'Economic calendar checked — no red news at entry',
+  'In a valid killzone (London / NYAM)',
+  'Liquidity swept on lower timeframe',
+  'Displacement + MSS / CISD confirmed',
+  'IFVG identified and price respecting it',
+  'A or A+ grade setup — no B grade entries',
+  'Risk defined — SL placed, size set',
+  'No revenge trading — flat mindset',
+];
+
+function loadChecklist() {
+  var today = new Date().toISOString().split('T')[0];
+  var saved = JSON.parse(localStorage.getItem('chk_state') || '{}');
+  if (saved.date !== today) { saved = { date: today, checks: {} }; localStorage.setItem('chk_state', JSON.stringify(saved)); }
+  return saved;
+}
+
+function saveChecklist(saved) { localStorage.setItem('chk_state', JSON.stringify(saved)); }
+
+function renderChecklist() {
+  var saved = loadChecklist();
+  var el = document.getElementById('chkList');
+  var fill = document.getElementById('chkFill');
+  if (!el) return;
+  var done = 0;
+  el.innerHTML = CHECKLIST.map(function(txt, i) {
+    var checked = !!saved.checks[i];
+    if (checked) done++;
+    return '<div class="chk-item' + (checked ? ' done' : '') + '" onclick="toggleCheck(' + i + ')">' +
+      '<div class="chk-box">' + (checked ? '<span style="color:#080601;font-size:11px;font-weight:700;">✓</span>' : '') + '</div>' +
+      '<div class="chk-txt">' + txt + '</div>' +
+    '</div>';
+  }).join('');
+  var pct = Math.round((done / CHECKLIST.length) * 100);
+  if (fill) fill.style.width = pct + '%';
+}
+
+function toggleCheck(i) {
+  var saved = loadChecklist();
+  saved.checks[i] = !saved.checks[i];
+  saveChecklist(saved);
+  renderChecklist();
+}
+
+function resetChecklist() {
+  var today = new Date().toISOString().split('T')[0];
+  localStorage.setItem('chk_state', JSON.stringify({ date: today, checks: {} }));
+  renderChecklist();
+}
+
+renderChecklist();
+
+// ── ECONOMIC CALENDAR (Forex Factory via proxy) ──
+async function loadEconCal() {
+  var el = document.getElementById('econCal');
+  var dateEl = document.getElementById('calDate');
+  if (!el) return;
+
+  var today = new Date();
+  if (dateEl) dateEl.textContent = today.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+
+  // Hardcoded key events to watch — updated with common recurring events
+  // We'll fetch from ForexFactory via the Vercel proxy if available, else show static
+  try {
+    var res = await fetch('/api/calendar');
+    if (!res.ok) throw new Error('no proxy');
+    var events = await res.json();
+    renderCalEvents(events, el);
+  } catch(e) {
+    // Fallback: show a helpful static message with a link
+    el.innerHTML = [
+      { time: 'Check', name: 'ForexFactory for todays events', imp: 'high', cur: 'USD' },
+      { time: '—', name: 'NFP — first Friday each month', imp: 'high', cur: 'USD' },
+      { time: '—', name: 'CPI — mid month', imp: 'high', cur: 'USD' },
+      { time: '—', name: 'FOMC — ~8x per year', imp: 'high', cur: 'USD' },
+      { time: '—', name: 'Jobless Claims — Thursdays', imp: 'medium', cur: 'USD' },
+    ].map(function(e) {
+      return '<div class="cal-event">' +
+        '<div class="cal-imp ' + e.imp + '"></div>' +
+        '<div class="cal-time">' + e.time + '</div>' +
+        '<div class="cal-name">' + e.name + '</div>' +
+        '<div class="cal-cur">' + e.cur + '</div>' +
+      '</div>';
+    }).join('') +
+    '<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.04);">' +
+      '<a href="https://www.forexfactory.com/calendar" target="_blank" style="font-family:Fragment Mono,monospace;font-size:9px;color:var(--gold);text-decoration:none;letter-spacing:0.08em;">→ Open ForexFactory Calendar</a>' +
+    '</div>';
+  }
+}
+
+function renderCalEvents(events, el) {
+  if (!events || !events.length) {
+    el.innerHTML = '<div style="font-size:10px;color:var(--muted);">No high-impact events today.</div>';
+    return;
+  }
+  el.innerHTML = events.slice(0, 8).map(function(e) {
+    var imp = (e.impact || '').toLowerCase();
+    var impClass = imp.includes('high') ? 'high' : imp.includes('med') ? 'medium' : 'low';
+    return '<div class="cal-event">' +
+      '<div class="cal-imp ' + impClass + '"></div>' +
+      '<div class="cal-time">' + (e.time || '—') + '</div>' +
+      '<div class="cal-name">' + (e.name || e.title || '—') + '</div>' +
+      '<div class="cal-cur">' + (e.currency || e.country || '') + '</div>' +
+    '</div>';
+  }).join('') +
+  '<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.04);">' +
+    '<a href="https://www.forexfactory.com/calendar" target="_blank" style="font-family:Fragment Mono,monospace;font-size:9px;color:var(--gold);text-decoration:none;letter-spacing:0.08em;">→ Full Calendar</a>' +
+  '</div>';
+}
+
+loadEconCal();
+
+// ── TRADE OF THE WEEK ──
+async function loadTradeOfWeek() {
+  var el = document.getElementById('totwBody');
+  if (!el) return;
+
+  var now = new Date(), day = now.getDay();
+  var weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  weekStart.setHours(0, 0, 0, 0);
+  var weekStartStr = weekStart.toISOString().split('T')[0];
+
+  var trades = [];
+  try {
+    var res = await fetch(
+      SUPABASE_URL + '/rest/v1/trades?select=data&created_at=gte=' + weekStart.toISOString(),
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    );
+    if (!res.ok) throw new Error(res.status);
+    var rows = await res.json();
+    trades = rows.map(function(r) { return r.data; }).filter(function(t) {
+      return t && t.date && t.date >= weekStartStr && t.acct !== 'backtest';
+    });
+  } catch(e) {
+    var all = JSON.parse(localStorage.getItem('nq_v5_trades') || '[]');
+    trades = all.filter(function(t) { return t.date && t.date >= weekStartStr && t.acct !== 'backtest'; });
+  }
+
+  if (!trades.length) {
+    el.innerHTML = '<div style="font-size:10px;color:var(--muted);padding:8px 0;">No trades this week yet.</div>';
+    return;
+  }
+
+  var gradeOrder = { 'A+': 5, 'A': 4, 'B': 3, 'C': 2, 'D': 1 };
+  var best = trades.reduce(function(top, t) {
+    var tScore = (gradeOrder[t.grade] || 0) * 10 + (parseFloat(t.rm) || 0);
+    var topScore = (gradeOrder[top.grade] || 0) * 10 + (parseFloat(top.rm) || 0);
+    return tScore > topScore ? t : top;
+  }, trades[0]);
+
+  var rmVal = parseFloat(best.rm) || 0;
+  var rmColor = rmVal > 0 ? 'var(--win)' : rmVal < 0 ? 'var(--loss)' : 'var(--muted)';
+  var poi = Array.isArray(best.poi) ? best.poi.join(', ') : (best.poi || '—');
+
+  el.innerHTML =
+    '<div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">' +
+      '<div class="totw-grade">' + (best.grade || '—') + '</div>' +
+      '<div>' +
+        '<div style="font-family:Barlow Condensed,sans-serif;font-size:20px;font-weight:700;color:' + rmColor + ';">' + (rmVal > 0 ? '+' : '') + rmVal.toFixed(2) + 'R</div>' +
+        '<div style="font-family:Fragment Mono,monospace;font-size:9px;color:var(--muted);">' + (best.date || '—') + ' · ' + (best.session || '—') + '</div>' +
+      '</div>' +
+    '</div>' +
+    [
+      ['Result', best.result || '—'],
+      ['POI', poi],
+      ['Execution', best.exec || '—'],
+      ['Direction', best.dir || '—'],
+      ['Emotion', best.emotion || '—'],
+    ].map(function(r) {
+      return '<div class="totw-row"><div class="totw-lbl">' + r[0] + '</div><div class="totw-val">' + r[1] + '</div></div>';
+    }).join('') +
+    (best.chart ? '<div style="margin-top:12px;"><a href="' + best.chart + '" target="_blank" style="font-family:Fragment Mono,monospace;font-size:9px;color:var(--gold);text-decoration:none;">→ View Chart</a></div>' : '');
+}
+
+loadTradeOfWeek();
+
+// ── TRADING RULES ──
+var RULES = [
+  'Only trade during London AM or NY AM killzone',
+  'Liquidity must be swept before entry',
+  'Displacement + MSS or CISD required — no exceptions',
+  'Entry only on confirmed IFVG respect',
+  'A or A+ grade only — skip B grade setups',
+  'Define risk before entry — SL is non-negotiable',
+  'Never move SL to break even before first target',
+  'Max 2 trades per session — stop after 2 losses',
+  'No trading 30 min before red news events',
+];
+
+function renderRules() {
+  var el = document.getElementById('rulesList');
+  if (!el) return;
+  el.innerHTML = RULES.map(function(r, i) {
+    return '<div class="rule-item">' +
+      '<div class="rule-num">' + (i + 1) + '</div>' +
+      '<div class="rule-txt">' + r + '</div>' +
+    '</div>';
+  }).join('');
+}
+renderRules();
+
 </script>
 </body>
 </html>
