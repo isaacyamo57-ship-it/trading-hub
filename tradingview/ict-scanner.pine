@@ -54,22 +54,24 @@ var float ifvg_bull_level = na
 var float ifvg_bear_level = na
 
 // Check if price has entered a bearish FVG (potential IFVG forming — bullish)
-for i = 0 to array.size(bear_fvg_tops) - 1
-    top = array.get(bear_fvg_tops, i)
-    bot = array.get(bear_fvg_bottoms, i)
-    if close >= bot and close <= top
-        ifvg_bull_active := true
-        ifvg_bull_level  := bot
-        break
+if array.size(bear_fvg_tops) > 0
+    for i = 0 to array.size(bear_fvg_tops) - 1
+        top = array.get(bear_fvg_tops, i)
+        bot = array.get(bear_fvg_bottoms, i)
+        if close >= bot and close <= top
+            ifvg_bull_active := true
+            ifvg_bull_level  := bot
+            break
 
 // Check if price has entered a bullish FVG (potential IFVG forming — bearish)
-for i = 0 to array.size(bull_fvg_tops) - 1
-    top = array.get(bull_fvg_tops, i)
-    bot = array.get(bull_fvg_bottoms, i)
-    if close >= bot and close <= top
-        ifvg_bear_active := true
-        ifvg_bear_level  := top
-        break
+if array.size(bull_fvg_tops) > 0
+    for i = 0 to array.size(bull_fvg_tops) - 1
+        top = array.get(bull_fvg_tops, i)
+        bot = array.get(bull_fvg_bottoms, i)
+        if close >= bot and close <= top
+            ifvg_bear_active := true
+            ifvg_bear_level  := top
+            break
 
 //  MSS DETECTION (candle close breaks swing high/low) 
 lookback = 10
