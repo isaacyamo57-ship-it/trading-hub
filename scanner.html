@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iI2M5YTg0YyIvPjx0ZXh0IHg9IjE2IiB5PSIyMiIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZvbnQtd2VpZ2h0PSI5MDAiIGZpbGw9IiMwODA2MDEiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSItMSI+SUE8L3RleHQ+PC9zdmc+">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ICT Scanner — Trading Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Fragment+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+
+/* NAV */
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,0.07);background:rgba(6,6,7,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:sticky;top:0;z-index:100;}
+.tn-left{display:flex;align-items:center;gap:12px;}
+.tn-home{display:flex;align-items:center;gap:8px;text-decoration:none;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:7px;padding:5px 10px;transition:all 0.15s;}
+.tn-home:hover{background:rgba(201,168,76,0.15);}
+.tn-home-txt{font-family:'Fragment Mono',monospace;font-size:8px;color:#c9a84c;letter-spacing:0.1em;text-transform:uppercase;}
+.tn-ia{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#c9a84c,#8a6d2a);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tn-ia span{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;color:#080601;}
+.tn-logo{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--gold);}
+.tn-sep{width:1px;height:16px;background:var(--border2);}
+.tn-tag{font-family:'Fragment Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;}
+.tn-right{display:flex;align-items:center;gap:12px;}
+.tn-clock{font-family:'Fragment Mono',monospace;font-size:11px;color:var(--text2);}
+.tn-live{display:flex;align-items:center;gap:5px;background:rgba(77,170,125,0.1);border:1px solid rgba(77,170,125,0.2);border-radius:20px;padding:3px 10px;font-family:'Fragment Mono',monospace;font-size:8px;color:var(--win);letter-spacing:0.1em;text-transform:uppercase;}
+
+/* PAGE */
+.scanner-page { max-width: 900px; margin: 0 auto; padding: var(--s6) var(--s4); }
+
+/* SESSION BAR */
+.session-bar {
+  display: flex; gap: var(--s3); align-items: center; flex-wrap: wrap;
+  margin-bottom: var(--s5);
+}
+.session-pill {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.78rem; color: var(--text2); font-family: var(--font-mono);
+}
+.session-pill.active { border-color: var(--win); color: var(--win); }
+.session-pill.warn   { border-color: var(--warn); color: var(--warn); }
+
+/* ALERT CARD */
+.alert-card {
+  position: relative; overflow: hidden;
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: var(--r-lg);
+  padding: var(--s5);
+  margin-bottom: var(--s5);
+}
+.alert-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+}
+.alert-card.grade-ap  { border-color: rgba(201,168,76,0.3);  box-shadow: 0 0 24px rgba(201,168,76,0.08); }
+.alert-card.grade-a   { border-color: rgba(77,170,125,0.3);  box-shadow: 0 0 24px rgba(77,170,125,0.08); }
+.alert-card.grade-am  { border-color: rgba(93,143,196,0.3);  box-shadow: 0 0 24px rgba(93,143,196,0.08); }
+.alert-card.grade-skip{ border-color: rgba(220,80,80,0.2); }
+.alert-card.empty     { text-align: center; padding: var(--s7) var(--s5); color: var(--text2); }
+
+/* GRADE BADGE */
+.grade-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 72px; height: 72px; border-radius: 50%;
+  font-size: 1.4rem; font-weight: 700; font-family: var(--font-mono);
+  margin-bottom: var(--s3); flex-shrink: 0;
+}
+.grade-badge.ap   { background: rgba(201,168,76,0.15); color: var(--gold); border: 2px solid var(--gold); }
+.grade-badge.a    { background: rgba(77,170,125,0.15);  color: var(--win);  border: 2px solid var(--win); }
+.grade-badge.am   { background: rgba(93,143,196,0.15);  color: var(--blue); border: 2px solid var(--blue); }
+.grade-badge.skip { background: rgba(220,80,80,0.1);    color: var(--loss); border: 2px solid var(--loss); }
+
+/* ALERT HEADER */
+.alert-header { display: flex; align-items: flex-start; gap: var(--s4); }
+.alert-meta   { flex: 1; }
+.alert-direction {
+  font-size: 1.6rem; font-weight: 700; letter-spacing: 0.05em;
+  font-family: var(--font-ui);
+  margin-bottom: 2px;
+}
+.alert-direction.long  { color: var(--win); }
+.alert-direction.short { color: var(--loss); }
+.alert-time { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text2); }
+
+/* LEVELS GRID */
+.alert-levels {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s3);
+  margin: var(--s4) 0;
+}
+.level-item   { text-align: center; }
+.level-label  { font-size: 0.7rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; font-family: var(--font-mono); }
+.level-value  { font-family: var(--font-mono); font-size: 0.95rem; color: var(--text); font-weight: 600; }
+.level-value.rr { color: var(--win); }
+
+/* DODGYDD BAR */
+.dodgydd-bar {
+  display: flex; align-items: center; gap: var(--s3);
+  margin: var(--s3) 0;
+}
+.dodgydd-label { font-size: 0.75rem; color: var(--text2); min-width: 80px; font-family: var(--font-mono); }
+.dodgydd-track {
+  flex: 1; height: 6px; background: rgba(255,255,255,0.06);
+  border-radius: 3px; overflow: hidden;
+}
+.dodgydd-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--blue), var(--win), var(--gold));
+  transition: width 0.5s ease;
+}
+.dodgydd-score { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text); min-width: 36px; text-align: right; }
+
+/* CONFLUENCES */
+.confluences { display: flex; flex-wrap: wrap; gap: 6px; margin: var(--s3) 0; }
+.confluence-tag {
+  font-size: 0.72rem; padding: 4px 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px; color: var(--text2);
+  font-family: var(--font-mono);
+}
+
+/* REASON */
+.alert-reason {
+  font-size: 0.85rem; color: var(--text2); line-height: 1.5;
+  font-family: var(--font-mono);
+  padding: var(--s3); background: rgba(0,0,0,0.15); border-radius: var(--r-md);
+  margin-top: var(--s3);
+}
+
+/* ACTION BANNER */
+.action-banner {
+  text-align: center; padding: var(--s2) var(--s3);
+  border-radius: var(--r-md); font-weight: 700; font-size: 0.9rem;
+  letter-spacing: 0.1em; margin-top: var(--s3);
+  font-family: var(--font-ui);
+}
+.action-banner.take    { background: rgba(77,170,125,0.15); color: var(--win);  border: 1px solid rgba(77,170,125,0.3); }
+.action-banner.consider{ background: rgba(93,143,196,0.15); color: var(--blue); border: 1px solid rgba(93,143,196,0.3); }
+.action-banner.skip    { background: rgba(220,80,80,0.08);  color: var(--loss); border: 1px solid rgba(220,80,80,0.2); }
+
+/* HISTORY */
+.history-section h3 {
+  font-size: 0.8rem; color: var(--text2); text-transform: uppercase;
+  letter-spacing: 0.1em; margin-bottom: var(--s3);
+  font-family: var(--font-mono);
+}
+.history-row {
+  display: flex; align-items: center; gap: var(--s3);
+  padding: var(--s2) var(--s3);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.8rem;
+}
+.history-grade { font-family: var(--font-mono); font-weight: 700; min-width: 32px; }
+.history-grade.ap   { color: var(--gold); }
+.history-grade.a    { color: var(--win); }
+.history-grade.am   { color: var(--blue); }
+.history-grade.skip { color: var(--text2); }
+.history-dir { min-width: 48px; font-family: var(--font-ui); font-weight: 700; }
+.history-dir.long  { color: var(--win); }
+.history-dir.short { color: var(--loss); }
+.history-time { color: var(--text2); font-family: var(--font-mono); font-size: 0.72rem; margin-left: auto; }
+
+@media (max-width: 600px) {
+  .alert-levels { grid-template-columns: repeat(2, 1fr); }
+  .scanner-page { padding: var(--s5) var(--s3); }
+}
+
+  </style>
+</head>
+<body>
+
+<div style="position:fixed;width:400px;height:400px;border-radius:50%;filter:blur(90px);background:rgba(201,168,76,0.055);top:-100px;left:-100px;pointer-events:none;z-index:0;"></div>
+<div style="position:fixed;width:300px;height:300px;border-radius:50%;filter:blur(90px);background:rgba(77,170,125,0.04);bottom:-80px;right:-80px;pointer-events:none;z-index:0;"></div>
+<div style="position:fixed;width:260px;height:260px;border-radius:50%;filter:blur(90px);background:rgba(93,143,196,0.03);top:40%;left:55%;pointer-events:none;z-index:0;"></div>
+
+<nav class="topnav">
+  <div class="tn-left">
+    <a href="https://trading-hub-mu.vercel.app" class="tn-home">
+      <span style="font-size:12px;color:#c9a84c;">⌂</span>
+      <span class="tn-home-txt">Hub</span>
+    </a>
+    <div class="tn-ia"><span>IA</span></div>
+    <div class="tn-logo">🔍 ICT Scanner</div>
+    <div class="tn-sep"></div>
+    <div class="tn-tag">NQ Futures · Live Alerts</div>
+  </div>
+  <div class="tn-right">
+    <div class="tn-live"><div class="live-dot"></div>Realtime</div>
+    <div class="tn-clock" id="clock">—</div>
+  </div>
+</nav>
+
+<div class="scanner-page" style="position:relative;z-index:1;">
+
+  <div class="session-bar">
+    <span class="sec-lbl">ICT SCANNER</span>
+    <span id="killzone-pill" class="session-pill">Checking session...</span>
+    <span id="trade-counter" class="session-pill">0 / 3 trades</span>
+    <span id="daily-status" class="session-pill">Session clear</span>
+    <span class="live-dot"></span>
+  </div>
+
+  <div id="latest-alert" class="alert-card empty">
+    <p style="color:var(--text2);font-family:var(--font-mono);font-size:0.85rem;">Waiting for setup...</p>
+  </div>
+
+  <div class="history-section">
+    <h3>Session History</h3>
+    <div id="history-list"></div>
+  </div>
+
+</div>
+
+<script>
+  // Supabase credentials
+  var SUPABASE_URL = 'https://lzvkfrqwupgnvhmphzem.supabase.co';
+  var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6dmtmcnF3dXBnbnZobXBoemVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI5MDMsImV4cCI6MjA5MDYyODkwM30.YpzJ-616pSbImH9e2f3vRXGzwXjCzTvHV-hgPQais3Q';
+
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  var tradeCount = 0;
+  var lossCount  = 0;
+
+  // ── Clock ──
+  function tick() {
+    var el = document.getElementById('clock');
+    if (el) el.textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+  tick(); setInterval(tick, 1000);
+
+  // ── Grade helpers ──
+  function gradeClass(grade) {
+    if (grade === 'A+') return 'ap';
+    if (grade === 'A')  return 'a';
+    if (grade === 'A-') return 'am';
+    return 'skip';
+  }
+
+  function gradeCardClass(grade) {
+    if (grade === 'A+') return 'grade-ap';
+    if (grade === 'A')  return 'grade-a';
+    if (grade === 'A-') return 'grade-am';
+    return 'grade-skip';
+  }
+
+  function actionClass(action) {
+    if (!action) return 'skip';
+    var a = action.toUpperCase();
+    if (a === 'TAKE IT') return 'take';
+    if (a === 'CONSIDER') return 'consider';
+    return 'skip';
+  }
+
+  function formatTime(iso) {
+    var d = new Date(iso);
+    return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'America/New_York' }) + ' NY';
+  }
+
+  // ── Killzone check (NYAM 8:30–11:00 NY) ──
+  function checkKillzone() {
+    var now = new Date();
+    var nyTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    var h = nyTime.getHours();
+    var m = nyTime.getMinutes();
+    var mins = h * 60 + m;
+    var isActive = mins >= 510 && mins < 660; // 8:30 = 510, 11:00 = 660
+    var pill = document.getElementById('killzone-pill');
+    if (!pill) return;
+    pill.textContent = isActive ? 'NYAM ACTIVE 8:30–11:00' : 'NYAM CLOSED';
+    pill.className = 'session-pill' + (isActive ? ' active' : '');
+  }
+
+  // ── Render the latest alert card ──
+  function renderAlert(row) {
+    var gc = gradeClass(row.grade);
+    var dir = (row.direction || '').toLowerCase();
+    var dodgyddPct = Math.min(100, ((row.dodgydd_score || 0) / 10) * 100);
+    var confluences = (row.confluences || []).map(function(c) {
+      return '<span class="confluence-tag">' + c + '</span>';
+    }).join('');
+    var ac = actionClass(row.action);
+
+    var el = document.getElementById('latest-alert');
+    el.className = 'alert-card ' + gradeCardClass(row.grade);
+    el.innerHTML =
+      '<div class="alert-header">' +
+        '<div class="grade-badge ' + gc + '">' + (row.grade || '—') + '</div>' +
+        '<div class="alert-meta">' +
+          '<div class="alert-direction ' + dir + '">' + (row.direction || '—') + '</div>' +
+          '<div class="alert-time">' + formatTime(row.created_at) + ' · Dodgydd ' + (row.dodgydd_score || 0) + '/10</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="alert-levels">' +
+        '<div class="level-item"><div class="level-label">Entry Zone</div><div class="level-value">' + (row.entry_zone || '—') + '</div></div>' +
+        '<div class="level-item"><div class="level-label">Stop</div><div class="level-value">' + (row.stop_level || '—') + '</div></div>' +
+        '<div class="level-item"><div class="level-label">Target</div><div class="level-value">' + (row.target || '—') + '</div></div>' +
+        '<div class="level-item"><div class="level-label">R:R</div><div class="level-value rr">' + (row.rr ? '1:' + row.rr : '—') + '</div></div>' +
+      '</div>' +
+      '<div class="dodgydd-bar">' +
+        '<span class="dodgydd-label">Dodgydd</span>' +
+        '<div class="dodgydd-track"><div class="dodgydd-fill" style="width:' + dodgyddPct + '%"></div></div>' +
+        '<span class="dodgydd-score">' + (row.dodgydd_score || 0) + '/10</span>' +
+      '</div>' +
+      '<div class="confluences">' + (confluences || '<span class="confluence-tag" style="color:var(--muted);">No confluences listed</span>') + '</div>' +
+      '<div class="alert-reason">' + (row.reason || '') + '</div>' +
+      '<div class="action-banner ' + ac + '">' + (row.action || 'SKIP') + '</div>';
+  }
+
+  // ── Add a row to session history ──
+  function addToHistory(row) {
+    var gc = gradeClass(row.grade);
+    var dir = (row.direction || '').toLowerCase();
+    var el = document.createElement('div');
+    el.className = 'history-row';
+    el.innerHTML =
+      '<span class="history-grade ' + gc + '">' + (row.grade || '—') + '</span>' +
+      '<span class="history-dir ' + dir + '">' + (row.direction || '—') + '</span>' +
+      '<span style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text2);">' + (row.target || '—') + '</span>' +
+      '<span style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text2);">R:R ' + (row.rr ? '1:' + row.rr : '—') + '</span>' +
+      '<span class="history-time">' + formatTime(row.created_at) + '</span>';
+    var list = document.getElementById('history-list');
+    list.insertBefore(el, list.firstChild);
+  }
+
+  // ── Update session counters ──
+  function updateCounters() {
+    var counterEl = document.getElementById('trade-counter');
+    var statusEl  = document.getElementById('daily-status');
+    if (counterEl) counterEl.textContent = tradeCount + ' / 3 trades';
+    if (statusEl) {
+      if (lossCount >= 2) {
+        statusEl.textContent = 'STOP — 2 losses hit';
+        statusEl.className = 'session-pill warn';
+      } else {
+        statusEl.textContent = lossCount + ' loss' + (lossCount !== 1 ? 'es' : '') + ' today';
+        statusEl.className = 'session-pill';
+      }
+    }
+  }
+
+  // ── Load today's existing alerts on page load ──
+  async function loadToday() {
+    var today = new Date().toISOString().split('T')[0];
+    var result = await db
+      .from('scanner_alerts')
+      .select('*')
+      .gte('created_at', today + 'T00:00:00Z')
+      .order('created_at', { ascending: false });
+
+    var data = result.data;
+    if (!data || data.length === 0) return;
+
+    renderAlert(data[0]);
+    data.forEach(function(row) { addToHistory(row); });
+
+    // Count trades/losses using outcome column (only populated post-trade)
+    tradeCount = data.filter(function(r) { return r.outcome && r.outcome !== 'skipped'; }).length;
+    lossCount  = data.filter(function(r) { return r.outcome === 'loss'; }).length;
+    updateCounters();
+  }
+
+  // ── Supabase Realtime subscription ──
+  db.channel('scanner_alerts_realtime')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'scanner_alerts' }, function(payload) {
+      renderAlert(payload.new);
+      addToHistory(payload.new);
+    })
+    .subscribe();
+
+  // ── Init ──
+  checkKillzone();
+  setInterval(checkKillzone, 60000);
+  loadToday();
+</script>
+</body>
+</html>
