@@ -1,14 +1,14 @@
 //@version=5
 indicator("ICT Setup Scanner — NQ", overlay=true, max_boxes_count=200, max_lines_count=200, max_labels_count=200)
 
-// ─── INPUTS ────────────────────────────────────────────────────────────────
+//  INPUTS 
 fvg_show       = input.bool(true,  "Show FVG Boxes")
 ob_show        = input.bool(true,  "Show Order Blocks")
 eql_show       = input.bool(true,  "Show Equal Highs/Lows")
 kz_show        = input.bool(true,  "Show Killzone Shading")
 webhook_url    = input.string("", "Webhook URL (set in alert)")
 
-// ─── COLOURS ───────────────────────────────────────────────────────────────
+//  COLOURS 
 bull_col  = color.new(color.green,  75)
 bear_col  = color.new(color.red,    75)
 ifvg_bull = color.new(color.teal,   70)
@@ -18,11 +18,11 @@ mss_bull  = color.new(color.lime,   0)
 mss_bear  = color.new(color.red,    0)
 eql_col   = color.new(color.yellow, 60)
 
-// ─── KILLZONE (NYAM: 8:30–11:00 AM New York) ──────────────────────────────
+//  KILLZONE (NYAM: 8:30–11:00 AM New York) 
 is_nyam = not na(time("1", "0830-1100", "America/New_York"))
 bgcolor(kz_show and is_nyam ? kz_col : na, title="NYAM Killzone")
 
-// ─── FAIR VALUE GAPS ───────────────────────────────────────────────────────
+//  FAIR VALUE GAPS 
 // Bullish FVG: gap between high[2] and low[0] (low of current > high of 2 bars ago)
 bull_fvg = low > high[2]
 // Bearish FVG: gap between low[2] and high[0] (high of current < low of 2 bars ago)
@@ -47,7 +47,7 @@ if bear_fvg and fvg_show
     array.push(bear_fvg_tops, low[2])
     array.push(bear_fvg_bottoms, high)
 
-// ─── IFVG DETECTION (FVG gets tapped and flips) ───────────────────────────
+//  IFVG DETECTION (FVG gets tapped and flips) 
 var bool ifvg_bull_active = false
 var bool ifvg_bear_active = false
 var float ifvg_bull_level = na
@@ -71,7 +71,7 @@ for i = 0 to array.size(bull_fvg_tops) - 1
         ifvg_bear_level  := top
         break
 
-// ─── MSS DETECTION (candle close breaks swing high/low) ───────────────────
+//  MSS DETECTION (candle close breaks swing high/low) 
 lookback = 10
 swing_high = ta.highest(high, lookback)[1]
 swing_low  = ta.lowest(low,  lookback)[1]
@@ -82,7 +82,7 @@ mss_bear_close = close < swing_low  and close[1] >= swing_low[1]
 plotshape(mss_bull_close, "MSS Bull", shape.arrowup,   location.belowbar, mss_bull, size=size.small)
 plotshape(mss_bear_close, "MSS Bear", shape.arrowdown, location.abovebar, mss_bear, size=size.small)
 
-// ─── EQUAL HIGHS / EQUAL LOWS ─────────────────────────────────────────────
+//  EQUAL HIGHS / EQUAL LOWS 
 eql_threshold = syminfo.mintick * 10
 eqh = math.abs(high - high[1]) <= eql_threshold
 eql = math.abs(low  - low[1])  <= eql_threshold
@@ -92,7 +92,7 @@ if eql_show and eqh
 if eql_show and eql
     line.new(bar_index[1], low[1],  bar_index, low,  color=eql_col, style=line.style_dotted, width=1)
 
-// ─── HTF BIAS (via request.security) ─────────────────────────────────────
+//  HTF BIAS (via request.security) 
 [htf_4h_close, htf_4h_high, htf_4h_low] = request.security(syminfo.tickerid, "240", [close, high, low])
 [htf_1h_close, htf_1h_high, htf_1h_low] = request.security(syminfo.tickerid, "60",  [close, high, low])
 
@@ -109,7 +109,7 @@ all_bearish = bias_4h_bear and bias_1h_bear and bias_15m_bear
 
 htf_bias_str = all_bullish ? "bullish" : all_bearish ? "bearish" : "neutral"
 
-// ─── CANDLE DATA FOR DODGYDD SCORING ──────────────────────────────────────
+//  CANDLE DATA FOR DODGYDD SCORING 
 candle_range    = high - low
 candle_body     = math.abs(close - open)
 body_pct        = candle_range > 0 ? candle_body / candle_range : 0
@@ -117,43 +117,19 @@ wick_ratio      = candle_range > 0 ? (candle_range - candle_body) / candle_range
 close_vs_edge_bull = ifvg_bull_level > 0 ? (close - ifvg_bull_level) / (high - ifvg_bull_level + syminfo.mintick) : 0
 close_vs_edge_bear = ifvg_bear_level > 0 ? (ifvg_bear_level - close) / (ifvg_bear_level - low + syminfo.mintick) : 0
 
-// ─── FULL SEQUENCE CHECK ──────────────────────────────────────────────────
+//  FULL SEQUENCE CHECK 
 long_setup  = is_nyam and all_bullish and ifvg_bull_active and mss_bull_close
 short_setup = is_nyam and all_bearish and ifvg_bear_active and mss_bear_close
 
-// ─── ALERT PAYLOAD ────────────────────────────────────────────────────────
-long_msg = '{"direction":"long","killzone":"nyam","killzone_active":true,"ny_time":"' +
-    str.tostring(hour(time, "America/New_York")) + ':' +
-    str.tostring(minute(time, "America/New_York")) +
-    '","htf_bias":"bullish","timeframes_aligned":["4H","1H","15M"],"sweep_type":"sellside",' +
-    '"fvg_zone":[' + str.tostring(math.round(ifvg_bull_level, 2)) + ',' + str.tostring(math.round(close, 2)) + '],' +
-    '"mss_confirmed":true,"cisd_confirmed":false,' +
-    '"candle_body_pct":' + str.tostring(math.round(body_pct, 3)) + ',' +
-    '"candle_wick_ratio":' + str.tostring(math.round(wick_ratio, 3)) + ',' +
-    '"candles_to_invert":1,' +
-    '"close_vs_ifvg_edge":' + str.tostring(math.round(close_vs_edge_bull, 3)) + ',' +
-    '"nearest_targets":["EQL_above"],' +
-    '"stop_level":' + str.tostring(math.round(low, 2)) + ',' +
-    '"timestamp":"{{timenow}}"}'
+// --- ALERT PAYLOAD ---
+long_msg = '{"direction":"long","killzone":"nyam","killzone_active":true,"ny_time":"' + str.tostring(hour(time, "America/New_York")) + ':' + str.tostring(minute(time, "America/New_York")) + '","htf_bias":"bullish","timeframes_aligned":["4H","1H","15M"],"sweep_type":"sellside","fvg_zone":[' + str.tostring(math.round(ifvg_bull_level, 2)) + ',' + str.tostring(math.round(close, 2)) + '],"mss_confirmed":true,"cisd_confirmed":false,"candle_body_pct":' + str.tostring(math.round(body_pct, 3)) + ',"candle_wick_ratio":' + str.tostring(math.round(wick_ratio, 3)) + ',"candles_to_invert":1,"close_vs_ifvg_edge":' + str.tostring(math.round(close_vs_edge_bull, 3)) + ',"nearest_targets":["EQL_above"],"stop_level":' + str.tostring(math.round(low, 2)) + ',"timestamp":"{{timenow}}"}'
 
-short_msg = '{"direction":"short","killzone":"nyam","killzone_active":true,"ny_time":"' +
-    str.tostring(hour(time, "America/New_York")) + ':' +
-    str.tostring(minute(time, "America/New_York")) +
-    '","htf_bias":"bearish","timeframes_aligned":["4H","1H","15M"],"sweep_type":"buyside",' +
-    '"fvg_zone":[' + str.tostring(math.round(close, 2)) + ',' + str.tostring(math.round(ifvg_bear_level, 2)) + '],' +
-    '"mss_confirmed":true,"cisd_confirmed":false,' +
-    '"candle_body_pct":' + str.tostring(math.round(body_pct, 3)) + ',' +
-    '"candle_wick_ratio":' + str.tostring(math.round(wick_ratio, 3)) + ',' +
-    '"candles_to_invert":1,' +
-    '"close_vs_ifvg_edge":' + str.tostring(math.round(close_vs_edge_bear, 3)) + ',' +
-    '"nearest_targets":["EQH_above"],' +
-    '"stop_level":' + str.tostring(math.round(high, 2)) + ',' +
-    '"timestamp":"{{timenow}}"}'
+short_msg = '{"direction":"short","killzone":"nyam","killzone_active":true,"ny_time":"' + str.tostring(hour(time, "America/New_York")) + ':' + str.tostring(minute(time, "America/New_York")) + '","htf_bias":"bearish","timeframes_aligned":["4H","1H","15M"],"sweep_type":"buyside","fvg_zone":[' + str.tostring(math.round(close, 2)) + ',' + str.tostring(math.round(ifvg_bear_level, 2)) + '],"mss_confirmed":true,"cisd_confirmed":false,"candle_body_pct":' + str.tostring(math.round(body_pct, 3)) + ',"candle_wick_ratio":' + str.tostring(math.round(wick_ratio, 3)) + ',"candles_to_invert":1,"close_vs_ifvg_edge":' + str.tostring(math.round(close_vs_edge_bear, 3)) + ',"nearest_targets":["EQH_above"],"stop_level":' + str.tostring(math.round(high, 2)) + ',"timestamp":"{{timenow}}"}'
 
 alertcondition(long_setup,  "ICT A+ LONG",  long_msg)
 alertcondition(short_setup, "ICT A+ SHORT", short_msg)
 
-// ─── VISUAL LABELS ────────────────────────────────────────────────────────
+//  VISUAL LABELS 
 if long_setup
     label.new(bar_index, low - (syminfo.mintick * 20),
         "A+ LONG", color=color.new(color.green, 20),
