@@ -8,6 +8,7 @@ function httpsPost(hostname, path, headers, body) {
       res.on('end', () => { try { resolve(JSON.parse(data)); } catch(e) { resolve({ _raw: data }); } });
     });
     req.on('error', reject);
+    req.setTimeout(9000, () => { req.destroy(); reject(new Error('Request timeout')); });
     req.write(body); req.end();
   });
 }
@@ -115,6 +116,26 @@ module.exports = async function handler(req, res) {
     res.status(400).json({ error: 'Invalid JSON payload' }); return;
   }
 
+  const VALID_DIRECTIONS = ['long', 'short'];
+  const VALID_KILLZONES = ['nyam', 'nypm', 'london'];
+  const requiredFields = ['direction', 'killzone', 'htf_bias', 'candle_body_pct', 'candles_to_invert', 'close_vs_ifvg_edge'];
+
+  for (const field of requiredFields) {
+    if (payload[field] === undefined || payload[field] === null) {
+      res.status(400).json({ error: `Missing required field: ${field}` }); return;
+    }
+  }
+
+  if (!VALID_DIRECTIONS.includes(String(payload.direction).toLowerCase())) {
+    res.status(400).json({ error: 'Invalid direction — must be long or short' }); return;
+  }
+  if (!VALID_KILLZONES.includes(String(payload.killzone).toLowerCase())) {
+    res.status(400).json({ error: 'Invalid killzone — must be nyam, nypm, or london' }); return;
+  }
+  if (typeof payload.candle_body_pct !== 'number' || payload.candle_body_pct < 0 || payload.candle_body_pct > 1) {
+    res.status(400).json({ error: 'candle_body_pct must be a number between 0 and 1' }); return;
+  }
+
   const userPrompt = `Score this NQ setup:
 Direction: ${payload.direction}
 Killzone: ${payload.killzone} | NY Time: ${payload.ny_time} | Killzone Active: ${payload.killzone_active}
@@ -193,8 +214,9 @@ Apply all ICT rules, calculate Dodgydd score from the candle data, and return th
   };
 
   const supabaseBody = JSON.stringify(row);
+  let saved = false;
   try {
-    await httpsPost(
+    const sbRes = await httpsPost(
       new URL(SUPABASE_URL).hostname,
       '/rest/v1/scanner_alerts',
       {
@@ -206,9 +228,10 @@ Apply all ICT rules, calculate Dodgydd score from the candle data, and return th
       },
       supabaseBody
     );
+    saved = !sbRes.error && !sbRes._raw;
   } catch(e) {
     console.error('Supabase write failed:', e.message);
   }
 
-  res.status(200).json({ analysis, saved: true });
+  res.status(200).json({ analysis, saved });
 };
