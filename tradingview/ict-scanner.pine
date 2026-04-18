@@ -126,8 +126,11 @@ long_msg = '{"direction":"long","killzone":"nyam","killzone_active":true,"ny_tim
 
 short_msg = '{"direction":"short","killzone":"nyam","killzone_active":true,"ny_time":"' + str.tostring(hour(time, "America/New_York")) + ':' + str.tostring(minute(time, "America/New_York")) + '","htf_bias":"bearish","timeframes_aligned":["4H","1H","15M"],"sweep_type":"buyside","fvg_zone":[' + str.tostring(math.round(close, 2)) + ',' + str.tostring(math.round(ifvg_bear_level, 2)) + '],"mss_confirmed":true,"cisd_confirmed":false,"candle_body_pct":' + str.tostring(math.round(body_pct, 3)) + ',"candle_wick_ratio":' + str.tostring(math.round(wick_ratio, 3)) + ',"candles_to_invert":1,"close_vs_ifvg_edge":' + str.tostring(math.round(close_vs_edge_bear, 3)) + ',"nearest_targets":["EQH_above"],"stop_level":' + str.tostring(math.round(high, 2)) + ',"timestamp":"{{timenow}}"}'
 
-alertcondition(long_setup,  "ICT A+ LONG",  long_msg)
-alertcondition(short_setup, "ICT A+ SHORT", short_msg)
+if long_setup
+    alert(long_msg, alert.freq_once_per_bar_close)
+
+if short_setup
+    alert(short_msg, alert.freq_once_per_bar_close)
 
 //  VISUAL LABELS 
 if long_setup
