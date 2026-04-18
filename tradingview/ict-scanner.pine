@@ -131,11 +131,7 @@ alertcondition(short_setup, "ICT A+ SHORT", short_msg)
 
 //  VISUAL LABELS 
 if long_setup
-    label.new(bar_index, low - (syminfo.mintick * 20),
-        "A+ LONG", color=color.new(color.green, 20),
-        textcolor=color.white, style=label.style_label_up, size=size.small)
+    label.new(bar_index, low - (syminfo.mintick * 20), "A+ LONG", color=color.new(color.green, 20), textcolor=color.white, style=label.style_label_up, size=size.small)
 
 if short_setup
-    label.new(bar_index, high + (syminfo.mintick * 20),
-        "A+ SHORT", color=color.new(color.red, 20),
-        textcolor=color.white, style=label.style_label_down, size=size.small)
+    label.new(bar_index, high + (syminfo.mintick * 20), "A+ SHORT", color=color.new(color.red, 20), textcolor=color.white, style=label.style_label_down, size=size.small)
