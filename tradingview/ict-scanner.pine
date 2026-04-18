@@ -198,6 +198,62 @@ close_vs_edge_bear = ifvg_bear_level > 0 ? (ifvg_bear_level - close) / (ifvg_bea
 long_setup  = is_nyam and all_bullish and ifvg_bull_active and mss_bull_close
 short_setup = is_nyam and all_bearish and ifvg_bear_active and mss_bear_close
 
+// --- STRATEGY CHECKLIST TABLE ---
+show_checklist = input.bool(true, "Show Strategy Checklist", group="CHECKLIST")
+show_grade     = input.bool(true, "Show Setup Grade",        group="CHECKLIST")
+
+if barstate.islast and show_checklist
+    tbl = table.new(position.top_right, 2, 9, bgcolor=color.new(#0f172a, 10), border_color=color.new(#334155, 80), border_width=1, frame_color=color.new(#334155, 60), frame_width=1)
+
+    // Header
+    table.cell(tbl, 0, 0, "ICT SETUP CHECKLIST", text_color=#94a3b8, text_size=size.tiny, bgcolor=color.new(#1e293b, 20), text_halign=text.align_left)
+    table.cell(tbl, 1, 0, "", bgcolor=color.new(#1e293b, 20))
+
+    // Bias alignment
+    bias_ok = all_bullish or all_bearish
+    bias_dir = all_bullish ? "BULL" : all_bearish ? "BEAR" : "MIXED"
+    table.cell(tbl, 0, 1, "HTF Bias (4H/1H/15M)", text_color=#cbd5e1, text_size=size.tiny, text_halign=text.align_left)
+    table.cell(tbl, 1, 1, bias_ok ? "✓ " + bias_dir : "✗ " + bias_dir, text_color=bias_ok ? #00c980 : #ff4d4d, text_size=size.tiny, bgcolor=color.new(bias_ok ? #00c980 : #ff4d4d, 92))
+
+    // Killzone
+    table.cell(tbl, 0, 2, "NYAM Killzone", text_color=#cbd5e1, text_size=size.tiny, text_halign=text.align_left)
+    table.cell(tbl, 1, 2, is_nyam ? "✓ ACTIVE" : "✗ CLOSED", text_color=is_nyam ? #00c980 : #ff4d4d, text_size=size.tiny, bgcolor=color.new(is_nyam ? #00c980 : #ff4d4d, 92))
+
+    // FVG present
+    fvg_present = array.size(bull_boxes) > 0 or array.size(bear_boxes) > 0
+    table.cell(tbl, 0, 3, "FVG Present", text_color=#cbd5e1, text_size=size.tiny, text_halign=text.align_left)
+    table.cell(tbl, 1, 3, fvg_present ? "✓ YES" : "✗ NONE", text_color=fvg_present ? #00c980 : #ff4d4d, text_size=size.tiny, bgcolor=color.new(fvg_present ? #00c980 : #ff4d4d, 92))
+
+    // IFVG / Inversion
+    ifvg_ok = ifvg_bull_active or ifvg_bear_active
+    table.cell(tbl, 0, 4, "IFVG Inverting", text_color=#cbd5e1, text_size=size.tiny, text_halign=text.align_left)
+    table.cell(tbl, 1, 4, ifvg_ok ? "✓ YES" : "✗ NO", text_color=ifvg_ok ? #00c980 : #ff4d4d, text_size=size.tiny, bgcolor=color.new(ifvg_ok ? #00c980 : #ff4d4d, 92))
+
+    // MSS
+    mss_ok = mss_bull_close or mss_bear_close
+    table.cell(tbl, 0, 5, "MSS Confirmed", text_color=#cbd5e1, text_size=size.tiny, text_halign=text.align_left)
+    table.cell(tbl, 1, 5, mss_ok ? "✓ YES" : "✗ NO", text_color=mss_ok ? #00c980 : #ff4d4d, text_size=size.tiny, bgcolor=color.new(mss_ok ? #00c980 : #ff4d4d, 92))
+
+    // Dodgydd body strength
+    body_grade = body_pct >= 0.85 ? "4/4" : body_pct >= 0.70 ? "3/4" : body_pct >= 0.50 ? "2/4" : body_pct >= 0.30 ? "1/4" : "0/4"
+    body_ok = body_pct >= 0.70
+    table.cell(tbl, 0, 6, "Candle Strength", text_color=#cbd5e1, text_size=size.tiny, text_halign=text.align_left)
+    table.cell(tbl, 1, 6, body_grade, text_color=body_ok ? #00c980 : #facc15, text_size=size.tiny, bgcolor=color.new(body_ok ? #00c980 : #facc15, 92))
+
+    // Grade
+    if show_grade
+        setup_complete = bias_ok and is_nyam and ifvg_ok and mss_ok
+        grade_str = long_setup or short_setup ? "A+" : setup_complete ? "A" : bias_ok and ifvg_ok ? "B+" : "—"
+        grade_col = (long_setup or short_setup) ? #facc15 : setup_complete ? #00c980 : bias_ok and ifvg_ok ? #3b82f6 : #64748b
+        table.cell(tbl, 0, 7, "SETUP GRADE", text_color=#94a3b8, text_size=size.tiny, text_halign=text.align_left, bgcolor=color.new(#1e293b, 20))
+        table.cell(tbl, 1, 7, grade_str, text_color=grade_col, text_size=size.small, bgcolor=color.new(grade_col, 85))
+
+    // Direction
+    dir_str = long_setup ? "LONG" : short_setup ? "SHORT" : bias_ok ? (all_bullish ? "BULL BIAS" : "BEAR BIAS") : "WAIT"
+    dir_col = (long_setup or all_bullish) ? #00c980 : (short_setup or all_bearish) ? #ff4d4d : #64748b
+    table.cell(tbl, 0, 8, "DIRECTION", text_color=#94a3b8, text_size=size.tiny, text_halign=text.align_left, bgcolor=color.new(#1e293b, 20))
+    table.cell(tbl, 1, 8, dir_str, text_color=dir_col, text_size=size.tiny, bgcolor=color.new(dir_col, 85))
+
 // --- ALERT PAYLOADS ---
 long_msg  = '{"direction":"long","killzone":"nyam","killzone_active":true,"ny_time":"' + str.tostring(hour(time, "America/New_York")) + ':' + str.tostring(minute(time, "America/New_York")) + '","htf_bias":"bullish","timeframes_aligned":["4H","1H","15M"],"sweep_type":"sellside","fvg_zone":[' + str.tostring(math.round(ifvg_bull_level, 2)) + ',' + str.tostring(math.round(close, 2)) + '],"mss_confirmed":true,"cisd_confirmed":false,"candle_body_pct":' + str.tostring(math.round(body_pct, 3)) + ',"candle_wick_ratio":' + str.tostring(math.round(wick_ratio, 3)) + ',"candles_to_invert":1,"close_vs_ifvg_edge":' + str.tostring(math.round(close_vs_edge_bull, 3)) + ',"nearest_targets":["EQL_above"],"stop_level":' + str.tostring(math.round(low, 2)) + ',"timestamp":"{{timenow}}"}'
 short_msg = '{"direction":"short","killzone":"nyam","killzone_active":true,"ny_time":"' + str.tostring(hour(time, "America/New_York")) + ':' + str.tostring(minute(time, "America/New_York")) + '","htf_bias":"bearish","timeframes_aligned":["4H","1H","15M"],"sweep_type":"buyside","fvg_zone":[' + str.tostring(math.round(close, 2)) + ',' + str.tostring(math.round(ifvg_bear_level, 2)) + '],"mss_confirmed":true,"cisd_confirmed":false,"candle_body_pct":' + str.tostring(math.round(body_pct, 3)) + ',"candle_wick_ratio":' + str.tostring(math.round(wick_ratio, 3)) + ',"candles_to_invert":1,"close_vs_ifvg_edge":' + str.tostring(math.round(close_vs_edge_bear, 3)) + ',"nearest_targets":["EQH_above"],"stop_level":' + str.tostring(math.round(high, 2)) + ',"timestamp":"{{timenow}}"}'
