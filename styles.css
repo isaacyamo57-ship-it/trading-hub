@@ -33,6 +33,11 @@
   --warn2:  rgba(232,168,56,0.1);
   --purple: #9b7fd4;
 
+  /* Orbs */
+  --orb-gold: rgba(201,168,76,0.065);
+  --orb-win:  rgba(77,170,125,0.045);
+  --orb-blue: rgba(93,143,196,0.035);
+
   /* Fonts */
   --font-ui:   'Barlow Condensed', sans-serif;
   --font-mono: 'Fragment Mono', monospace;
@@ -56,6 +61,20 @@
   --t-fast: 0.15s ease;
   --t-mid:  0.25s ease;
   --t-slow: 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* ── GLASS UTILITY ── */
+.glass {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+.glass-strong {
+  background: rgba(255,255,255,0.045);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.09);
 }
 
 /* ── RESET ── */
@@ -105,10 +124,10 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: var(--s2) var(--s5);
-  border-bottom: 1px solid var(--border);
-  background: rgba(8,8,9,0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  background: rgba(6,6,7,0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -186,6 +205,7 @@ body {
   background: var(--win);
   display: inline-block;
   animation: livePulse 1.5s ease infinite;
+  box-shadow: 0 0 8px rgba(77,170,125,0.8);
 }
 
 /* ── SECTION LABELS ── */
@@ -204,22 +224,35 @@ body {
 
 /* ── CARDS ── */
 .card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.07);
   border-radius: var(--r-lg);
+  position: relative;
+  overflow: hidden;
   transition: border-color var(--t-mid), box-shadow var(--t-mid), transform var(--t-mid);
 }
+.card::before {
+  content: '';
+  position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
 .card:hover {
-  border-color: var(--border2);
-  box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.45);
 }
 .card-sm {
-  background: var(--bg2);
-  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.025);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.07);
   border-radius: var(--r-md);
   transition: border-color var(--t-fast);
 }
-.card-sm:hover { border-color: var(--border2); }
+.card-sm:hover { border-color: rgba(255,255,255,0.11); }
 
 /* ── STATUS BADGES ── */
 .badge {
