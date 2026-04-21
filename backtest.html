@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iI2M5YTg0YyIvPjx0ZXh0IHg9IjE2IiB5PSIyMiIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZvbnQtd2VpZ2h0PSI5MDAiIGZpbGw9IiMwODA2MDEiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSItMSI+SUE8L3RleHQ+PC9zdmc+">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Backtest — Trading Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Fragment+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; background: #060607; color: var(--text1); font-family: var(--font-ui); }
+
+    /* ── NAV ── */
+    .topnav { display:flex; align-items:center; justify-content:space-between; padding:10px 20px; border-bottom:1px solid rgba(255,255,255,0.07); background:rgba(6,6,7,0.85); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); position:sticky; top:0; z-index:100; height:44px; flex-shrink:0; }
+    .tn-left { display:flex; align-items:center; gap:10px; }
+    .tn-home { display:flex; align-items:center; gap:7px; text-decoration:none; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.2); border-radius:7px; padding:4px 9px; transition:all 0.15s; }
+    .tn-home:hover { background:rgba(201,168,76,0.14); }
+    .tn-home-txt { font-family:var(--font-mono); font-size:8px; color:var(--gold); letter-spacing:0.1em; text-transform:uppercase; }
+    .tn-ia { width:26px; height:26px; border-radius:6px; background:linear-gradient(135deg,#c9a84c,#8a6d2a); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .tn-ia span { font-family:var(--font-ui); font-size:9px; font-weight:700; color:#080601; }
+    .tn-logo { font-family:var(--font-ui); font-size:13px; font-weight:700; color:var(--gold); }
+    .tn-sep { width:1px; height:14px; background:rgba(255,255,255,0.1); }
+    .tn-tag { font-family:var(--font-mono); font-size:8px; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; }
+    .tn-right { display:flex; align-items:center; gap:10px; }
+    .tn-price { font-family:var(--font-mono); font-size:11px; color:var(--text2); }
+
+    /* ── DATE BAR ── */
+    .date-bar { display:flex; align-items:center; gap:8px; padding:0 16px; height:44px; border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.01); flex-shrink:0; }
+    .date-input { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text1); border-radius:5px; padding:4px 10px; font-size:12px; font-family:var(--font-mono); height:30px; }
+    .date-input:focus { outline:none; border-color:rgba(201,168,76,0.4); }
+    .sym-badge { font-family:var(--font-mono); font-size:10px; color:var(--gold); background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.15); border-radius:4px; padding:3px 8px; white-space:nowrap; }
+    .tf-group { display:flex; gap:3px; }
+    .tf-btn { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:var(--muted); border-radius:4px; padding:3px 9px; font-size:11px; font-family:var(--font-ui); cursor:pointer; transition:all 0.12s; }
+    .tf-btn:hover { color:var(--text2); border-color:rgba(255,255,255,0.15); }
+    .tf-btn.active { background:rgba(93,143,196,0.15); border-color:rgba(93,143,196,0.4); color:var(--blue); }
+    .load-btn { background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); color:var(--gold); border-radius:5px; padding:4px 14px; font-size:12px; font-weight:700; font-family:var(--font-ui); cursor:pointer; letter-spacing:0.05em; transition:all 0.15s; height:30px; }
+    .load-btn:hover { background:rgba(201,168,76,0.25); }
+    .load-btn:disabled { opacity:0.5; cursor:not-allowed; }
+    .bar-status { font-family:var(--font-mono); font-size:10px; color:var(--muted); margin-left:4px; white-space:nowrap; }
+    .bar-status.ok { color:var(--win); }
+    .bar-status.err { color:var(--loss); }
+
+    /* ── REPLAY BAR ── */
+    .replay-bar { display:flex; align-items:center; gap:5px; padding:0 14px; height:42px; border-bottom:1px solid rgba(255,255,255,0.05); background:rgba(255,255,255,0.01); flex-shrink:0; }
+    .rb-btn { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); color:var(--text2); border-radius:5px; padding:0 10px; font-size:12px; cursor:pointer; transition:all 0.12s; font-family:var(--font-ui); height:28px; display:flex; align-items:center; gap:4px; white-space:nowrap; }
+    .rb-btn:hover { background:rgba(255,255,255,0.09); }
+    .rb-btn:disabled { opacity:0.35; cursor:not-allowed; }
+    .rb-btn.play-btn { background:rgba(201,168,76,0.15); border-color:rgba(201,168,76,0.35); color:var(--gold); }
+    .rb-btn.play-btn:hover { background:rgba(201,168,76,0.25); }
+    .rb-sep { width:1px; height:20px; background:rgba(255,255,255,0.07); margin:0 2px; }
+    .speed-sel { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); color:var(--text2); border-radius:4px; padding:3px 6px; font-size:11px; font-family:var(--font-mono); height:28px; }
+    .bar-counter { font-family:var(--font-mono); font-size:10px; color:var(--muted); margin-left:auto; white-space:nowrap; }
+
+    /* ── MAIN LAYOUT ── */
+    .main-layout { display:flex; height:calc(100vh - 44px - 44px - 42px); overflow:hidden; }
+
+    /* ── CHART ── */
+    #chart-wrap { flex:1; position:relative; background:#09090b; overflow:hidden; min-width:0; }
+    #chart-container { width:100%; height:100%; }
+    .chart-empty { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:rgba(255,255,255,0.15); font-size:13px; pointer-events:none; font-family:var(--font-ui); }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel { width:258px; border-left:1px solid rgba(255,255,255,0.07); background:rgba(6,6,7,0.5); display:flex; flex-direction:column; overflow-y:auto; overflow-x:hidden; flex-shrink:0; }
+    .right-panel::-webkit-scrollbar { width:3px; }
+    .right-panel::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:2px; }
+    .panel-sec { padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); }
+    .panel-lbl { font-size:9px; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:9px; font-family:var(--font-mono); }
+
+    /* Direction */
+    .dir-btns { display:flex; gap:6px; }
+    .dir-btn { flex:1; padding:9px 6px; border-radius:6px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.4); font-size:13px; font-weight:700; cursor:pointer; text-align:center; transition:all 0.15s; font-family:var(--font-ui); letter-spacing:0.06em; }
+    .dir-btn:hover { border-color:rgba(255,255,255,0.18); color:var(--text1); }
+    .dir-btn.active-long { border-color:rgba(77,170,125,0.5); background:rgba(77,170,125,0.12); color:var(--win); }
+    .dir-btn.active-short { border-color:rgba(220,80,80,0.5); background:rgba(220,80,80,0.12); color:var(--loss); }
+
+    /* Fields */
+    .field-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
+    .field-wrap { display:flex; flex-direction:column; gap:3px; }
+    .field-lbl { font-size:9px; color:rgba(255,255,255,0.35); font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.06em; }
+    .field-inp { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:var(--text1); border-radius:4px; padding:5px 7px; font-size:12px; font-family:var(--font-mono); width:100%; transition:border-color 0.15s; }
+    .field-inp:focus { outline:none; border-color:rgba(201,168,76,0.3); }
+    .field-inp.rr-good { color:var(--win); }
+    .field-inp.rr-bad { color:var(--loss); }
+
+    /* POI */
+    .poi-wrap { display:flex; flex-wrap:wrap; gap:4px; }
+    .poi-chip { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:rgba(255,255,255,0.4); border-radius:4px; padding:3px 7px; font-size:10px; cursor:pointer; transition:all 0.12s; font-family:var(--font-ui); user-select:none; }
+    .poi-chip:hover { border-color:rgba(255,255,255,0.15); color:var(--text2); }
+    .poi-chip.on { background:rgba(93,143,196,0.12); border-color:rgba(93,143,196,0.35); color:var(--blue); }
+
+    /* Grade */
+    .grade-row { display:flex; gap:4px; }
+    .grade-btn { flex:1; padding:6px 4px; border-radius:4px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); color:rgba(255,255,255,0.35); font-size:11px; font-weight:700; cursor:pointer; text-align:center; font-family:var(--font-ui); transition:all 0.12s; }
+    .grade-btn:hover { border-color:rgba(255,255,255,0.15); color:var(--text2); }
+    .grade-btn.on { background:rgba(201,168,76,0.12); border-color:rgba(201,168,76,0.35); color:var(--gold); }
+    .log-btn { width:100%; padding:9px; border-radius:6px; border:none; background:linear-gradient(135deg,rgba(201,168,76,0.85),rgba(201,168,76,0.6)); color:#080601; font-size:13px; font-weight:800; cursor:pointer; font-family:var(--font-ui); letter-spacing:0.08em; margin-top:8px; transition:opacity 0.15s; }
+    .log-btn:hover { opacity:0.85; }
+
+    /* Stats */
+    .stat-row { display:flex; justify-content:space-between; align-items:center; padding:3px 0; }
+    .stat-k { font-size:11px; color:rgba(255,255,255,0.4); }
+    .stat-v { font-family:var(--font-mono); font-size:12px; color:var(--text1); }
+    .stat-v.g { color:var(--win); }
+    .stat-v.r { color:var(--loss); }
+    .stat-v.gold { color:var(--gold); }
+
+    /* Session log */
+    .trade-entry { padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+    .trade-entry:last-child { border-bottom:none; }
+    .te-top { display:flex; align-items:center; gap:6px; }
+    .td-dir { font-weight:700; font-size:9px; padding:2px 5px; border-radius:3px; flex-shrink:0; }
+    .td-dir.l { background:rgba(77,170,125,0.15); color:var(--win); }
+    .td-dir.s { background:rgba(220,80,80,0.15); color:var(--loss); }
+    .td-meta { flex:1; color:rgba(255,255,255,0.35); font-size:10px; font-family:var(--font-mono); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .td-res { font-family:var(--font-mono); font-size:11px; flex-shrink:0; }
+    .td-res.w { color:var(--win); }
+    .td-res.l { color:var(--loss); }
+    .td-res.b { color:var(--blue); }
+
+    /* Outcome picker */
+    .outcome-row { display:flex; gap:4px; margin-top:5px; }
+    .out-btn { flex:1; padding:4px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer; text-align:center; font-family:var(--font-ui); border:1px solid transparent; transition:all 0.12s; }
+    .out-btn.w { border-color:rgba(77,170,125,0.3); background:rgba(77,170,125,0.06); color:rgba(77,170,125,0.6); }
+    .out-btn.w:hover, .out-btn.w.on { background:rgba(77,170,125,0.18); color:var(--win); border-color:rgba(77,170,125,0.5); }
+    .out-btn.l { border-color:rgba(220,80,80,0.3); background:rgba(220,80,80,0.06); color:rgba(220,80,80,0.6); }
+    .out-btn.l:hover, .out-btn.l.on { background:rgba(220,80,80,0.18); color:var(--loss); border-color:rgba(220,80,80,0.5); }
+    .out-btn.b { border-color:rgba(93,143,196,0.3); background:rgba(93,143,196,0.06); color:rgba(93,143,196,0.6); }
+    .out-btn.b:hover, .out-btn.b.on { background:rgba(93,143,196,0.18); color:var(--blue); border-color:rgba(93,143,196,0.5); }
+    .r-row { display:flex; gap:4px; margin-top:4px; }
+    .r-inp { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:var(--text1); border-radius:4px; padding:4px 6px; font-size:11px; font-family:var(--font-mono); flex:1; min-width:0; }
+    .r-inp::placeholder { color:rgba(255,255,255,0.2); }
+    .r-save-btn { background:rgba(201,168,76,0.1); border:1px solid rgba(201,168,76,0.2); color:var(--gold); border-radius:4px; padding:4px 10px; font-size:10px; font-weight:700; cursor:pointer; font-family:var(--font-ui); transition:all 0.12s; white-space:nowrap; }
+    .r-save-btn:hover { background:rgba(201,168,76,0.2); }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="topnav">
+  <div class="tn-left">
+    <a href="index.html" class="tn-home">
+      <div class="tn-ia"><span>IA</span></div>
+      <span class="tn-home-txt">hub</span>
+    </a>
+    <span class="tn-logo">TRADING HUB</span>
+    <div class="tn-sep"></div>
+    <span class="tn-tag">BACKTEST</span>
+  </div>
+  <div class="tn-right">
+    <span class="tn-price" id="tn-price">— —</span>
+  </div>
+</div>
+
+<!-- DATE BAR -->
+<div class="date-bar">
+  <input type="date" class="date-input" id="date-pick">
+  <span class="sym-badge">NQ1!</span>
+  <div class="tf-group">
+    <button class="tf-btn" data-iv="1min" onclick="setIv('1min',this)">1m</button>
+    <button class="tf-btn active" data-iv="5min" onclick="setIv('5min',this)">5m</button>
+    <button class="tf-btn" data-iv="15min" onclick="setIv('15min',this)">15m</button>
+    <button class="tf-btn" data-iv="1h" onclick="setIv('1h',this)">1H</button>
+  </div>
+  <button class="load-btn" id="load-btn" onclick="loadData()">LOAD</button>
+  <span class="bar-status" id="bar-status">Pick a date to start</span>
+</div>
+
+<!-- REPLAY BAR -->
+<div class="replay-bar">
+  <button class="rb-btn" id="btn-reset" onclick="resetReplay()" disabled title="Reset to start">⏮</button>
+  <button class="rb-btn" id="btn-back" onclick="stepBack(1)" disabled>◀ -1</button>
+  <button class="rb-btn play-btn" id="btn-play" onclick="togglePlay()" disabled>▶ Play</button>
+  <button class="rb-btn" id="btn-s1" onclick="stepFwd(1)" disabled>+1</button>
+  <button class="rb-btn" id="btn-s5" onclick="stepFwd(5)" disabled>+5</button>
+  <button class="rb-btn" id="btn-s10" onclick="stepFwd(10)" disabled>+10</button>
+  <div class="rb-sep"></div>
+  <select class="speed-sel" onchange="setSpeed(this.value)">
+    <option value="800">1x</option>
+    <option value="400">2x</option>
+    <option value="150">5x</option>
+    <option value="60">10x</option>
+  </select>
+  <span class="bar-counter" id="bar-counter">Bar — / —</span>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="main-layout">
+
+  <!-- CHART -->
+  <div id="chart-wrap">
+    <div id="chart-container"></div>
+    <div class="chart-empty" id="chart-empty">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="26" width="8" height="14" rx="1" fill="currentColor"/>
+        <rect x="14" y="18" width="8" height="22" rx="1" fill="currentColor"/>
+        <rect x="26" y="10" width="8" height="30" rx="1" fill="currentColor"/>
+        <rect x="38" y="16" width="4" height="24" rx="1" fill="currentColor"/>
+      </svg>
+      Load a date to begin replay
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+
+    <!-- Trade Entry -->
+    <div class="panel-sec">
+      <div class="panel-lbl">Trade Entry</div>
+      <div class="dir-btns">
+        <button class="dir-btn" id="btn-long" onclick="setDir('long')">▲ LONG</button>
+        <button class="dir-btn" id="btn-short" onclick="setDir('short')">▼ SHORT</button>
+      </div>
+      <div class="field-grid">
+        <div class="field-wrap">
+          <div class="field-lbl">Entry</div>
+          <input class="field-inp" id="f-entry" readonly placeholder="—">
+        </div>
+        <div class="field-wrap">
+          <div class="field-lbl">SL (pts)</div>
+          <input class="field-inp" id="f-sl" type="number" min="0" placeholder="40" oninput="onFieldChange()">
+        </div>
+        <div class="field-wrap">
+          <div class="field-lbl">TP (pts)</div>
+          <input class="field-inp" id="f-tp" type="number" min="0" placeholder="120" oninput="onFieldChange()">
+        </div>
+        <div class="field-wrap">
+          <div class="field-lbl">R:R</div>
+          <input class="field-inp" id="f-rr" readonly placeholder="—">
+        </div>
+      </div>
+    </div>
+
+    <!-- POI -->
+    <div class="panel-sec">
+      <div class="panel-lbl">Point of Interest</div>
+      <div class="poi-wrap">
+        <div class="poi-chip" onclick="togglePoi(this)">FVG</div>
+        <div class="poi-chip" onclick="togglePoi(this)">IFVG</div>
+        <div class="poi-chip" onclick="togglePoi(this)">EQH</div>
+        <div class="poi-chip" onclick="togglePoi(this)">EQL</div>
+        <div class="poi-chip" onclick="togglePoi(this)">MSS</div>
+        <div class="poi-chip" onclick="togglePoi(this)">CISD</div>
+        <div class="poi-chip" onclick="togglePoi(this)">Liq Sweep</div>
+        <div class="poi-chip" onclick="togglePoi(this)">OB</div>
+        <div class="poi-chip" onclick="togglePoi(this)">OTE</div>
+      </div>
+    </div>
+
+    <!-- Grade + Log -->
+    <div class="panel-sec">
+      <div class="panel-lbl">Setup Grade</div>
+      <div class="grade-row">
+        <button class="grade-btn" onclick="setGrade('A+',this)">A+</button>
+        <button class="grade-btn" onclick="setGrade('A',this)">A</button>
+        <button class="grade-btn" onclick="setGrade('B',this)">B</button>
+        <button class="grade-btn" onclick="setGrade('C',this)">C</button>
+      </div>
+      <button class="log-btn" onclick="logTrade()">LOG TRADE</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="panel-sec">
+      <div class="panel-lbl">Session Stats</div>
+      <div class="stat-row"><span class="stat-k">Trades</span><span class="stat-v" id="s-trades">0</span></div>
+      <div class="stat-row"><span class="stat-k">Win Rate</span><span class="stat-v" id="s-wr">—</span></div>
+      <div class="stat-row"><span class="stat-k">Total R</span><span class="stat-v gold" id="s-r">—</span></div>
+      <div class="stat-row"><span class="stat-k">Avg R</span><span class="stat-v" id="s-avgr">—</span></div>
+    </div>
+
+    <!-- Session Log -->
+    <div class="panel-sec" style="border-bottom:none;flex:1;">
+      <div class="panel-lbl">This Session</div>
+      <div id="session-log">
+        <div style="font-size:11px;color:rgba(255,255,255,0.18);text-align:center;padding:14px 0;">No trades yet</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://unpkg.com/lightweight-charts@4/dist/lightweight-charts.standalone.production.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── SUPABASE ──
+const SB_URL  = 'https://lzvkfrqwupgnvhmphzem.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6dmtmcnF3dXBnbnZobXBoemVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI5MDMsImV4cCI6MjA5MDYyODkwM30.YpzJ-616pSbImH9e2f3vRXGzwXjCzTvHV-hgPQais3Q';
+var sb = null;
+try { sb = window.supabase.createClient(SB_URL, SB_ANON); } catch(e) {}
+
+// ── STATE ──
+var chartObj = null, candleSeries = null;
+var allCandles = [];
+var displayBar = 0;
+var playing = false;
+var playTimer = null;
+var speedMs = 800;
+var activeIv = '5min';
+var selDir = null, selGrade = null;
+var sessionTrades = [];
+var tLines = { entry: null, sl: null, tp: null };
+
+// ── CHART INIT ──
+function initChart() {
+  var container = document.getElementById('chart-container');
+  chartObj = LightweightCharts.createChart(container, {
+    width: container.clientWidth,
+    height: container.clientHeight,
+    layout: {
+      background: { type: 'solid', color: '#09090b' },
+      textColor: 'rgba(255,255,255,0.4)',
+      fontFamily: "'Fragment Mono', monospace",
+      fontSize: 10,
+    },
+    grid: {
+      vertLines: { color: 'rgba(255,255,255,0.04)' },
+      horzLines: { color: 'rgba(255,255,255,0.04)' },
+    },
+    crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+    timeScale: {
+      timeVisible: true,
+      secondsVisible: false,
+      borderColor: 'rgba(255,255,255,0.07)',
+      rightBarStaysOnScroll: true,
+    },
+    rightPriceScale: { borderColor: 'rgba(255,255,255,0.07)' },
+    handleScroll: true,
+    handleScale: true,
+  });
+
+  candleSeries = chartObj.addCandlestickSeries({
+    upColor: '#4daa7d',
+    downColor: '#e05c5c',
+    borderUpColor: '#4daa7d',
+    borderDownColor: '#e05c5c',
+    wickUpColor: '#4daa7d',
+    wickDownColor: '#e05c5c',
+  });
+
+  window.addEventListener('resize', function() {
+    chartObj.resize(container.clientWidth, container.clientHeight);
+  });
+}
+
+// ── LOAD DATA ──
+async function loadData() {
+  var date = document.getElementById('date-pick').value;
+  if (!date) { setStatus('Pick a date first', 'err'); return; }
+
+  pause();
+  removeAllLines();
+  allCandles = [];
+  displayBar = 0;
+  candleSeries.setData([]);
+  setStatus('Loading…', '');
+  setRBtns(false);
+  document.getElementById('load-btn').disabled = true;
+  document.getElementById('chart-empty').style.display = 'flex';
+
+  try {
+    var res = await fetch('/api/backtest-data?date=' + date + '&interval=' + activeIv);
+    var json = await res.json();
+    if (!res.ok || json.error) {
+      setStatus(json.error || 'Failed to load', 'err');
+      return;
+    }
+
+    allCandles = json.candles;
+    var start = Math.min(50, allCandles.length);
+    displayBar = start;
+    candleSeries.setData(allCandles.slice(0, start));
+    chartObj.timeScale().fitContent();
+    document.getElementById('chart-empty').style.display = 'none';
+
+    var cur = allCandles[displayBar - 1];
+    if (cur) {
+      document.getElementById('f-entry').value = cur.close.toFixed(2);
+      document.getElementById('tn-price').textContent = 'NQ ' + cur.close.toFixed(2);
+    }
+
+    updateBarCounter();
+    setStatus(allCandles.length + ' bars loaded', 'ok');
+    setRBtns(true);
+  } catch(e) {
+    setStatus('Network error', 'err');
+  } finally {
+    document.getElementById('load-btn').disabled = false;
+  }
+}
+
+// ── REPLAY ──
+function stepFwd(n) {
+  for (var i = 0; i < n; i++) {
+    if (displayBar >= allCandles.length) { pause(); break; }
+    candleSeries.update(allCandles[displayBar]);
+    displayBar++;
+  }
+  syncCurrentBar();
+}
+
+function stepBack(n) {
+  displayBar = Math.max(1, displayBar - (n || 1));
+  candleSeries.setData(allCandles.slice(0, displayBar));
+  chartObj.timeScale().scrollToRealTime();
+  syncCurrentBar();
+}
+
+function resetReplay() {
+  pause();
+  var start = Math.min(50, allCandles.length);
+  displayBar = start;
+  candleSeries.setData(allCandles.slice(0, start));
+  chartObj.timeScale().fitContent();
+  removeAllLines();
+  syncCurrentBar();
+}
+
+function syncCurrentBar() {
+  var cur = allCandles[displayBar - 1];
+  if (cur) {
+    document.getElementById('f-entry').value = cur.close.toFixed(2);
+    document.getElementById('tn-price').textContent = 'NQ ' + cur.close.toFixed(2);
+    redrawLines();
+  }
+  updateBarCounter();
+}
+
+function togglePlay() {
+  if (playing) pause(); else play();
+}
+
+function play() {
+  if (!allCandles.length) return;
+  playing = true;
+  document.getElementById('btn-play').innerHTML = '⏸ Pause';
+  playTimer = setInterval(function() { stepFwd(1); }, speedMs);
+}
+
+function pause() {
+  playing = false;
+  clearInterval(playTimer);
+  playTimer = null;
+  var btn = document.getElementById('btn-play');
+  if (btn) btn.innerHTML = '▶ Play';
+}
+
+function setSpeed(val) {
+  speedMs = parseInt(val);
+  if (playing) { pause(); play(); }
+}
+
+function setIv(iv, el) {
+  activeIv = iv;
+  document.querySelectorAll('.tf-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.iv === iv);
+  });
+}
+
+// ── TRADE FORM ──
+function setDir(d) {
+  selDir = d;
+  document.getElementById('btn-long').className = 'dir-btn' + (d === 'long' ? ' active-long' : '');
+  document.getElementById('btn-short').className = 'dir-btn' + (d === 'short' ? ' active-short' : '');
+  redrawLines();
+}
+
+function setGrade(g, el) {
+  selGrade = g;
+  document.querySelectorAll('.grade-btn').forEach(function(b) { b.classList.remove('on'); });
+  el.classList.add('on');
+}
+
+function togglePoi(el) { el.classList.toggle('on'); }
+
+function onFieldChange() {
+  updateRR();
+  redrawLines();
+}
+
+function updateRR() {
+  var sl = parseFloat(document.getElementById('f-sl').value);
+  var tp = parseFloat(document.getElementById('f-tp').value);
+  var rrEl = document.getElementById('f-rr');
+  if (sl > 0 && tp > 0) {
+    var rr = (tp / sl).toFixed(2);
+    rrEl.value = rr + 'R';
+    rrEl.className = 'field-inp ' + (tp / sl >= 2 ? 'rr-good' : 'rr-bad');
+  } else {
+    rrEl.value = '';
+    rrEl.className = 'field-inp';
+  }
+}
+
+// ── TRADE LINES ──
+function redrawLines() {
+  if (!candleSeries || !allCandles.length) return;
+  var entry = parseFloat(document.getElementById('f-entry').value);
+  var slPts = parseFloat(document.getElementById('f-sl').value) || 0;
+  var tpPts = parseFloat(document.getElementById('f-tp').value) || 0;
+
+  removeAllLines();
+  if (!entry) return;
+
+  tLines.entry = candleSeries.createPriceLine({
+    price: entry, color: '#c9a84c', lineWidth: 1,
+    lineStyle: LightweightCharts.LineStyle.Dashed,
+    axisLabelVisible: true, title: 'Entry',
+  });
+
+  if (selDir && slPts > 0) {
+    var slPrice = selDir === 'long' ? entry - slPts : entry + slPts;
+    tLines.sl = candleSeries.createPriceLine({
+      price: slPrice, color: '#e05c5c', lineWidth: 1,
+      lineStyle: LightweightCharts.LineStyle.Dashed,
+      axisLabelVisible: true, title: 'SL',
+    });
+  }
+
+  if (selDir && tpPts > 0) {
+    var tpPrice = selDir === 'long' ? entry + tpPts : entry - tpPts;
+    tLines.tp = candleSeries.createPriceLine({
+      price: tpPrice, color: '#4daa7d', lineWidth: 1,
+      lineStyle: LightweightCharts.LineStyle.Dashed,
+      axisLabelVisible: true, title: 'TP',
+    });
+  }
+}
+
+function removeAllLines() {
+  if (!candleSeries) return;
+  ['entry','sl','tp'].forEach(function(k) {
+    if (tLines[k]) {
+      try { candleSeries.removePriceLine(tLines[k]); } catch(e) {}
+      tLines[k] = null;
+    }
+  });
+}
+
+// ── LOG TRADE ──
+function logTrade() {
+  if (!selDir) { alert('Select Long or Short first.'); return; }
+  var entry = parseFloat(document.getElementById('f-entry').value);
+  if (!entry) { alert('Load a chart first.'); return; }
+
+  var slPts = parseFloat(document.getElementById('f-sl').value) || 0;
+  var tpPts = parseFloat(document.getElementById('f-tp').value) || 0;
+  var rr = slPts > 0 ? parseFloat((tpPts / slPts).toFixed(2)) : 0;
+  var cur = allCandles[displayBar - 1];
+  var timeStr = cur ? new Date(cur.time * 1000).toISOString().substring(11, 16) : '';
+  var poi = Array.from(document.querySelectorAll('.poi-chip.on')).map(function(c) { return c.textContent; });
+
+  var trade = {
+    id: Date.now(),
+    idx: sessionTrades.length,
+    date: document.getElementById('date-pick').value,
+    time: timeStr,
+    dir: selDir,
+    entry: entry,
+    slPts: slPts,
+    tpPts: tpPts,
+    rr: rr,
+    poi: poi,
+    grade: selGrade,
+    outcome: null,
+    rm: null,
+  };
+
+  sessionTrades.push(trade);
+  renderLog();
+
+  // Reset form
+  document.getElementById('f-sl').value = '';
+  document.getElementById('f-tp').value = '';
+  document.getElementById('f-rr').value = '';
+  document.getElementById('f-rr').className = 'field-inp';
+  document.querySelectorAll('.poi-chip.on').forEach(function(c) { c.classList.remove('on'); });
+  document.querySelectorAll('.grade-btn.on').forEach(function(b) { b.classList.remove('on'); });
+  document.getElementById('btn-long').className = 'dir-btn';
+  document.getElementById('btn-short').className = 'dir-btn';
+  selDir = null;
+  selGrade = null;
+  removeAllLines();
+}
+
+function setOutcome(idx, outcome) {
+  sessionTrades[idx].outcome = outcome;
+  document.querySelectorAll('.out-' + idx).forEach(function(b) { b.classList.remove('on'); });
+  var btn = document.querySelector('.out-' + idx + '.' + outcome);
+  if (btn) btn.classList.add('on');
+}
+
+function saveOutcome(idx) {
+  var t = sessionTrades[idx];
+  if (!t.outcome) { alert('Pick W, L, or BE first.'); return; }
+  var rInp = document.getElementById('ri-' + idx);
+  var rmVal = rInp ? parseFloat(rInp.value) : 0;
+  if (t.outcome === 'w') t.rm = rmVal > 0 ? rmVal : t.rr;
+  else if (t.outcome === 'l') t.rm = -(rmVal > 0 ? rmVal : 1);
+  else t.rm = 0;
+  renderLog();
+  saveToSupabase(t);
+}
+
+// ── RENDER LOG ──
+function renderLog() {
+  var el = document.getElementById('session-log');
+  if (!sessionTrades.length) {
+    el.innerHTML = '<div style="font-size:11px;color:rgba(255,255,255,0.18);text-align:center;padding:14px 0;">No trades yet</div>';
+    return;
+  }
+
+  el.innerHTML = sessionTrades.slice().reverse().map(function(t) {
+    var resHtml;
+    if (t.outcome && t.rm !== null) {
+      var cls = t.outcome === 'w' ? 'w' : t.outcome === 'l' ? 'l' : 'b';
+      var label = t.outcome === 'w' ? '+' + Math.abs(t.rm).toFixed(1) + 'R'
+                : t.outcome === 'l' ? '-' + Math.abs(t.rm).toFixed(1) + 'R'
+                : 'BE';
+      resHtml = '<span class="td-res ' + cls + '">' + label + '</span>';
+    } else {
+      resHtml = '<div class="outcome-row">' +
+        '<button class="out-btn w out-' + t.idx + '" onclick="setOutcome(' + t.idx + ',\'w\')">W</button>' +
+        '<button class="out-btn l out-' + t.idx + '" onclick="setOutcome(' + t.idx + ',\'l\')">L</button>' +
+        '<button class="out-btn b out-' + t.idx + '" onclick="setOutcome(' + t.idx + ',\'b\')">BE</button>' +
+        '</div>' +
+        '<div class="r-row">' +
+        '<input class="r-inp" id="ri-' + t.idx + '" type="number" step="0.1" min="0" placeholder="R achieved">' +
+        '<button class="r-save-btn" onclick="saveOutcome(' + t.idx + ')">Save</button>' +
+        '</div>';
+      if (t.outcome) {
+        // Re-highlight if already clicked but not saved
+        setTimeout(function() {
+          var b = document.querySelector('.out-' + t.idx + '.' + t.outcome);
+          if (b) b.classList.add('on');
+        }, 0);
+      }
+    }
+
+    var poiStr = t.poi.length ? t.poi.join(', ') : '—';
+    return '<div class="trade-entry">' +
+      '<div class="te-top">' +
+      '<span class="td-dir ' + (t.dir === 'long' ? 'l' : 's') + '">' + (t.dir === 'long' ? 'L' : 'S') + '</span>' +
+      '<span class="td-meta">' + t.time + ' · ' + (t.grade || '—') + ' · ' + poiStr + '</span>' +
+      '</div>' +
+      resHtml +
+      '</div>';
+  }).join('');
+
+  updateStats();
+}
+
+// ── STATS ──
+function updateStats() {
+  var done = sessionTrades.filter(function(t) { return t.outcome && t.rm !== null; });
+  var wins = done.filter(function(t) { return t.outcome === 'w'; }).length;
+  var totalR = done.reduce(function(s, t) { return s + t.rm; }, 0);
+  var wr = done.length ? Math.round(wins / done.length * 100) : null;
+
+  document.getElementById('s-trades').textContent = sessionTrades.length;
+
+  var wrEl = document.getElementById('s-wr');
+  wrEl.textContent = wr !== null ? wr + '%' : '—';
+  wrEl.className = 'stat-v' + (wr !== null ? (wr >= 50 ? ' g' : ' r') : '');
+
+  var rEl = document.getElementById('s-r');
+  rEl.textContent = done.length ? (totalR >= 0 ? '+' : '') + totalR.toFixed(1) + 'R' : '—';
+  rEl.className = 'stat-v ' + (totalR > 0 ? 'gold' : totalR < 0 ? 'r' : 'gold');
+
+  var avgR = done.length ? totalR / done.length : null;
+  document.getElementById('s-avgr').textContent = avgR !== null ? avgR.toFixed(2) + 'R' : '—';
+}
+
+// ── SUPABASE SAVE ──
+async function saveToSupabase(t) {
+  if (!sb) return;
+  var payload = {
+    id: t.id, date: t.date, session: 'NYAM',
+    dir: t.dir === 'long' ? 'Long' : 'Short',
+    result: t.outcome === 'w' ? 'Win' : t.outcome === 'l' ? 'Loss' : 'Break Even',
+    biasTrend: '', poi: t.poi, grade: t.grade,
+    rm: t.rm || 0, pts: 0,
+    entry: t.entry, slPts: t.slPts, tpPts: t.tpPts, rr: t.rr,
+    notes: '',
+  };
+  try { await sb.from('backtests').upsert({ id: payload.id, data: payload }, { onConflict: 'id' }); }
+  catch(e) { console.warn('Supabase save failed', e); }
+}
+
+// ── HELPERS ──
+function setStatus(msg, type) {
+  var el = document.getElementById('bar-status');
+  el.textContent = msg;
+  el.className = 'bar-status ' + (type || '');
+}
+
+function setRBtns(on) {
+  ['btn-reset','btn-back','btn-play','btn-s1','btn-s5','btn-s10'].forEach(function(id) {
+    document.getElementById(id).disabled = !on;
+  });
+}
+
+function updateBarCounter() {
+  document.getElementById('bar-counter').textContent = 'Bar ' + displayBar + ' / ' + allCandles.length;
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', function() {
+  var now = new Date();
+  var p = function(n) { return String(n).padStart(2,'0'); };
+  document.getElementById('date-pick').value = now.getFullYear() + '-' + p(now.getMonth()+1) + '-' + p(now.getDate());
+  initChart();
+});
+</script>
+</body>
+</html>
