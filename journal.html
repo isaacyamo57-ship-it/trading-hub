@@ -936,7 +936,7 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
     <div class="sb-divider"></div>
     <div class="sb-btn" onclick="nav('backtest',this)">🔬<div class="sb-tooltip">Backtesting</div></div>
     <div class="sb-divider"></div>
-    <div class="sb-btn" onclick="nav('journal',this)">📝<div class="sb-tooltip">Daily Journal</div></div>
+    <div class="sb-btn" onclick="nav('journal',this)">📝<div class="sb-tooltip">Weekly Journal</div></div>
     <div class="sb-btn" onclick="nav('checklist',this)">✅<div class="sb-tooltip">Checklist</div></div>
     <div class="sb-btn" onclick="nav('analytics',this)">🧠<div class="sb-tooltip">Analytics</div></div>
     <div class="sb-btn" onclick="nav('seasonality',this)">🌊<div class="sb-tooltip">Seasonality</div></div>
@@ -1574,12 +1574,16 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
     <div class="page" id="page-journal">
       <div style="max-width:680px;">
         <div class="fsec" style="margin-bottom:10px;">
-          <div class="fsec-hdr">New Entry</div>
+          <div class="fsec-hdr">New Weekly Entry</div>
           <div class="fsec-body">
             <div class="fg" style="margin-bottom:14px;">
-              <div class="fb"><label class="fl">Date</label><input class="fi" type="date" id="jDate"></div>
               <div class="fb">
-                <label class="fl">Session Mood</label>
+                <label class="fl">Week Starting (Monday)</label>
+                <input class="fi" type="date" id="jDate">
+                <div id="jWeekRange" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:0.04em;">—</div>
+              </div>
+              <div class="fb">
+                <label class="fl">Overall Week Mood</label>
                 <div class="tog-row" id="jMood">
                   <div class="tg" onclick="tog(this,'jMood')" data-v="Focused">🎯 Focused</div>
                   <div class="tg" onclick="togClass(this,'jMood','on-blue')" data-v="Neutral">😐 Neutral</div>
@@ -1588,13 +1592,27 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
                 </div>
               </div>
             </div>
-            <div class="fb" style="margin-bottom:12px;"><label class="fl">Market Bias / Observations</label><textarea class="fi" id="jBias" placeholder="HTF context, key levels, draw on liquidity..."></textarea></div>
-            <div class="fb" style="margin-bottom:12px;"><label class="fl">What went well?</label><textarea class="fi" id="jWell" placeholder="Patience, execution, setup quality..."></textarea></div>
-            <div class="fb" style="margin-bottom:12px;"><label class="fl">What to improve?</label><textarea class="fi" id="jImprove" placeholder="Tilt, FOMO, oversizing..."></textarea></div>
-            <div class="fb"><label class="fl">Tomorrow's Plan</label><textarea class="fi" id="jPlan" placeholder="Key levels, bias, what to watch..."></textarea></div>
+
+            <!-- Auto stats panel -->
+            <div id="jWeekStats" style="display:none;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px;">
+              <div style="font-family:'Fragment Mono',monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Week Performance · auto-pulled</div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+                <div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;">Trades</div><div id="jwsTrades" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-top:2px;">—</div></div>
+                <div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;">Win Rate</div><div id="jwsWR" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-top:2px;">—</div></div>
+                <div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;">Total R</div><div id="jwsR" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-top:2px;">—</div></div>
+                <div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;">Avg R</div><div id="jwsAvg" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-top:2px;">—</div></div>
+              </div>
+            </div>
+
+            <div class="fb" style="margin-bottom:12px;"><label class="fl">Market Bias / Weekly Observations</label><textarea class="fi" id="jBias" placeholder="HTF context this week, key levels, market structure, draw on liquidity..."></textarea></div>
+            <div class="fb" style="margin-bottom:12px;"><label class="fl">Best Trade of the Week</label><textarea class="fi" id="jBest" placeholder="What was your best execution this week and why? What worked?"></textarea></div>
+            <div class="fb" style="margin-bottom:12px;"><label class="fl">Worst Trade / Biggest Mistake</label><textarea class="fi" id="jWorst" placeholder="What was your worst trade or biggest mistake? What rule did you break?"></textarea></div>
+            <div class="fb" style="margin-bottom:12px;"><label class="fl">What went well this week?</label><textarea class="fi" id="jWell" placeholder="Patience, execution, setup selectivity, discipline..."></textarea></div>
+            <div class="fb" style="margin-bottom:12px;"><label class="fl">What to improve next week?</label><textarea class="fi" id="jImprove" placeholder="Tilt, FOMO, oversizing, bias bias..."></textarea></div>
+            <div class="fb"><label class="fl">Next Week's Focus / Plan</label><textarea class="fi" id="jPlan" placeholder="One concrete thing to focus on, key levels to watch, setups to take..."></textarea></div>
           </div>
         </div>
-        <button class="save-btn" onclick="saveJournal()" style="margin-bottom:16px;">Save Entry</button>
+        <button class="save-btn" onclick="saveJournal()" style="margin-bottom:16px;">Save Weekly Entry</button>
         <div id="jFeed"></div>
       </div>
     </div>
@@ -1999,7 +2017,7 @@ function svJ() { localStorage.setItem('nq_v5_journals', JSON.stringify(journals)
 function svC() { localStorage.setItem('nq_v5_checks',   JSON.stringify(checks)); }
 
 // ── NAV ──
-const pageNames = { dashboard:'Dashboard', log:'Log Trade', trades:'Trade Log', monthly:'Monthly Stats', backtest:'Backtesting', journal:'Daily Journal', checklist:'Checklist', analytics:'Analytics', seasonality:'Seasonality', knowledge:'Knowledge Base' };
+const pageNames = { dashboard:'Dashboard', log:'Log Trade', trades:'Trade Log', monthly:'Monthly Stats', backtest:'Backtesting', journal:'Weekly Journal', checklist:'Checklist', analytics:'Analytics', seasonality:'Seasonality', knowledge:'Knowledge Base' };
 function nav(id, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sb-btn').forEach(b => b.classList.remove('active'));
@@ -2949,28 +2967,144 @@ function delTrade() {
   closeModal(); renderDash(); if (!openBt) renderTradeLog(); else renderBacktest();
 }
 
-// ── JOURNAL ──
+// ── WEEKLY JOURNAL ──
+// Snap to Monday of week
+function getMondayOfWeek(dateStr) {
+  const d = new Date(dateStr);
+  const day = d.getDay(); // 0=Sun ... 1=Mon
+  const offset = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + offset);
+  return d.toISOString().split('T')[0];
+}
+
+function fmtWeekRange(monday) {
+  const d = new Date(monday);
+  const sun = new Date(d);
+  sun.setDate(d.getDate() + 6);
+  const a = d.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+  const b = sun.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'2-digit' });
+  return a + ' – ' + b;
+}
+
+function getWeekTrades(monday) {
+  const d = new Date(monday);
+  const sun = new Date(d);
+  sun.setDate(d.getDate() + 6);
+  const startStr = monday;
+  const endStr = sun.toISOString().split('T')[0];
+  return trades.filter(function(t) {
+    if (!t.date || t.acct === 'backtest') return false;
+    return t.date >= startStr && t.date <= endStr;
+  });
+}
+
+function updateWeekStats() {
+  const inputDate = document.getElementById('jDate').value;
+  if (!inputDate) return;
+  const monday = getMondayOfWeek(inputDate);
+  const wt = getWeekTrades(monday);
+  document.getElementById('jWeekRange').textContent = '📅 ' + fmtWeekRange(monday);
+
+  const panel = document.getElementById('jWeekStats');
+  if (!wt.length) {
+    panel.style.display = 'block';
+    document.getElementById('jwsTrades').textContent = '0';
+    document.getElementById('jwsTrades').style.color = 'var(--muted)';
+    document.getElementById('jwsWR').textContent = '—';
+    document.getElementById('jwsWR').style.color = 'var(--muted)';
+    document.getElementById('jwsR').textContent = '—';
+    document.getElementById('jwsR').style.color = 'var(--muted)';
+    document.getElementById('jwsAvg').textContent = '—';
+    document.getElementById('jwsAvg').style.color = 'var(--muted)';
+    return;
+  }
+  panel.style.display = 'block';
+  const w = wt.filter(t => t.result === 'Win').length;
+  const l = wt.filter(t => t.result === 'Loss').length;
+  const wr = (w + l) > 0 ? Math.round(w / (w + l) * 100) : 0;
+  const totalR = wt.reduce((s, t) => s + (parseFloat(t.rm) || 0), 0);
+  const avgR = wt.length ? totalR / wt.length : 0;
+
+  document.getElementById('jwsTrades').textContent = wt.length;
+  document.getElementById('jwsTrades').style.color = 'var(--text)';
+  document.getElementById('jwsWR').textContent = wr + '%';
+  document.getElementById('jwsWR').style.color = wr >= 50 ? 'var(--win)' : 'var(--loss)';
+  document.getElementById('jwsR').textContent = (totalR >= 0 ? '+' : '') + totalR.toFixed(2) + 'R';
+  document.getElementById('jwsR').style.color = totalR >= 0 ? 'var(--win)' : 'var(--loss)';
+  document.getElementById('jwsAvg').textContent = (avgR >= 0 ? '+' : '') + avgR.toFixed(2) + 'R';
+  document.getElementById('jwsAvg').style.color = avgR >= 0 ? 'var(--win)' : 'var(--loss)';
+}
+
 function saveJournal() {
-  const date = document.getElementById('jDate').value;
-  if (!date) { alert('Select a date.'); return; }
-  journals.unshift({ id:Date.now(), date, mood:getT('jMood'), bias:document.getElementById('jBias').value.trim(), well:document.getElementById('jWell').value.trim(), improve:document.getElementById('jImprove').value.trim(), plan:document.getElementById('jPlan').value.trim() });
+  const inputDate = document.getElementById('jDate').value;
+  if (!inputDate) { alert('Select a week.'); return; }
+  const monday = getMondayOfWeek(inputDate);
+
+  // Get this week's trade stats for snapshot
+  const wt = getWeekTrades(monday);
+  const w = wt.filter(t => t.result === 'Win').length;
+  const l = wt.filter(t => t.result === 'Loss').length;
+  const wr = (w + l) > 0 ? Math.round(w / (w + l) * 100) : 0;
+  const totalR = wt.reduce((s, t) => s + (parseFloat(t.rm) || 0), 0);
+
+  journals.unshift({
+    id: Date.now(),
+    date: monday,
+    type: 'weekly',
+    mood: getT('jMood'),
+    bias: document.getElementById('jBias').value.trim(),
+    best: document.getElementById('jBest').value.trim(),
+    worst: document.getElementById('jWorst').value.trim(),
+    well: document.getElementById('jWell').value.trim(),
+    improve: document.getElementById('jImprove').value.trim(),
+    plan: document.getElementById('jPlan').value.trim(),
+    stats: { trades: wt.length, wr: wr, totalR: parseFloat(totalR.toFixed(2)) }
+  });
   svJ();
   syncSaveJournal(journals[0]);
-  ['jBias','jWell','jImprove','jPlan'].forEach(id=>document.getElementById(id).value='');
-  document.querySelectorAll('#jMood .tg').forEach(t=>t.classList.remove('on','on-win','on-loss','on-blue','on-be'));
+  ['jBias','jBest','jWorst','jWell','jImprove','jPlan'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.querySelectorAll('#jMood .tg').forEach(t => t.classList.remove('on','on-win','on-loss','on-blue','on-be'));
   renderJournal();
 }
+
 function renderJournal() {
-  document.getElementById('jDate').value = now.toISOString().split('T')[0];
+  const dateInput = document.getElementById('jDate');
+  if (dateInput && !dateInput.value) {
+    dateInput.value = now.toISOString().split('T')[0];
+  }
+  // Add change listener to update stats panel live
+  if (dateInput && !dateInput._weekListener) {
+    dateInput.addEventListener('change', updateWeekStats);
+    dateInput._weekListener = true;
+  }
+  updateWeekStats();
+
   const me = {Focused:'🎯',Neutral:'😐',Tilted:'🔥',Tired:'😴'};
-  document.getElementById('jFeed').innerHTML = journals.map(j => `
-    <div class="j-entry">
-      <div class="j-top"><div class="j-date">${fmtD(j.date).toUpperCase()}</div><span style="font-size:16px">${me[j.mood]||''}</span></div>
-      ${j.bias?`<div class="j-block"><div class="j-lbl">Bias / Market Read</div><div class="j-val">${j.bias}</div></div>`:''}
-      ${j.well?`<div class="j-block"><div class="j-lbl">What went well</div><div class="j-val">${j.well}</div></div>`:''}
-      ${j.improve?`<div class="j-block"><div class="j-lbl">To improve</div><div class="j-val">${j.improve}</div></div>`:''}
-      ${j.plan?`<div class="j-block"><div class="j-lbl">Tomorrow's plan</div><div class="j-val">${j.plan}</div></div>`:''}
-    </div>`).join('') || '<div style="color:var(--muted);font-family:DM Mono;font-size:10px;padding:20px 0;">No entries yet.</div>';
+  document.getElementById('jFeed').innerHTML = journals.map(j => {
+    const isWeekly = j.type === 'weekly';
+    const dateLabel = isWeekly ? '📅 Week of ' + fmtWeekRange(j.date) : fmtD(j.date).toUpperCase();
+    const stats = j.stats;
+    const statsHTML = stats ? `
+      <div style="display:flex;gap:14px;margin-bottom:12px;padding:10px 12px;background:var(--bg3);border-radius:8px;font-family:'DM Mono',monospace;font-size:10px;">
+        <span><span style="color:var(--muted)">Trades:</span> <strong>${stats.trades}</strong></span>
+        <span><span style="color:var(--muted)">WR:</span> <strong style="color:${stats.wr >= 50 ? 'var(--win)' : 'var(--loss)'}">${stats.wr}%</strong></span>
+        <span><span style="color:var(--muted)">Total R:</span> <strong style="color:${stats.totalR >= 0 ? 'var(--win)' : 'var(--loss)'}">${stats.totalR >= 0 ? '+' : ''}${stats.totalR}R</strong></span>
+      </div>` : '';
+    return `
+      <div class="j-entry">
+        <div class="j-top"><div class="j-date">${dateLabel}</div><span style="font-size:16px">${me[j.mood]||''}</span></div>
+        ${statsHTML}
+        ${j.bias?`<div class="j-block"><div class="j-lbl">Market Bias / Observations</div><div class="j-val">${j.bias}</div></div>`:''}
+        ${j.best?`<div class="j-block"><div class="j-lbl">Best Trade</div><div class="j-val">${j.best}</div></div>`:''}
+        ${j.worst?`<div class="j-block"><div class="j-lbl">Worst Trade / Mistake</div><div class="j-val">${j.worst}</div></div>`:''}
+        ${j.well?`<div class="j-block"><div class="j-lbl">What went well</div><div class="j-val">${j.well}</div></div>`:''}
+        ${j.improve?`<div class="j-block"><div class="j-lbl">To improve</div><div class="j-val">${j.improve}</div></div>`:''}
+        ${j.plan?`<div class="j-block"><div class="j-lbl">Next Week's Focus</div><div class="j-val">${j.plan}</div></div>`:''}
+      </div>`;
+  }).join('') || '<div style="color:var(--muted);font-family:DM Mono;font-size:10px;padding:20px 0;">No entries yet.</div>';
 }
 
 // ── CHECKLIST ──
