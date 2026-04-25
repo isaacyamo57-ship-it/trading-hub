@@ -3231,13 +3231,19 @@ function renderAnalytics() {
     return null; // discard anything else (full sentences etc)
   }
   src.forEach(t => { var nb = normBias(t.biasTrend); if (nb) bm[nb] = (bm[nb] || 0) + 1; });
+  // Force ordering: Bullish (green), Bearish (red), Neutral (blue)
+  const biasOrder = ['Bullish', 'Bearish', 'Neutral'];
+  const biasColorMap = { 'Bullish': 'rgba(92,184,138,0.8)', 'Bearish': 'rgba(201,106,106,0.8)', 'Neutral': 'rgba(107,159,212,0.75)' };
+  const biasLabels = biasOrder.filter(k => bm[k] > 0);
+  const biasData = biasLabels.map(k => bm[k]);
+  const biasColors = biasLabels.map(k => biasColorMap[k]);
   new Chart(document.getElementById('anBiasChart').getContext('2d'), {
     type: 'doughnut',
     data: {
-      labels: Object.keys(bm),
-      datasets: [{ data: Object.values(bm), backgroundColor: ['rgba(92,184,138,0.8)','rgba(201,106,106,0.75)','rgba(107,159,212,0.75)'], borderColor: 'var(--bg2)', borderWidth: 3, hoverOffset: 4 }]
+      labels: biasLabels,
+      datasets: [{ data: biasData, backgroundColor: biasColors, borderColor: 'var(--bg2)', borderWidth: 3, hoverOffset: 4 }]
     },
-    options: { cutout: '65%', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: tickColor, font: { family: 'Fragment Mono', size: 8 }, boxWidth: 8, padding: 6, filter: function(item) { return item.text && item.text.length < 20; } } } }, animation: { duration: 700 } }
+    options: { cutout: '65%', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: tickColor, font: { family: 'Fragment Mono', size: 9 }, boxWidth: 8, padding: 8 } } }, animation: { duration: 700 } }
   });
 
   // ── 8. EXEC DOUGHNUT ──
