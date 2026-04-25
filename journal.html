@@ -1008,13 +1008,13 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
         </div>
 
         <!-- Cumulative R Curve -->
-        <div class="card r-curve-card">
+        <div class="card r-curve-card" style="display:flex;flex-direction:column;">
           <div class="card-hdr">
             <div class="card-title">Cumulative R Curve</div>
             <span style="font-family:'Fragment Mono',monospace;font-size:8px;color:var(--muted);" id="dashCurveTotal">—</span>
           </div>
-          <div style="padding:0;line-height:0;">
-            <canvas id="dashCurve" style="height:200px;width:100%;display:block;"></canvas>
+          <div style="padding:0;line-height:0;flex:1;display:flex;min-height:240px;">
+            <canvas id="dashCurve" style="width:100%;height:100%;display:block;"></canvas>
           </div>
         </div>
 
@@ -1040,13 +1040,13 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
       <div style="display:grid;grid-template-columns:1fr 1fr 180px;gap:12px;margin-bottom:14px;">
 
         <!-- Monthly R bar chart -->
-        <div class="card">
+        <div class="card" style="display:flex;flex-direction:column;">
           <div class="card-hdr">
             <div class="card-title">Monthly Win Rate</div>
             <span id="chartMoLbl" class="small-muted">—</span>
           </div>
-          <div style="padding:0;line-height:0;">
-            <canvas id="dashChart" style="height:170px;width:100%;display:block;"></canvas>
+          <div style="padding:0;line-height:0;flex:1;display:flex;min-height:200px;">
+            <canvas id="dashChart" style="width:100%;height:100%;display:block;"></canvas>
           </div>
         </div>
 
