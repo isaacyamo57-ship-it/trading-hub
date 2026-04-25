@@ -3570,201 +3570,284 @@ function renderAnalytics() {
   });
 }
 function renderSeasonality() {
-  const MONTHS = [
-    { name:'January',  num:1,  rating:3,   stars:'❌', tag:'Avoid',    color:'#c96a6a',
-      traits:['High volatility','Choppy ranges','Post-holiday low liquidity','Fake reversals','Sharp sweeps'],
-      forYou:'Lots of BE and fakeout losses. Tight stops get hunted. Trade minimum size.',
-      best:'Worst month to start a new challenge.' },
-    { name:'February', num:2,  rating:5,   stars:'⚠️', tag:'Caution',  color:'#c9884c',
-      traits:['Structure begins forming','Trend direction starts','Still unpredictable','Big news events'],
-      forYou:'Your tight-stop system struggles early-Feb. End-Feb becomes cleaner.',
-      best:'Wait for Week 3 before sizing up.' },
-    { name:'March',    num:3,  rating:6,   stars:'⚠️', tag:'Mixed',    color:'#c9a84c',
-      traits:['Better trending days','Strong reaction to macro data','Inconsistent week to week'],
-      forYou:'Clean weeks mixed with messy weeks. Be selective with setups.',
-      best:'Good month to refine your process, not to chase big wins.' },
-    { name:'April',    num:4,  rating:6.5, stars:'⚠️', tag:'Decent',   color:'#b8b84c',
-      traits:['Smooth intraday moves','Cleaner swings','Less algorithmic hunting'],
-      forYou:'Underestimated month. Structure trades work well if patient.',
-      best:'Not the best, not the worst. Solid consistency month.' },
-    { name:'May',      num:5,  rating:7,   stars:'⭐', tag:'Good',     color:'#88b84c',
-      traits:['Volume stabilises','Swing structure cleaner','NASDAQ respects levels','Fewer violent stop hunts'],
-      forYou:'Your style does well here. Good month to build confidence.',
-      best:'Target 60-70% win rate. Structure is on your side.' },
-    { name:'June',     num:6,  rating:9,   stars:'⭐⭐', tag:'Excellent', color:'#4cb888',
-      traits:['High volume','Very clean NY/NYAM moves','Liquidity behaves predictably','Frequent trend continuation days'],
-      forYou:'Perfect for your high win rate + small RR system. One of your best months.',
-      best:'Best month to pass challenges and take payouts.' },
-    { name:'July',     num:7,  rating:9.5, stars:'⭐⭐⭐', tag:'Elite',  color:'#4ca8c9',
-      traits:['Summer volatility begins','Very clean directional breakouts','NASDAQ respects structure','Hardly any chop in NYAM'],
-      forYou:'Your best months will usually be June and July. Slow but precise moves.',
-      best:'Top 3 month of the year. Scale up if funded.' },
-    { name:'August',   num:8,  rating:7,   stars:'⭐', tag:'Mixed',    color:'#b8b84c',
-      traits:['Low volume — people on holiday','Some fake pumps','Some clean trends'],
-      forYou:'Win slow and clean OR get chopped by low-volume spikes. Be patient.',
-      best:'Trade smaller. Let the setups come to you.' },
-    { name:'September',num:9,  rating:6,   stars:'⭐⭐', tag:'Volatile', color:'#c9884c',
-      traits:['Huge moves','Sharp reversals','Trend shifts','Institutional repositioning'],
-      forYou:'If you adapt = big wins. If not = lots of stop-outs. High risk, high reward.',
-      best:'6/10 consistency but 9/10 for big opportunities.' },
-    { name:'October',  num:10, rating:10,  stars:'⭐⭐⭐', tag:'🔥 Best', color:'#c9a84c',
-      traits:['Strong trends','High volume','Very predictable liquidity','Perfect reversals','Textbook NYAM setups'],
-      forYou:'The cleanest month of the entire year. Structure traders shine here.',
-      best:'Best month to scale up. Best month to take payouts.' },
-    { name:'November', num:11, rating:9,   stars:'⭐⭐', tag:'Excellent', color:'#4cb888',
-      traits:['Strong follow-through','Smooth trends','Clear direction on NASDAQ','Best month for passing challenges'],
-      forYou:'Your stats will usually shine here. Great continuation after October.',
-      best:'Best month for challenge passing. Keep compounding.' },
-    { name:'December', num:12, rating:8,   stars:'⭐⭐', tag:'Good',    color:'#4ca8c9',
-      traits:['Week 1-2 = chop','Week 3 = strong trend','Week 4 = slow but perfect structure'],
-      forYou:'Early month = wait. Mid-month = your best trades. Late Dec = low volume gems.',
-      best:'Week 3 is your prime window. Do not trade Week 1.' },
-  ];
+  // Filter out backtests
+  const realTrades = trades.filter(function(t) {
+    return t && t.date && t.acct !== 'backtest';
+  });
 
-  // Get actual trade stats per month from journal
+  // Build year-month and per-month buckets
+  const ymStats = {};
   const monthStats = {};
   for (let m = 1; m <= 12; m++) {
-    monthStats[m] = { w: 0, l: 0, be: 0, total: 0 };
+    monthStats[m] = { w: 0, l: 0, be: 0, total: 0, totalR: 0, years: new Set() };
   }
-  trades.forEach(function(t) {
-    if (!t.date) return;
-    const m = new Date(t.date).getMonth() + 1;
+  realTrades.forEach(function(t) {
+    const d = new Date(t.date);
+    if (isNaN(d)) return;
+    const y = d.getFullYear();
+    const m = d.getMonth() + 1;
+    const ymKey = y + '-' + String(m).padStart(2,'0');
+    if (!ymStats[ymKey]) ymStats[ymKey] = { y: y, m: m, w: 0, l: 0, be: 0, total: 0, totalR: 0 };
+    const r = parseFloat(t.rm) || 0;
+    ymStats[ymKey].total++;
+    ymStats[ymKey].totalR += r;
     monthStats[m].total++;
-    if (t.result === 'Win') monthStats[m].w++;
-    else if (t.result === 'Loss') monthStats[m].l++;
-    else monthStats[m].be++;
+    monthStats[m].totalR += r;
+    monthStats[m].years.add(y);
+    if (t.result === 'Win') { ymStats[ymKey].w++; monthStats[m].w++; }
+    else if (t.result === 'Loss') { ymStats[ymKey].l++; monthStats[m].l++; }
+    else { ymStats[ymKey].be++; monthStats[m].be++; }
   });
+
+  // Generic NQ traits (background context only)
+  const GENERIC = {
+    1:  { traits: ['High volatility','Choppy ranges','Post-holiday low liquidity','Fake reversals','Sharp sweeps'] },
+    2:  { traits: ['Structure begins forming','Trend direction starts','Still unpredictable','Big news events'] },
+    3:  { traits: ['Better trending days','Strong reaction to macro data','Inconsistent week to week'] },
+    4:  { traits: ['Smooth intraday moves','Cleaner swings','Less algorithmic hunting'] },
+    5:  { traits: ['Volume stabilises','Swing structure cleaner','NASDAQ respects levels','Fewer violent stop hunts'] },
+    6:  { traits: ['High volume','Very clean NY/NYAM moves','Liquidity behaves predictably','Frequent trend continuation days'] },
+    7:  { traits: ['Summer volatility begins','Very clean directional breakouts','NASDAQ respects structure','Hardly any chop in NYAM'] },
+    8:  { traits: ['Low volume — people on holiday','Some fake pumps','Some clean trends'] },
+    9:  { traits: ['Huge moves','Sharp reversals','Trend shifts','Institutional repositioning'] },
+    10: { traits: ['Strong trends','High volume','Very predictable liquidity','Perfect reversals','Textbook NYAM setups'] },
+    11: { traits: ['Strong follow-through','Smooth trends','Clear direction on NASDAQ','Best month for passing challenges'] },
+    12: { traits: ['Week 1-2 = chop','Week 3 = strong trend','Week 4 = slow but perfect structure'] },
+  };
+
+  const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // Build a personal rating + tag for each month based on YOUR data
+  function getPersonalRating(s) {
+    if (s.total === 0) return { rating: null, stars: '—', tag: 'No Data', color: '#6b6760', bgColor: '#1a1a1d' };
+    const wr = (s.w + s.l) > 0 ? (s.w / (s.w + s.l)) : 0;
+    const totalR = s.totalR;
+    const avgR = s.total > 0 ? totalR / s.total : 0;
+
+    // Rating combines win rate, total R, and avg R per trade
+    let rating = 5;
+    if (wr >= 0.6) rating += 2;
+    else if (wr >= 0.45) rating += 1;
+    else if (wr < 0.3) rating -= 2;
+    else if (wr < 0.4) rating -= 1;
+
+    if (totalR >= 5) rating += 2;
+    else if (totalR >= 1) rating += 1;
+    else if (totalR <= -3) rating -= 2;
+    else if (totalR < 0) rating -= 1;
+
+    if (avgR >= 0.5) rating += 1;
+    else if (avgR <= -0.5) rating -= 1;
+
+    rating = Math.max(1, Math.min(10, rating));
+
+    let stars, tag, color, bgColor;
+    if (rating >= 9)      { stars = '⭐⭐⭐'; tag = '🔥 Elite';     color = '#c9a84c'; bgColor = '#1d1a14'; }
+    else if (rating >= 7) { stars = '⭐⭐';   tag = 'Excellent'; color = '#4cb888'; bgColor = '#141d18'; }
+    else if (rating >= 6) { stars = '⭐';     tag = 'Good';      color = '#88b84c'; bgColor = '#181d14'; }
+    else if (rating >= 5) { stars = '⚠️';    tag = 'Decent';    color = '#b8b84c'; bgColor = '#1d1d14'; }
+    else if (rating >= 4) { stars = '⚠️';    tag = 'Mixed';     color = '#c9a84c'; bgColor = '#1d1a14'; }
+    else if (rating >= 3) { stars = '⚠️';    tag = 'Caution';   color = '#c9884c'; bgColor = '#1d1814'; }
+    else                  { stars = '❌';    tag = 'Avoid';     color = '#c96a6a'; bgColor = '#1d1414'; }
+
+    return { rating: rating, stars: stars, tag: tag, color: color, bgColor: bgColor };
+  }
+
+  // Generate "For you" auto-text from real data
+  function getForYou(s) {
+    if (s.total === 0) return 'No trades logged this month yet. Trade it and find out.';
+    const wr = (s.w + s.l) > 0 ? Math.round(s.w / (s.w + s.l) * 100) : 0;
+    const totalR = s.totalR.toFixed(1);
+    const avgR = (s.totalR / s.total).toFixed(2);
+    const yearCount = s.years.size;
+
+    let text = '';
+    if (s.totalR >= 5) text = 'Strong month for you. Win rate ' + wr + '%, total ' + (s.totalR >= 0 ? '+' : '') + totalR + 'R. ';
+    else if (s.totalR >= 1) text = 'Profitable but modest. WR ' + wr + '%, total +' + totalR + 'R. ';
+    else if (s.totalR > -1) text = 'Roughly break-even. WR ' + wr + '%, total ' + totalR + 'R. ';
+    else if (s.totalR > -3) text = 'Slight loss month. WR ' + wr + '%, total ' + totalR + 'R. ';
+    else text = 'Tough month historically. WR ' + wr + '%, total ' + totalR + 'R. ';
+
+    text += 'Avg ' + (avgR >= 0 ? '+' : '') + avgR + 'R per trade.';
+
+    if (yearCount === 1 && s.total < 10) text += ' ⚠️ Tiny sample.';
+    else if (yearCount === 1) text += ' Single year of data.';
+
+    return text;
+  }
+
+  function getBest(s) {
+    if (s.total === 0) return 'Trade this month and log it to build data.';
+    const wr = (s.w + s.l) > 0 ? Math.round(s.w / (s.w + s.l) * 100) : 0;
+    const totalR = s.totalR;
+    if (totalR >= 5 && wr >= 55) return 'One of your stronger months. Trade with confidence — your edge is showing.';
+    if (totalR >= 1) return 'Profitable. Stay selective, take A+ setups.';
+    if (totalR >= 0) return 'Mixed results. Reduce size until structure becomes clearer.';
+    if (totalR > -3) return 'Be cautious. Trade minimum size or sit out marginal setups.';
+    return 'Historically rough. Consider sitting out or trading micro size only.';
+  }
 
   const now2 = new Date();
   const curMonth = now2.getMonth() + 1;
 
-  // Build HTML
+  // Build month data array
+  const MONTHS = [];
+  for (let m = 1; m <= 12; m++) {
+    const s = monthStats[m];
+    const r = getPersonalRating(s);
+    MONTHS.push({
+      name: MONTH_NAMES[m-1], num: m, rating: r.rating, stars: r.stars, tag: r.tag,
+      color: r.color, bgColor: r.bgColor,
+      stats: s,
+      traits: GENERIC[m].traits,
+      forYou: getForYou(s),
+      best: getBest(s),
+    });
+  }
+
+  // ── BUILD HTML ──
   let html = '';
 
   // Header
   html += '<div style="margin-bottom:20px;">' +
-    '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">NQ Futures · NYAM Style</div>' +
+    '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">Your NQ Performance · Personal Data</div>' +
     '<div style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;color:var(--text);letter-spacing:-0.02em;">Seasonality Guide</div>' +
-    '<div style="font-family:Fragment Mono,monospace;font-size:10px;color:var(--muted);margin-top:5px;">Month-by-month quality rating for your ICT structure style · Tap any month for details</div>' +
+    '<div style="font-family:Fragment Mono,monospace;font-size:10px;color:var(--muted);margin-top:5px;">Ratings built from your actual trades · Tap any month for details</div>' +
   '</div>';
 
-  // Rating bar summary
+  // Sample size warning if needed
+  const totalTrades = realTrades.length;
+  if (totalTrades < 100) {
+    html += '<div style="background:rgba(232,168,56,0.06);border:1px solid rgba(232,168,56,0.2);border-radius:8px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">' +
+      '<span style="font-size:13px;">⚠️</span>' +
+      '<div style="font-family:Fragment Mono,monospace;font-size:9px;color:var(--warn);line-height:1.5;"><strong>' + totalTrades + ' trades logged.</strong> Months with only 1 year of data are not statistically reliable yet — treat ratings as early indicators, not laws.</div>' +
+    '</div>';
+  }
+
+  // ── Rating bar summary (Jan → Dec) ──
   html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:20px;">';
   html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap;">Jan → Dec</div>';
-  html += '<div style="flex:1;display:flex;gap:3px;align-items:flex-end;height:40px;">';
+  html += '<div style="flex:1;display:flex;gap:3px;align-items:flex-end;height:50px;">';
   MONTHS.forEach(function(m) {
-    const h = Math.round((m.rating / 10) * 40);
+    const h = m.rating === null ? 4 : Math.round((m.rating / 10) * 50);
     const isCur = m.num === curMonth;
+    const bg = m.rating === null ? 'var(--dim)' : m.color;
     html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">' +
-      '<div style="width:100%;height:' + h + 'px;background:' + m.color + ';border-radius:3px 3px 0 0;opacity:' + (isCur?'1':'0.7') + ';' + (isCur?'outline:2px solid var(--gold);outline-offset:2px;':'') + '"></div>' +
+      '<div title="' + m.name + ' · ' + (m.rating === null ? 'no data' : m.rating + '/10') + '" style="width:100%;height:' + h + 'px;background:' + bg + ';border-radius:3px 3px 0 0;opacity:' + (isCur?'1':'0.7') + ';' + (isCur?'outline:2px solid var(--gold);outline-offset:2px;':'') + '"></div>' +
     '</div>';
   });
   html += '</div>';
-  html += '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:700;color:var(--gold);white-space:nowrap;">Oct = 10/10 🔥</div>';
+
+  // Find best month from data
+  const bestMonth = MONTHS.reduce(function(best, m) {
+    if (m.rating === null) return best;
+    if (!best || m.rating > best.rating) return m;
+    return best;
+  }, null);
+  if (bestMonth) {
+    html += '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:700;color:' + bestMonth.color + ';white-space:nowrap;">' + MONTH_SHORT[bestMonth.num-1] + ' = ' + bestMonth.rating + '/10 ' + bestMonth.stars + '</div>';
+  } else {
+    html += '<div style="font-family:Syne,sans-serif;font-size:10px;color:var(--muted);white-space:nowrap;">No data yet</div>';
+  }
   html += '</div>';
 
-  // Month cards grid
+  // ── Month cards grid (4 cols) ──
   html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">';
 
   MONTHS.forEach(function(m) {
-    const stats = monthStats[m.num];
     const isCur = m.num === curMonth;
-    const wr = stats.total > 0 ? Math.round(stats.w / (stats.w + stats.l || 1) * 100) : null;
-    const ratingPct = (m.rating / 10) * 100;
+    const s = m.stats;
+    const wr = (s.w + s.l) > 0 ? Math.round(s.w / (s.w + s.l) * 100) : null;
+    const ratingPct = m.rating === null ? 0 : (m.rating / 10) * 100;
+    const yearCount = s.years.size;
+    const noData = s.total === 0;
 
-    // Rating colour for border
     const borderStyle = isCur
       ? '2px solid var(--gold)'
-      : '1px solid var(--border)';
+      : '1px solid ' + (noData ? 'var(--border)' : m.color + '40');
 
-    html += '<div style="background:var(--bg2);border:' + borderStyle + ';border-radius:12px;overflow:hidden;cursor:pointer;transition:all 0.15s;transform:translateY(0);" ' +
-      'onmouseover="this.style.transform=\'translateY(-2px)\'" ' +
-      'onmouseout="this.style.transform=\'translateY(0)\'">' +
+    html += '<div style="background:' + m.bgColor + ';border:' + borderStyle + ';border-radius:12px;overflow:hidden;cursor:pointer;transition:all 0.15s;" ' +
+      'onmouseover="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 8px 24px rgba(0,0,0,0.4)\'" ' +
+      'onmouseout="this.style.transform=\'translateY(0)\';this.style.boxShadow=\'none\'">';
 
-      // Colour top bar
-      '<div style="height:3px;background:' + m.color + ';"></div>' +
-
-      '<div style="padding:14px;">' +
-
-        // Month name + tag
-        '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">' +
-          '<div>' +
-            '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:var(--text);letter-spacing:-0.01em;">' + m.name + (isCur?' 📍':'') + '</div>' +
-            '<div style="font-family:Fragment Mono,monospace;font-size:8px;color:var(--muted);margin-top:1px;letter-spacing:0.08em;text-transform:uppercase;">' + m.tag + '</div>' +
-          '</div>' +
-          '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;color:' + m.color + ';">' + m.rating + '</div>' +
-        '</div>' +
-
-        // Rating bar
-        '<div style="height:4px;background:var(--bg4);border-radius:2px;margin-bottom:10px;overflow:hidden;">' +
-          '<div style="height:100%;width:' + ratingPct + '%;background:' + m.color + ';border-radius:2px;transition:width 0.6s ease;"></div>' +
-        '</div>' +
-
-        // Traits
-        '<div style="margin-bottom:10px;">' +
-          m.traits.slice(0,3).map(function(t) {
-            return '<div style="font-family:Fragment Mono,monospace;font-size:8px;color:var(--muted);padding:2px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:5px;">' +
-              '<div style="width:4px;height:4px;border-radius:50%;background:' + m.color + ';flex-shrink:0;"></div>' + t +
-            '</div>';
-          }).join('') +
-        '</div>' +
-
-        // Your actual stats for this month
-        (stats.total > 0
-          ? '<div style="background:var(--bg3);border-radius:6px;padding:8px 10px;">' +
-              '<div style="font-family:Fragment Mono,monospace;font-size:8px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px;">Your Stats</div>' +
-              '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-                '<div style="display:flex;gap:8px;">' +
-                  '<span style="font-family:DM Mono,monospace;font-size:10px;color:var(--win);">' + stats.w + 'W</span>' +
-                  '<span style="font-family:DM Mono,monospace;font-size:10px;color:var(--loss);">' + stats.l + 'L</span>' +
-                  '<span style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);">' + stats.be + 'BE</span>' +
-                '</div>' +
-                '<span style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;color:' + (wr>=50?'var(--win)':wr!==null?'var(--loss)':'var(--muted)') + ';">' +
-                  (wr !== null ? wr + '%' : '—') +
-                '</span>' +
-              '</div>' +
-            '</div>'
-          : '<div style="font-family:Fragment Mono,monospace;font-size:8px;color:var(--dim);font-style:italic;">No trades logged</div>'
-        ) +
-
-      '</div>' +
-    '</div>';
-  });
-
-  html += '</div>';
-
-  // Rankings summary
-  const ranked = [...MONTHS].sort((a,b) => b.rating - a.rating);
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
-
-  // Best months
-  html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;">';
-  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">🔥 Best months for your style</div>';
-  ranked.slice(0,6).forEach(function(m, i) {
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);">' +
-      '<div style="display:flex;align-items:center;gap:10px;">' +
-        '<div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:var(--dim);width:20px;">' + (i+1) + '</div>' +
+    // Top: month name + rating
+    html += '<div style="padding:14px 14px 10px;">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">' +
         '<div>' +
-          '<div style="font-family:Outfit,sans-serif;font-size:12px;font-weight:700;color:var(--text);">' + m.name + '</div>' +
-          '<div style="font-family:Fragment Mono,monospace;font-size:8px;color:var(--muted);">' + m.tag + '</div>' +
+          '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;color:' + (isCur ? 'var(--gold)' : 'var(--text)') + ';line-height:1.1;">' + m.name + '</div>' +
+          '<div style="font-family:Fragment Mono,monospace;font-size:8px;color:var(--muted);margin-top:2px;letter-spacing:0.08em;">' + (yearCount === 0 ? 'No trades' : yearCount + ' year' + (yearCount > 1 ? 's' : '') + ' · ' + s.total + 't') + '</div>' +
         '</div>' +
-      '</div>' +
-      '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:' + m.color + ';">' + m.rating + '/10</div>' +
-    '</div>';
+        (isCur ? '<div style="font-size:7px;font-family:DM Mono,monospace;color:var(--gold);background:rgba(201,168,76,0.12);padding:2px 6px;border-radius:3px;letter-spacing:0.1em;">NOW</div>' : '<div style="font-size:11px;">' + m.stars + '</div>') +
+      '</div>';
+
+    // Rating
+    if (m.rating !== null) {
+      html += '<div style="display:flex;align-items:baseline;gap:4px;margin-top:8px;">' +
+        '<div style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;color:' + m.color + ';line-height:1;">' + m.rating + '</div>' +
+        '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--muted);">/10</div>' +
+        '<div style="margin-left:auto;font-family:Fragment Mono,monospace;font-size:8px;color:' + m.color + ';font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">' + m.tag + '</div>' +
+      '</div>';
+
+      // Rating bar
+      html += '<div style="height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;margin-top:6px;">' +
+        '<div style="height:100%;width:' + ratingPct + '%;background:' + m.color + ';border-radius:2px;"></div>' +
+      '</div>';
+
+      // Real stats line
+      html += '<div style="display:flex;gap:10px;margin-top:10px;font-family:DM Mono,monospace;font-size:9px;">' +
+        '<span><span style="color:var(--muted);">R:</span> <span style="color:' + (s.totalR >= 0 ? 'var(--win)' : 'var(--loss)') + ';font-weight:600;">' + (s.totalR >= 0 ? '+' : '') + s.totalR.toFixed(1) + '</span></span>' +
+        '<span><span style="color:var(--muted);">WR:</span> <span style="color:' + (wr !== null && wr >= 50 ? 'var(--win)' : 'var(--loss)') + ';font-weight:600;">' + (wr !== null ? wr + '%' : '—') + '</span></span>' +
+      '</div>';
+    } else {
+      html += '<div style="margin-top:12px;font-family:DM Mono,monospace;font-size:10px;color:var(--muted);">No trades yet</div>';
+    }
+
+    html += '</div>';
+
+    // Bottom: traits + for you + best (in a panel)
+    html += '<div style="background:rgba(0,0,0,0.25);padding:10px 14px;border-top:1px solid rgba(255,255,255,0.04);">';
+
+    // Traits (chips)
+    html += '<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;">';
+    m.traits.slice(0, 3).forEach(function(t) {
+      html += '<div style="font-family:DM Mono,monospace;font-size:7px;color:var(--text2);background:rgba(255,255,255,0.04);padding:2px 6px;border-radius:3px;letter-spacing:0.04em;">' + t + '</div>';
+    });
+    html += '</div>';
+
+    // For you
+    html += '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--text2);line-height:1.5;margin-bottom:6px;">' + m.forYou + '</div>';
+
+    // Best
+    html += '<div style="font-family:Fragment Mono,monospace;font-size:8px;color:' + m.color + ';line-height:1.5;font-weight:600;">→ ' + m.best + '</div>';
+
+    html += '</div></div>';
   });
+
   html += '</div>';
 
-  // Worst months + what it means for you
-  html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;">';
-  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">📋 Key takeaways for you</div>';
-  const takeaways = [
-    { icon:'✅', text:'Best to pass challenges: June · July · October · November' },
-    { icon:'💰', text:'Best for payouts: June · July · October' },
-    { icon:'❌', text:'Avoid starting new accounts: January · February' },
-    { icon:'⚠️', text:'Expect lots of BE: December early · March · April' },
-    { icon:'📈', text:'Scale up size: October · November (cleanest structure)' },
-    { icon:'🧘', text:'Trade minimum size: August · September · January' },
-  ];
+  // ── Top Takeaways (auto-generated from data) ──
+  // Sort months by rating
+  const ranked = MONTHS.filter(function(m) { return m.rating !== null; }).sort(function(a, b) { return b.rating - a.rating; });
+  const topMonths = ranked.slice(0, 3).map(function(m) { return m.name; });
+  const worstMonths = ranked.slice(-3).filter(function(m) { return m.rating < 5; }).map(function(m) { return m.name; });
+  const beHeavyMonths = MONTHS.filter(function(m) {
+    return m.stats.total > 0 && (m.stats.be / m.stats.total) > 0.4;
+  }).map(function(m) { return m.name; });
+  const profitableMonths = MONTHS.filter(function(m) { return m.stats.totalR > 0; }).map(function(m) { return m.name; });
+  const losingMonths = MONTHS.filter(function(m) { return m.stats.totalR < 0 && m.stats.total > 0; }).map(function(m) { return m.name; });
+
+  html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:16px;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Your Top Takeaways · From Your Data</div>';
+
+  const takeaways = [];
+  if (profitableMonths.length) takeaways.push({ icon:'✅', text:'Profitable months for you: ' + profitableMonths.join(' · ') });
+  if (losingMonths.length) takeaways.push({ icon:'❌', text:'Losing months for you: ' + losingMonths.join(' · ') });
+  if (topMonths.length) takeaways.push({ icon:'🔥', text:'Highest-rated months: ' + topMonths.join(' · ') });
+  if (worstMonths.length) takeaways.push({ icon:'⚠️', text:'Be cautious in: ' + worstMonths.join(' · ') });
+  if (beHeavyMonths.length) takeaways.push({ icon:'🔵', text:'Lots of break-even trades in: ' + beHeavyMonths.join(' · ') });
+  if (totalTrades < 100) takeaways.push({ icon:'📊', text:'Need more sample size — keep trading and the data gets sharper' });
+
   takeaways.forEach(function(t) {
     html += '<div style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">' +
       '<span style="font-size:13px;flex-shrink:0;">' + t.icon + '</span>' +
@@ -3773,9 +3856,47 @@ function renderSeasonality() {
   });
   html += '</div>';
 
-  html += '</div>';
+  // ── YoY breakdown (compact) ──
+  const ymKeys = Object.keys(ymStats).sort();
+  if (ymKeys.length > 0) {
+    const byMonth = {};
+    ymKeys.forEach(function(k) {
+      const s = ymStats[k];
+      if (!byMonth[s.m]) byMonth[s.m] = [];
+      byMonth[s.m].push(s);
+    });
+
+    html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">';
+    html += '<div style="padding:14px 18px;border-bottom:1px solid var(--border);font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);">Year-Over-Year</div>';
+    html += '<div style="padding:8px 18px 14px;">';
+
+    for (let m = 1; m <= 12; m++) {
+      if (!byMonth[m]) continue;
+      const years = byMonth[m].sort(function(a,b) { return a.y - b.y; });
+      html += '<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:grid;grid-template-columns:80px 1fr;gap:14px;align-items:center;">';
+      html += '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:700;color:var(--text);">' + MONTH_NAMES[m-1] + '</div>';
+      html += '<div style="display:flex;gap:6px;flex-wrap:wrap;">';
+      years.forEach(function(yr) {
+        const r = parseFloat(yr.totalR.toFixed(2));
+        const wr = (yr.w + yr.l) > 0 ? Math.round(yr.w / (yr.w + yr.l) * 100) : null;
+        const rColor = r >= 0 ? 'var(--win)' : 'var(--loss)';
+        html += '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 10px;display:flex;align-items:center;gap:8px;">' +
+          '<div style="font-family:DM Mono,monospace;font-size:8px;color:var(--muted);font-weight:600;">' + yr.y + '</div>' +
+          '<div style="font-family:Syne,sans-serif;font-size:10px;font-weight:700;color:' + rColor + ';">' + (r >= 0 ? '+' : '') + r.toFixed(1) + 'R</div>' +
+          '<div style="font-family:DM Mono,monospace;font-size:8px;color:var(--muted);">' + (wr !== null ? wr + '%' : '—') + '</div>' +
+          '<div style="font-family:DM Mono,monospace;font-size:7px;color:var(--muted);">' + yr.total + 't</div>' +
+        '</div>';
+      });
+      html += '</div></div>';
+    }
+    html += '</div></div>';
+  }
 
   document.getElementById('page-seasonality').innerHTML = html;
+}
+
+function showMonthDetail(month) {
+  // placeholder for future expansion
 }
 
 
