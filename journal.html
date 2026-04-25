@@ -1727,7 +1727,7 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
         <div class="card">
           <div class="card-hdr"><div class="card-title">Performance by Day</div></div>
           <div style="padding:12px 14px 14px;">
-            <canvas id="anDayPerf" style="height:200px;width:100%;display:block;"></canvas>
+            <canvas id="anDayPerf" style="height:300px;width:100%;display:block;"></canvas>
           </div>
         </div>
 
@@ -1735,7 +1735,7 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
         <div class="card">
           <div class="card-hdr"><div class="card-title">Performance by Hour <span style="font-size:9px;color:var(--muted);font-weight:400;letter-spacing:0.04em;">· NY time</span></div></div>
           <div style="padding:12px 14px 14px;">
-            <canvas id="anHourPerf" style="height:200px;width:100%;display:block;"></canvas>
+            <canvas id="anHourPerf" style="height:300px;width:100%;display:block;"></canvas>
           </div>
         </div>
 
@@ -3304,19 +3304,19 @@ function renderAnalytics() {
       indexAxis: 'y',
       plugins: {
         ...chartDefaults.plugins,
-        legend: { display: true, position: 'top', align: 'end', labels: { color: tickColor, font: { family: 'Fragment Mono', size: 8 }, boxWidth: 8, padding: 8 } },
+        legend: { display: true, position: 'top', align: 'end', labels: { color: tickColor, font: { family: 'Fragment Mono', size: 10 }, boxWidth: 10, padding: 10 } },
         tooltip: { ...chartDefaults.plugins.tooltip, callbacks: { label: c => ' ' + c.dataset.label + ': ' + (c.parsed.x >= 0 ? '+' : '') + c.parsed.x + 'R' } }
       },
       scales: {
         x: {
           stacked: true,
-          ticks: { color: tickColor, font: tickFont, callback: v => v + 'R' },
+          ticks: { color: tickColor, font: { family: 'Fragment Mono', size: 11 }, callback: v => v + 'R' },
           grid: { color: gridColor, drawBorder: false },
           border: { display: false }
         },
         y: {
           stacked: true,
-          ticks: { color: tickColor, font: tickFont },
+          ticks: { color: tickColor, font: { family: 'Fragment Mono', size: 12 } },
           grid: { display: false },
           border: { display: false }
         }
@@ -3378,19 +3378,19 @@ function renderAnalytics() {
       ...chartDefaults,
       plugins: {
         ...chartDefaults.plugins,
-        legend: { display: true, position: 'top', align: 'end', labels: { color: tickColor, font: { family: 'Fragment Mono', size: 8 }, boxWidth: 8, padding: 8 } },
+        legend: { display: true, position: 'top', align: 'end', labels: { color: tickColor, font: { family: 'Fragment Mono', size: 10 }, boxWidth: 10, padding: 10 } },
         tooltip: { ...chartDefaults.plugins.tooltip, callbacks: { label: c => ' ' + c.dataset.label + ': ' + (c.parsed.y >= 0 ? '+' : '') + c.parsed.y + 'R' } }
       },
       scales: {
         x: {
           stacked: true,
-          ticks: { color: tickColor, font: tickFont, maxRotation: 0 },
+          ticks: { color: tickColor, font: { family: 'Fragment Mono', size: 11 }, maxRotation: 0 },
           grid: { display: false },
           border: { display: false }
         },
         y: {
           stacked: true,
-          ticks: { color: tickColor, font: tickFont, callback: v => v + 'R' },
+          ticks: { color: tickColor, font: { family: 'Fragment Mono', size: 11 }, callback: v => v + 'R' },
           grid: { color: gridColor },
           border: { display: false }
         }
