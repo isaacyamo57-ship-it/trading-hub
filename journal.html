@@ -2537,6 +2537,9 @@ function renderCalendar() {
     var ww = wk.trades.filter(function(t){ return t.result === 'Win'; }).length;
     var wl = wk.trades.filter(function(t){ return t.result === 'Loss'; }).length;
     var wwr = wk.trades.length ? Math.round(ww / (ww + wl || 1) * 100) : 0;
+    var wR = wk.trades.reduce(function(s, t){ return s + (parseFloat(t.rm) || 0); }, 0);
+    var wRStr = (wR >= 0 ? '+' : '') + wR.toFixed(2) + 'R';
+    var wRColor = wR > 0 ? 'var(--win)' : wR < 0 ? 'var(--loss)' : 'var(--muted)';
     var res = '—', cls = 'be';
     if (wk.trades.length) {
       res = ww > wl ? 'Win' : wl > ww ? 'Loss' : 'B/E';
@@ -2547,6 +2550,7 @@ function renderCalendar() {
       + '<div class="bw-result ' + cls + '">' + res + '</div>'
       + '<div class="bw-days">' + wk.days + ' day' + (wk.days !== 1 ? 's' : '') + '</div>'
       + (wk.trades.length ? '<div class="bw-wr">' + wwr + '% WR</div>' : '')
+      + (wk.trades.length ? '<div class="bw-wr" style="color:' + wRColor + ';font-weight:600;margin-top:2px;">' + wRStr + '</div>' : '')
       + '</div>';
   }).join('');
 
