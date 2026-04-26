@@ -265,9 +265,9 @@ body {
   content: '';
   position: absolute;
   top: 0; left: 20%; right: 20%;
-  height: 1px;
-  border-radius: 0 0 4px 4px;
-  opacity: 0.9;
+  height: 2px;
+  border-radius: 0 0 6px 6px;
+  opacity: 1;
 }
 .stat-wid::after {
   content: '';
@@ -277,10 +277,10 @@ body {
   border-radius: 10px;
   opacity: 0;
 }
-.stat-wid.g::before { background: var(--win); box-shadow: 0 0 12px var(--win); }
-.stat-wid.r::before { background: var(--loss); box-shadow: 0 0 12px var(--loss); }
-.stat-wid.go::before { background: var(--gold); box-shadow: 0 0 12px var(--gold); }
-.stat-wid.b::before { background: var(--blue); box-shadow: 0 0 12px var(--blue); }
+.stat-wid.g::before  { background: var(--win);  box-shadow: 0 0 18px 2px var(--win),  0 0 6px var(--win); }
+.stat-wid.r::before  { background: var(--loss); box-shadow: 0 0 18px 2px var(--loss), 0 0 6px var(--loss); }
+.stat-wid.go::before { background: var(--gold); box-shadow: 0 0 18px 2px var(--gold), 0 0 6px var(--gold); }
+.stat-wid.b::before  { background: var(--blue); box-shadow: 0 0 18px 2px var(--blue), 0 0 6px var(--blue); }
 .sw-lbl {
   font-family: 'Fragment Mono', monospace;
   font-size: 9px; font-weight: 400; color: var(--muted);
@@ -296,6 +296,312 @@ body {
   font-family: 'DM Mono', monospace;
   font-size: 9px; color: var(--muted);
   margin-top: 5px;
+}
+
+/* ── Tradezella-style stat cards ── */
+.tz-card {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 110px;
+  position: relative;
+}
+.tz-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+.tz-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text2);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tz-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  font-size: 8px;
+  color: var(--muted);
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1;
+}
+.tz-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.tz-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.tz-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.tz-icon-wrap {
+  flex-shrink: 0;
+}
+.tz-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: rgba(91, 91, 214, 0.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  border: 1px solid rgba(91,91,214,0.25);
+}
+.tz-pills {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+}
+.tz-pill {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  min-width: 28px;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 11px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+}
+.tz-pill-win  { background: rgba(46,204,113,0.13); color: var(--win); }
+.tz-pill-be   { background: rgba(91,91,214,0.18);  color: #8b8be0; }
+.tz-pill-loss { background: rgba(231,76,60,0.13);  color: var(--loss); }
+
+/* Tradezella donut variant — Trade win % / Day win % */
+.tz-card-donut { min-height: 140px; }
+.tz-donut-wrap {
+  position: relative;
+  width: 102px;
+  height: 102px;
+  flex-shrink: 0;
+}
+.tz-donut-wrap canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.tz-donut-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  pointer-events: none;
+  text-align: center;
+}
+.tz-donut-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--win);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.tz-donut-sub {
+  font-family: 'Fragment Mono', monospace;
+  font-size: 6.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 4px;
+  font-weight: 400;
+}
+.tz-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.tz-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+}
+.tz-legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.tz-legend-lbl {
+  color: var(--muted);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 400;
+}
+.tz-legend-val {
+  color: var(--text);
+  font-weight: 700;
+  font-size: 13px;
+  font-family: 'Syne', sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* Display mode toggle (R / $ / private) */
+.disp-toggle {
+  display: flex;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+.disp-mode-btn {
+  padding: 5px 11px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 5px;
+  transition: all 0.15s;
+  user-select: none;
+  line-height: 1;
+}
+.disp-mode-btn:hover { color: var(--text2); background: rgba(255,255,255,0.03); }
+.disp-mode-btn.active {
+  background: var(--gold);
+  color: #1a1a1a;
+}
+.disp-mode-btn.active:hover { background: var(--gold); }
+.disp-private-blur {
+  filter: blur(7px);
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ── Quality vs Outcome cards (portrait/compact) ── */
+.qg-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 0;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.qg-card:hover {
+  border-color: rgba(255,255,255,0.08);
+}
+.qg-empty {
+  opacity: 0.42;
+  background: transparent;
+  border-style: dashed;
+}
+.qg-empty:hover { transform: none; }
+.qg-badge {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  min-width: 32px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 5px;
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.qg-mid {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.qg-mid-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+}
+.qg-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.qg-stat-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.qg-mini-lbl {
+  font-family: 'Fragment Mono', monospace;
+  font-size: 7.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-right: 5px;
+  font-weight: 400;
+}
+.qg-bar-wrap {
+  position: relative;
+  height: 4px;
+  border-radius: 2px;
+  margin-top: 3px;
+}
+.qg-bar-bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.04);
+  border-radius: 2px;
+}
+.qg-bar-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+.qg-empty-msg {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--dim);
+  font-style: italic;
+  flex: 1;
+}
+
+/* Mobile: collapse to 1-column */
+@media (max-width: 720px) {
+  .tz-row-3, .tz-row-2 {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* Table */
@@ -999,36 +1305,223 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
     <!-- ══ DASHBOARD ══ -->
     <div class="page active" id="page-dashboard">
 
-      <div class="wgrid wg5">
-        <div class="stat-wid g">
-          <div class="sw-lbl">Win Rate</div>
-          <div class="sw-val" id="dWR" style="color:var(--win)">—</div>
-          <div class="sw-sub" id="dWRsub">live trades only</div>
+      <!-- ══ HERO / COMMAND CENTER ══ -->
+      <div class="card" style="padding:20px 24px;margin-bottom:18px;background:linear-gradient(180deg,rgba(201,168,76,0.04),transparent 70%);overflow:hidden;">
+        <!-- Top strip: account selector + NQ price -->
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap;">
+          <div class="acct-tabs" style="margin:0;">
+            <div class="acct-tab active eval" id="acctToggleAll" onclick="setDashAcct('all',this)">
+              <div class="acct-dot acct-dot-eval"></div>All
+            </div>
+            <div class="acct-tab eval" id="acctToggleEval" onclick="setDashAcct('eval',this)">
+              <div class="acct-dot acct-dot-eval"></div>Eval
+            </div>
+            <div class="acct-tab live" id="acctToggleLive" onclick="setDashAcct('live',this)">
+              <div class="acct-dot acct-dot-live"></div>Live / Funded
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <!-- Display mode toggle: R / $ / Private -->
+            <div class="disp-toggle">
+              <div class="disp-mode-btn" id="dispMode_r" onclick="setDisplayMode('r')" title="Show R-multiples">R</div>
+              <div class="disp-mode-btn active" id="dispMode_money" onclick="setDisplayMode('money')" title="Show dollars">$</div>
+              <div class="disp-mode-btn" id="dispMode_private" onclick="setDisplayMode('private')" title="Hide values (privacy)">👁</div>
+            </div>
+            <div id="nqPriceWidget" style="display:flex;align-items:center;gap:10px;font-family:'DM Mono',monospace;">
+              <span style="color:var(--muted);font-size:8px;letter-spacing:0.22em;text-transform:uppercase;">NQ Live</span>
+              <span id="nqLivePrice" style="color:var(--gold);font-weight:700;font-size:14px;">—</span>
+              <span id="nqLiveChange" style="font-size:10px;color:var(--muted);">—</span>
+            </div>
+          </div>
         </div>
+
+        <!-- Apex progress (target + drawdown) -->
+        <div id="apexProgressPanel" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:36px;"></div>
+
+        <!-- Projection footer -->
+        <div id="dProjection" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);padding-top:18px;margin-top:18px;border-top:1px solid var(--border);line-height:1.5;">—</div>
+      </div>
+
+      <!-- PRIMARY METRICS — gauge / ring style -->
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px;" class="tz-row tz-row-3">
+        <!-- Net P&L -->
+        <div class="card tz-card">
+          <div class="tz-head">
+            <div class="tz-lbl">Net P&amp;L <span class="tz-info">i</span></div>
+            <div class="tz-count" id="dNetCount">—</div>
+          </div>
+          <div class="tz-body">
+            <div class="tz-val" id="dNetPL">—</div>
+            <div class="tz-icon-wrap"><div class="tz-icon" id="dNetIcon">📊</div></div>
+          </div>
+        </div>
+        <!-- Profit Factor -->
+        <div class="card tz-card">
+          <div class="tz-head">
+            <div class="tz-lbl">Profit factor <span class="tz-info">i</span></div>
+          </div>
+          <div class="tz-body">
+            <div class="tz-val" id="dPFNew">—</div>
+            <canvas id="ringPF" width="140" height="140" style="width:64px;height:64px;flex-shrink:0;"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:12px;margin-bottom:20px;" class="tz-row tz-row-2">
+        <!-- Day Win % -->
+        <div class="card tz-card">
+          <div class="tz-head">
+            <div class="tz-lbl">Day win % <span class="tz-info">i</span></div>
+          </div>
+          <div class="tz-body">
+            <div style="flex:1;min-width:0;">
+              <div class="tz-val" id="dDayWinPct">—</div>
+              <div class="tz-pills">
+                <span class="tz-pill tz-pill-win"  id="dDayWinCnt">0</span>
+                <span class="tz-pill tz-pill-be"   id="dDayBeCnt">0</span>
+                <span class="tz-pill tz-pill-loss" id="dDayLossCnt">0</span>
+              </div>
+            </div>
+            <canvas id="gaugeDayWin" width="200" height="120" style="width:110px;height:66px;flex-shrink:0;"></canvas>
+          </div>
+        </div>
+        <!-- Avg win/loss trade -->
+        <div class="card tz-card">
+          <div class="tz-head">
+            <div class="tz-lbl">Avg win/loss trade <span class="tz-info">i</span></div>
+          </div>
+          <div class="tz-body" style="align-items:center;gap:20px;">
+            <div class="tz-val" id="dAvgWLRatio">—</div>
+            <div style="flex:1;min-width:0;">
+              <div id="dAvgWLBarOuter" style="display:flex;height:14px;gap:6px;">
+                <div id="dAvgWLBarWin"  style="background:#2ecc71;height:100%;border-radius:8px;box-shadow:0 0 12px rgba(46,204,113,0.35);"></div>
+                <div id="dAvgWLBarLoss" style="background:#e74c3c;height:100%;border-radius:8px;box-shadow:0 0 12px rgba(231,76,60,0.35);"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:10px;font-family:'DM Mono',monospace;font-size:11px;">
+                <span style="color:var(--win);font-weight:700;" id="dAvgWLWin">$0</span>
+                <span style="color:var(--loss);font-weight:700;" id="dAvgWLLoss">$0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADDITIONAL STATS — Total Points / Avg R Multiple / Rules Kept / Total Trades -->
+      <div class="wgrid wg5" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:20px;">
         <div class="stat-wid go">
           <div class="sw-lbl">Total Points</div>
-          <div class="sw-val" id="dPts" style="color:var(--gold)">—</div>
-          <div class="sw-sub" id="dPtsSub">all live trades</div>
+          <div class="sw-val" id="dStatPts" style="color:var(--gold);">—</div>
+          <div class="sw-sub" id="dStatPtsSub">—</div>
         </div>
         <div class="stat-wid b">
           <div class="sw-lbl">Avg R Multiple</div>
-          <div class="sw-val" id="dRM" style="color:var(--blue)">—</div>
+          <div class="sw-val" id="dStatAvgR" style="color:var(--blue);">—</div>
           <div class="sw-sub">live trades</div>
         </div>
         <div class="stat-wid go">
           <div class="sw-lbl">Rules Kept</div>
-          <div class="sw-val" id="dRules" style="color:var(--gold)">—</div>
-          <div class="sw-sub" id="dRulesSub">of trades logged</div>
+          <div class="sw-val" id="dStatRules" style="color:var(--gold);">—</div>
+          <div class="sw-sub" id="dStatRulesSub">—</div>
         </div>
         <div class="stat-wid g">
           <div class="sw-lbl">Total Trades</div>
-          <div class="sw-val" id="dTotal" style="color:var(--text2)">0</div>
-          <div class="sw-sub" id="dThisMo">this month: 0</div>
+          <div class="sw-val" id="dStatTrades" style="color:var(--text);">0</div>
+          <div class="sw-sub" id="dStatTradesSub">—</div>
         </div>
       </div>
 
-      <!-- Row 2: Win Rate Ring + R Curve + Recent Trades -->
-      <div style="display:grid;grid-template-columns:220px 1fr 1fr;gap:12px;margin-bottom:14px;">
+      <!-- Hidden compatibility spans for renderDash (sets these IDs) -->
+      <div style="display:none;">
+        <span id="dWR">—</span><span id="dWRsub">—</span>
+        <span id="dTotalR">—</span><span id="dTotalRDollar">—</span>
+        <span id="dRM">—</span><span id="dRMDollar">—</span>
+        <span id="dPF">—</span><span id="dPFsub">—</span>
+        <span id="dTotal">0</span><span id="dThisMo">—</span>
+      </div>
+
+      <!-- MAIN CHART ROW: Quality (portrait) + R Curve (middle) + Recent Trades -->
+      <div style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:14px;margin-bottom:20px;">
+        <!-- QUALITY vs OUTCOME — portrait/vertical -->
+        <div class="card" style="display:flex;flex-direction:column;padding:16px 18px;">
+          <div style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+            <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);">Quality vs Outcome</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--dim);margin-top:3px;">Are you grading honestly?</div>
+            <div style="display:flex;gap:14px;align-items:center;margin-top:12px;">
+              <div style="flex:1;">
+                <div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);">Grade A / A+</div>
+                <div id="gradeARate" style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;color:var(--gold);line-height:1.1;margin-top:2px;">—</div>
+              </div>
+              <div style="width:1px;height:30px;background:var(--border);"></div>
+              <div style="flex:1;">
+                <div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);">Clean Exec</div>
+                <div id="cleanRate" style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;color:var(--blue);line-height:1.1;margin-top:2px;">—</div>
+              </div>
+            </div>
+          </div>
+          <div id="dQualityRow" style="display:flex;flex-direction:column;gap:8px;flex:1;"></div>
+        </div>
+
+        <div class="card r-curve-card" style="display:flex;flex-direction:column;">
+          <div class="card-hdr">
+            <div class="card-title">Cumulative R Curve</div>
+            <span style="font-family:'Fragment Mono',monospace;font-size:8px;color:var(--muted);" id="dashCurveTotal">—</span>
+          </div>
+          <div style="padding:0;line-height:0;flex:1;display:flex;min-height:240px;">
+            <canvas id="dashCurve" style="width:100%;height:100%;display:block;"></canvas>
+          </div>
+        </div>
+
+        <div class="card" style="display:flex;flex-direction:column;">
+          <div class="card-hdr">
+            <div class="card-title">Recent Trades</div>
+            <span class="card-action" onclick="nav('trades',document.querySelectorAll('.sb-btn')[2])">All →</span>
+          </div>
+          <div class="tbl-wrap" style="flex:1;">
+            <table>
+              <thead><tr>
+                <th>Date</th><th>POI</th><th>Grade</th><th>R</th>
+              </tr></thead>
+              <tbody id="dashRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- BEHAVIORAL INSIGHTS: 3 same-height cards -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:20px;">
+        <div class="card" style="padding:18px 20px;min-height:130px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);">🎯 Discipline</div>
+            <div id="dDisciplineSub" style="font-family:DM Mono,monospace;font-size:9px;color:var(--muted);text-align:right;">—</div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:baseline;gap:8px;">
+              <div id="dDiscipline" style="font-family:Syne,sans-serif;font-size:34px;font-weight:800;color:var(--gold);line-height:1;">—</div>
+              <div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);">/ 100</div>
+            </div>
+            <div style="height:8px;background:rgba(255,255,255,0.05);border-radius:5px;margin-top:10px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.03), 0 0 14px rgba(201,168,76,0.20);">
+              <div id="dDisciplineBar" style="height:100%;width:0%;background:var(--gold);border-radius:5px;transition:width 0.4s ease;box-shadow:0 0 14px rgba(201,168,76,0.55);"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding:18px 20px;min-height:130px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);">🔥 Streak</div>
+            <div style="font-family:DM Mono,monospace;font-size:9px;color:var(--muted);">Best: <span id="dBestStreak2" style="color:var(--gold);font-weight:600;">—</span></div>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:10px;">
+            <div id="dCurStreak" style="font-family:Syne,sans-serif;font-size:34px;font-weight:800;color:var(--text);line-height:1;">—</div>
+            <div id="dCurStreakLbl" style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);text-transform:lowercase;">—</div>
+          </div>
+        </div>
+        <div class="card" style="padding:18px 20px;min-height:130px;">
+          <div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">⚠️ Top Mistakes</div>
+          <div id="dTopMistakes" style="font-family:DM Mono,monospace;font-size:11px;color:var(--text2);line-height:1.8;">—</div>
+        </div>
+      </div>
+
+      <!-- ACTIVITY ROW: Outcome Split donut + Monthly + 30-day Heatmap -->
+      <div style="display:grid;grid-template-columns:240px 1fr 1fr;gap:14px;margin-bottom:20px;">
 
         <!-- Win Rate Ring -->
         <div class="card win-rate-ring">
@@ -1043,39 +1536,7 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
           <div class="ring-legend" id="dashDonutLegend" style="margin-top:14px;"></div>
         </div>
 
-        <!-- Cumulative R Curve -->
-        <div class="card r-curve-card" style="display:flex;flex-direction:column;">
-          <div class="card-hdr">
-            <div class="card-title">Cumulative R Curve</div>
-            <span style="font-family:'Fragment Mono',monospace;font-size:8px;color:var(--muted);" id="dashCurveTotal">—</span>
-          </div>
-          <div style="padding:0;line-height:0;flex:1;display:flex;min-height:240px;">
-            <canvas id="dashCurve" style="width:100%;height:100%;display:block;"></canvas>
-          </div>
-        </div>
-
-        <!-- Recent Trades -->
-        <div class="card">
-          <div class="card-hdr">
-            <div class="card-title">Recent Trades</div>
-            <span class="card-action" onclick="nav('trades',document.querySelectorAll('.sb-btn')[2])">All →</span>
-          </div>
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr>
-                <th>Date</th><th>POI</th><th>Session</th><th>Grade</th><th>Outcome</th>
-              </tr></thead>
-              <tbody id="dashRows"></tbody>
-            </table>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Row 3: Monthly chart + Streak heatmap + Quick stats -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 180px;gap:12px;margin-bottom:14px;">
-
-        <!-- Monthly R bar chart -->
+        <!-- Monthly Win Rate -->
         <div class="card" style="display:flex;flex-direction:column;">
           <div class="card-hdr">
             <div class="card-title">Monthly Win Rate</div>
@@ -1086,10 +1547,10 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
           </div>
         </div>
 
-        <!-- 30-day trade heatmap -->
-        <div class="card">
+        <!-- 30-day Heatmap -->
+        <div class="card" style="display:flex;flex-direction:column;">
           <div class="card-hdr">
-            <div class="card-title">Last 30 Days Activity</div>
+            <div class="card-title">Last 30 Days</div>
             <span class="small-muted" id="streakLbl">—</span>
           </div>
           <div class="card-body" style="padding:10px 14px 14px;">
@@ -1106,31 +1567,15 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
           </div>
         </div>
 
-        <!-- Quick Stats vertical -->
-        <div class="card">
-          <div class="card-hdr"><div class="card-title">Quick Stats</div></div>
-          <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
-            <div>
-              <div class="sw-lbl">Best Streak</div>
-              <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--win);margin-top:2px;" id="bestStreak">0</div>
-            </div>
-            <div style="height:1px;background:var(--border);"></div>
-            <div>
-              <div class="sw-lbl">Grade A / A+</div>
-              <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--gold);margin-top:2px;" id="gradeARate">—</div>
-            </div>
-            <div style="height:1px;background:var(--border);"></div>
-            <div>
-              <div class="sw-lbl">Clean Exec</div>
-              <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--blue);margin-top:2px;" id="cleanRate">—</div>
-            </div>
-          </div>
-        </div>
-
       </div>
 
-      <!-- Row 3b: Drawdown Tracker -->
-      <div style="margin-bottom:14px;">
+      <!-- HIDDEN: bestStreak still needed by renderDash -->
+      <div style="display:none;">
+        <span id="bestStreak">0</span>
+      </div>
+
+      <!-- DRAWDOWN -->
+      <div style="margin-bottom:20px;">
         <div class="card">
           <div class="card-hdr">
             <div class="card-title">R Drawdown Tracker</div>
@@ -1141,7 +1586,7 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
               </div>
               <div style="display:flex;align-items:center;gap:6px;">
                 <div style="width:8px;height:8px;border-radius:50%;background:var(--loss);"></div>
-                <span style="font-family:'Fragment Mono',monospace;font-size:8px;color:var(--muted);">Max Drawdown: <span id="ddMax" style="color:var(--loss);">—</span></span>
+                <span style="font-family:'Fragment Mono',monospace;font-size:8px;color:var(--muted);">Max DD: <span id="ddMax" style="color:var(--loss);">—</span></span>
               </div>
               <div style="display:flex;align-items:center;gap:6px;">
                 <div style="width:8px;height:8px;border-radius:50%;background:var(--gold);"></div>
@@ -1155,7 +1600,7 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
         </div>
       </div>
 
-      <!-- Row 3c: Full width big calendar -->
+      <!-- CALENDAR -->
       <div class="bigcal-outer">
         <div class="bigcal-topbar">
           <div class="bigcal-title">Trade Calendar</div>
@@ -1175,6 +1620,7 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
           <div class="bigcal-weeks" id="calWeeks"></div>
         </div>
       </div>
+
 
     </div>
 
@@ -1355,6 +1801,21 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
               </div>
               <div class="fb"><label class="fl">R Multiple</label><input class="fi" type="number" id="fRM" placeholder="e.g. 2.5 or -1"></div>
               <div class="fb"><label class="fl">Points (+ or −)</label><input class="fi" type="number" id="fPts" placeholder="e.g. 18 or -8"></div>
+            </div>
+            <div class="fb" style="margin-bottom:12px;">
+              <label class="fl">Common Mistakes (multi-select)</label>
+              <div class="tog-row" id="fMistakes">
+                <div class="tg" onclick="togM(this)" data-v="FOMO entry">FOMO entry</div>
+                <div class="tg" onclick="togM(this)" data-v="Revenge trade">Revenge trade</div>
+                <div class="tg" onclick="togM(this)" data-v="No setup">No setup</div>
+                <div class="tg" onclick="togM(this)" data-v="Wrong bias">Wrong bias</div>
+                <div class="tg" onclick="togM(this)" data-v="Took profit early">Took profit early</div>
+                <div class="tg" onclick="togM(this)" data-v="Didn\'t take profit">Didn\'t take profit</div>
+                <div class="tg" onclick="togM(this)" data-v="Oversized">Oversized</div>
+                <div class="tg" onclick="togM(this)" data-v="Bad SL placement">Bad SL placement</div>
+                <div class="tg" onclick="togM(this)" data-v="Trading the news">Trading the news</div>
+                <div class="tg" onclick="togM(this)" data-v="Skipped checklist">Skipped checklist</div>
+              </div>
             </div>
             <div class="fb" style="margin-bottom:12px;"><label class="fl">Pre-trade Bias / Plan</label><textarea class="fi" id="fPreBias" placeholder="HTF bias, draw on liquidity, what you were expecting..."></textarea></div>
             <div class="fb"><label class="fl">Notes / Mistakes / Emotions</label><textarea class="fi" id="fNotes" placeholder="What happened? Tilt? What went right or wrong?"></textarea></div>
@@ -1850,6 +2311,7 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
       <div class="modal-x" onclick="closeModal()">✕</div>
     </div>
     <div id="mBody"></div>
+    <div id="mChartPreviews" style="display:none;padding:0 22px 16px;"></div>
     <div class="mnotes" id="mNotes" style="display:none;">
       <div class="mnotes-lbl">Notes</div>
       <div class="mnotes-txt" id="mNotesTxt"></div>
@@ -2207,7 +2669,8 @@ function saveTrade() {
       rm: parseFloat(document.getElementById('fRM').value)||0,
       pts: parseFloat(document.getElementById('fPts').value)||0,
       preBias: document.getElementById('fPreBias').value.trim(),
-      notes: document.getElementById('fNotes').value.trim()
+      notes: document.getElementById('fNotes').value.trim(),
+      mistakes: getM('fMistakes')
     };
     if (editBt) {
       const idx = backtests.findIndex(t => t.id === editId);
@@ -2229,6 +2692,7 @@ function saveTrade() {
     ['fContract','fChart','f15m','f1h','f4h','fPreBias','fNotes','fRM','fPts'].forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ''; });
     ['fLoc','fDir','fResult','fBiasTrend','fGrade','fExec','fRules'].forEach(function(g) { document.querySelectorAll('#' + g + ' .tg').forEach(function(t) { t.classList.remove('on','on-win','on-loss','on-blue','on-be'); }); });
     document.querySelectorAll('#fPOI .tg').forEach(function(t) { t.classList.remove('on'); });
+    document.querySelectorAll('#fMistakes .tg').forEach(function(t) { t.classList.remove('on'); });
     document.querySelectorAll('.emj').forEach(function(e) { e.classList.remove('on'); });
     selEmoji = '';
     nav('dashboard', document.querySelectorAll('.sb-btn')[0]);
@@ -2257,6 +2721,7 @@ function saveTrade() {
   ['fContract','fChart','f15m','f1h','f4h','fPreBias','fNotes','fRM','fPts'].forEach(id => document.getElementById(id).value = '');
   ['fLoc','fDir','fResult','fBiasTrend','fGrade','fExec','fRules'].forEach(g => document.querySelectorAll(`#${g} .tg`).forEach(t => t.classList.remove('on','on-win','on-loss','on-blue','on-be')));
   document.querySelectorAll('#fPOI .tg').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('#fMistakes .tg').forEach(t => t.classList.remove('on'));
   document.querySelectorAll('.emj').forEach(e => e.classList.remove('on'));
   selEmoji = '';
   nav('dashboard', document.querySelectorAll('.sb-btn')[0]);
@@ -2290,42 +2755,192 @@ function saveBacktest() {
 }
 
 // ── DASHBOARD ──
+// Global dashboard account filter
+let dashAcct = localStorage.getItem('nq_dash_acct') || 'all';
+
+function setDashAcct(acct, btn) {
+  dashAcct = acct;
+  localStorage.setItem('nq_dash_acct', acct);
+  document.querySelectorAll('#acctToggleAll, #acctToggleEval, #acctToggleLive').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderDash();
+}
+
 function renderDash() {
   document.getElementById('tbDate').textContent = now.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-  // LIVE TRADES ONLY — backtest excluded
-  const live = trades;
+  // Apply dashboard account filter — backtest excluded always
+  const live = trades.filter(t => {
+    if (t.acct === 'backtest') return false;
+    if (dashAcct === 'all') return true;
+    return t.acct === dashAcct;
+  });
+  // Make sure correct toggle button is highlighted on first render
+  ['acctToggleAll','acctToggleEval','acctToggleLive'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.toggle('active', el.id === ('acctToggle' + (dashAcct === 'all' ? 'All' : dashAcct.charAt(0).toUpperCase() + dashAcct.slice(1))));
+  });
   const wins = live.filter(t => t.result === 'Win');
   const losses = live.filter(t => t.result === 'Loss');
   const bes = live.filter(t => t.result === 'Break Even');
   const wr = live.length ? Math.round(wins.length / (wins.length + losses.length || 1) * 100) : null;
   const totalPts = live.reduce((s, t) => s + (t.pts || 0), 0);
+  const totalR = live.reduce((s, t) => s + (parseFloat(t.rm) || 0), 0);
   const rms = live.filter(t => t.rm).map(t => t.rm);
-  const avgRM = rms.length ? (rms.reduce((a,b) => a+b, 0) / rms.length).toFixed(1) : null;
+  const avgRM = rms.length ? (rms.reduce((a,b) => a+b, 0) / rms.length) : null;
   const wr2 = live.filter(t => t.rules);
   const rulesKept = wr2.length ? Math.round(wr2.filter(t => t.rules === 'Yes').length / wr2.length * 100) : null;
   const thisMo = live.filter(t => { const d = new Date(t.date); return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth(); }).length;
 
+  // Profit factor
+  const grossWin = live.filter(t => (parseFloat(t.rm) || 0) > 0).reduce((s,t) => s + parseFloat(t.rm), 0);
+  const grossLoss = Math.abs(live.filter(t => (parseFloat(t.rm) || 0) < 0).reduce((s,t) => s + parseFloat(t.rm), 0));
+  const pf = grossLoss > 0 ? (grossWin / grossLoss) : (grossWin > 0 ? Infinity : null);
+
+  // Win rate
   setTxt('dWR', wr !== null ? wr + '%' : '—');
   setStyle('dWR', 'color', wr === null ? 'var(--muted)' : wr >= 50 ? 'var(--win)' : 'var(--loss)');
   setTxt('dWRsub', wins.length + 'W · ' + losses.length + 'L · ' + bes.length + 'BE');
-  setTxt('dPts', live.length ? (totalPts >= 0 ? '+' : '') + totalPts.toFixed(1) : '—');
-  setStyle('dPts', 'color', totalPts >= 0 ? 'var(--gold)' : 'var(--loss)');
-  setTxt('dPtsSub', live.length + ' trades total');
-  setTxt('dRM', avgRM ? avgRM + 'R' : '—');
-  setTxt('dRules', rulesKept !== null ? rulesKept + '%' : '—');
-  setTxt('dRulesSub', wr2.length + ' trades with rules logged');
+
+  // Total R + $
+  if (live.length) {
+    setTxt('dTotalR', (totalR >= 0 ? '+' : '') + totalR.toFixed(2) + 'R');
+    setStyle('dTotalR', 'color', totalR >= 0 ? 'var(--win)' : 'var(--loss)');
+    if (typeof rToDollars === 'function') {
+      setTxt('dTotalRDollar', rToDollars(totalR));
+    }
+  } else {
+    setTxt('dTotalR', '—'); setTxt('dTotalRDollar', '—');
+  }
+
+  // Avg R + $
+  setTxt('dRM', avgRM !== null ? (avgRM >= 0 ? '+' : '') + avgRM.toFixed(2) + 'R' : '—');
+  setStyle('dRM', 'color', avgRM === null ? 'var(--muted)' : avgRM >= 0 ? 'var(--win)' : 'var(--loss)');
+  if (typeof rToDollars === 'function' && avgRM !== null) {
+    setTxt('dRMDollar', rToDollars(avgRM) + ' avg');
+  } else {
+    setTxt('dRMDollar', 'set risk in settings');
+  }
+
+  // Profit factor
+  if (pf === null) {
+    setTxt('dPF', '—'); setTxt('dPFsub', 'no losses');
+  } else if (pf === Infinity) {
+    setTxt('dPF', '∞'); setTxt('dPFsub', 'no losses yet');
+  } else {
+    setTxt('dPF', pf.toFixed(2));
+    setStyle('dPF', 'color', pf >= 1.5 ? 'var(--win)' : pf >= 1 ? 'var(--gold)' : 'var(--loss)');
+    setTxt('dPFsub', '$' + grossWin.toFixed(0) + 'R won · $' + grossLoss.toFixed(0) + 'R lost');
+  }
+
   setTxt('dTotal', live.length);
   setTxt('dThisMo', 'this month: ' + thisMo);
 
+  // ── Visible additional stat row (Total Points / Avg R / Rules Kept / Total Trades) ──
+  setTxt('dStatPts', (totalPts >= 0 ? '+' : '') + totalPts.toFixed(1));
+  setTxt('dStatPtsSub', live.length + ' trade' + (live.length === 1 ? '' : 's') + ' total');
+  setTxt('dStatAvgR', avgRM !== null ? (avgRM >= 0 ? '+' : '') + avgRM.toFixed(1) + 'R' : '—');
+  setStyle('dStatAvgR', 'color', avgRM === null ? 'var(--muted)' : (avgRM >= 0 ? 'var(--blue)' : 'var(--loss)'));
+  setTxt('dStatRules', rulesKept !== null ? rulesKept + '%' : '—');
+  setTxt('dStatRulesSub', wr2.length + ' trades with rules logged');
+  setTxt('dStatTrades', live.length);
+  setTxt('dStatTradesSub', 'this month: ' + thisMo);
+
+  // Render Tradezella-style stat cards (Net P&L, Trade Win %, PF, Day Win %, Avg W/L)
+  renderTzCards(live, wins, losses, bes, totalR, pf, grossWin, grossLoss);
+
+  // Streak (current + best)
   let s = 0, best = 0;
-  [...live].reverse().forEach(t => { if (t.result === 'Win') { s++; best = Math.max(best, s); } else s = 0; });
+  [...live].sort((a,b) => new Date(a.date)-new Date(b.date)).forEach(t => { if (t.result === 'Win') { s++; best = Math.max(best, s); } else if (t.result === 'Loss') s = 0; });
   setTxt('bestStreak', best);
-  // streakLbl for heatmap header
   let cs = 0, ct = '';
   for (const t of live) { if (!cs) { ct = t.result; cs = 1; } else if (t.result === ct) cs++; else break; }
   const streakLblEl = document.getElementById('streakLbl');
   if (streakLblEl) streakLblEl.textContent = cs ? cs + ' ' + ct.toLowerCase() + ' streak' : '—';
 
+  // Streak panel (top of dashboard)
+  setTxt('dCurStreak', cs ? cs : '0');
+  setTxt('dCurStreakLbl', cs ? ct + ' streak' : 'no streak');
+  setStyle('dCurStreak', 'color', ct === 'Win' ? 'var(--win)' : ct === 'Loss' ? 'var(--loss)' : 'var(--muted)');
+  setTxt('dBestStreak2', best + ' wins');
+
+  // Discipline score: composite of rules-followed % × win rate × sample size scaling
+  // Score = (rules% × 0.45) + (winRate × 0.45) + (min(trades/30, 1) × 10)
+  const sampleFactor = Math.min(live.length / 30, 1);
+  const wrFactor = wr !== null ? wr : 50;
+  const rulesFactor = rulesKept !== null ? rulesKept : 50;
+  const discipline = Math.round((rulesFactor * 0.45) + (wrFactor * 0.45) + (sampleFactor * 10));
+  setTxt('dDiscipline', discipline || '—');
+  setStyle('dDiscipline', 'color', discipline >= 75 ? 'var(--win)' : discipline >= 50 ? 'var(--gold)' : 'var(--loss)');
+  const dbar = document.getElementById('dDisciplineBar');
+  if (dbar) {
+    dbar.style.width = discipline + '%';
+    dbar.style.background = discipline >= 75 ? 'var(--win)' : discipline >= 50 ? 'var(--gold)' : 'var(--loss)';
+  }
+  let dLabel = 'building...';
+  if (live.length < 10) dLabel = 'need more data';
+  else if (discipline >= 80) dLabel = 'locked in 🔥';
+  else if (discipline >= 65) dLabel = 'consistent';
+  else if (discipline >= 50) dLabel = 'work in progress';
+  else dLabel = 'discipline slipping';
+  setTxt('dDisciplineSub', dLabel + ' · ' + (rulesKept !== null ? rulesKept + '% rules' : 'no rules data'));
+
+  // Top mistakes
+  const mistakeMap = {};
+  live.forEach(t => {
+    if (Array.isArray(t.mistakes)) {
+      t.mistakes.forEach(m => { mistakeMap[m] = (mistakeMap[m] || 0) + 1; });
+    }
+  });
+  const topMistakes = Object.entries(mistakeMap).sort((a,b) => b[1] - a[1]).slice(0, 3);
+  const tmEl = document.getElementById('dTopMistakes');
+  if (tmEl) {
+    if (topMistakes.length === 0) {
+      tmEl.innerHTML = '<span style="color:var(--muted);font-style:italic;">No mistakes tagged yet — start logging them on your trades</span>';
+    } else {
+      tmEl.innerHTML = topMistakes.map(function(m) {
+        return '<div style="display:flex;justify-content:space-between;"><span>' + m[0] + '</span><span style="color:var(--loss);font-weight:600;">×' + m[1] + '</span></div>';
+      }).join('');
+    }
+  }
+
+  // Apex projection
+  const projEl = document.getElementById('dProjection');
+  if (projEl && typeof SETTINGS !== 'undefined' && SETTINGS.riskPerTrade > 0) {
+    // last 30 days of trades
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+    const recent = live.filter(t => new Date(t.date) >= cutoff);
+    const recentR = recent.reduce((s, t) => s + (parseFloat(t.rm) || 0), 0);
+    const dailyR = recent.length > 0 ? recentR / 30 : 0;
+    const dailyDollar = dailyR * SETTINGS.riskPerTrade;
+    if (recent.length < 5) {
+      projEl.innerHTML = '<span style="color:var(--muted);">Need 5+ trades in last 30 days to project</span>';
+    } else if (dailyDollar <= 0) {
+      projEl.innerHTML = '<div style="color:var(--loss);font-weight:600;">⚠️ Currently losing</div><div style="color:var(--muted);margin-top:4px;">Avg ' + fmtRorMoney(dailyR, {showSign:true}) + '/day · pause and review</div>';
+    } else {
+      // Eval target: how many days at current pace?
+      const target = (dashAcct === 'live' ? SETTINGS.apexLiveTarget : SETTINGS.apexEvalTarget);
+      const targetLbl = (dashAcct === 'live' ? 'Live' : 'Eval');
+      const days = target > 0 ? Math.ceil(target / dailyDollar) : 0;
+      const today = new Date();
+      const eta = new Date(today.getTime() + days * 86400000);
+      projEl.innerHTML =
+        '<div style="color:var(--win);font-weight:600;">' + fmtRorMoney(dailyR, {showSign:true}) + '/day pace</div>' +
+        '<div style="color:var(--muted);margin-top:4px;">' + targetLbl + ' target in ~<strong style="color:var(--gold);">' + days + ' days</strong></div>' +
+        '<div style="color:var(--muted);margin-top:2px;font-size:9px;">ETA: ' + eta.toLocaleDateString('en-GB', { day:'numeric', month:'short' }) + '</div>';
+    }
+  } else if (projEl) {
+    projEl.innerHTML = '<span style="color:var(--muted);">Set risk per trade in settings</span>';
+  }
+
+  // Apex progress bars
+  renderApexProgress(live);
+
+  // Quality vs Outcome breakdown (Grade × WR)
+  renderQualityBreakdown(live);
+
+  // Live NQ price
+  updateNQPrice();
   const gr = live.filter(t => t.grade);
   setTxt('gradeARate', gr.length ? Math.round(gr.filter(t => t.grade==='A+'||t.grade==='A').length / gr.length * 100) + '%' : '—');
   const ex = live.filter(t => t.exec);
@@ -2515,8 +3130,22 @@ function renderDash() {
   }
 
   const el = document.getElementById('dashRows');
-  const rec = live.slice(0, 7);
-  el.innerHTML = rec.length ? rec.map(t => recRow(t)).join('') : `<tr><td colspan="8" class="empty-cell">No trades yet.</td></tr>`;
+  const rec = live.slice(0, 8);
+  el.innerHTML = rec.length ? rec.map(t => dashRecRow(t)).join('') : `<tr><td colspan="4" class="empty-cell">No trades yet.</td></tr>`;
+}
+
+// Compact row for dashboard recent trades (4 cols: Date / POI / Grade / R)
+function dashRecRow(t) {
+  const rmVal = parseFloat(t.rm) || 0;
+  const rmColor = rmVal > 0 ? 'var(--win)' : rmVal < 0 ? 'var(--loss)' : 'var(--muted)';
+  const rmText = rmVal === 0 ? 'BE' : (rmVal > 0 ? '+' : '') + rmVal.toFixed(2) + 'R';
+  const poi = (t.poi || []).slice(0, 1).map(p => `<span class="chip chip-gold">${p}</span>`).join(' ');
+  return `<tr onclick="openTrade(${t.id}, false)">
+    <td style="font-family:'DM Mono',monospace;font-size:10px;white-space:nowrap;color:var(--muted);">${fmtD(t.date)}</td>
+    <td>${poi || '—'}</td>
+    <td>${t.grade ? gradeC(t.grade) : '—'}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:${rmColor};white-space:nowrap;">${rmText}</td>
+  </tr>`;
 }
 
 function recRow(t) {
@@ -2702,6 +3331,526 @@ function calPrev() { calM--; if (calM < 0) { calM = 11; calY--; } renderCalendar
 function calNext() { calM++; if (calM > 11) { calM = 0; calY++; } renderCalendar(); }
 
 // ── DASH CHART ──
+// ── TRADEZELLA-STYLE STAT CARDS ──
+// Renders: Net P&L, Trade Win %, Profit Factor, Day Win %, Avg Win/Loss
+function renderTzCards(live, wins, losses, bes, totalR, pf, grossWinR, grossLossR) {
+  const risk = (typeof SETTINGS !== 'undefined' && SETTINGS.riskPerTrade) ? SETTINGS.riskPerTrade : 300;
+  const fmt$ = function(n) {
+    const sign = n < 0 ? '-' : '';
+    return sign + '$' + Math.abs(n).toLocaleString(undefined, {maximumFractionDigits: 0});
+  };
+
+  // ── Net P&L ──
+  const netDollar = totalR * risk;
+  const netEl = document.getElementById('dNetPL');
+  if (netEl) {
+    if (live.length === 0) {
+      netEl.textContent = '—';
+      netEl.style.color = 'var(--muted)';
+    } else {
+      netEl.textContent = fmtRorMoney(totalR, {showSign:true});
+      netEl.style.color = displayMode === 'private' ? 'var(--muted)' : (totalR >= 0 ? 'var(--win)' : 'var(--loss)');
+    }
+  }
+  const netCount = document.getElementById('dNetCount');
+  if (netCount) netCount.textContent = live.length;
+
+  // ── Trade Win % ──
+  const decided = wins.length + losses.length;
+  const tradeWR = decided > 0 ? (wins.length / decided) : null;
+  const tradePctEl = document.getElementById('dTradeWinPct');
+  if (tradePctEl) {
+    tradePctEl.textContent = tradeWR === null ? '—' : (tradeWR * 100).toFixed(2) + '%';
+    tradePctEl.style.color = tradeWR === null ? 'var(--muted)' : tradeWR >= 0.5 ? 'var(--win)' : 'var(--loss)';
+  }
+  setTxt('dWinCnt', wins.length);
+  setTxt('dBeCnt', bes.length);
+  setTxt('dLossCnt', losses.length);
+  drawDonut3('ringTradeWin', wins.length, losses.length, bes.length);
+
+  // ── Profit Factor ──
+  const pfEl = document.getElementById('dPFNew');
+  if (pfEl) {
+    if (pf === null) {
+      pfEl.textContent = '—';
+      pfEl.style.color = 'var(--muted)';
+    } else if (pf === Infinity) {
+      pfEl.textContent = '∞';
+      pfEl.style.color = 'var(--win)';
+    } else {
+      pfEl.textContent = pf.toFixed(2);
+      pfEl.style.color = pf >= 1.5 ? 'var(--win)' : pf >= 1 ? 'var(--gold)' : 'var(--loss)';
+    }
+  }
+  drawPFRing('ringPF', grossWinR, grossLossR);
+
+  // ── Day Win % ──
+  // Group trades by date, sum R per day, classify each day as win/be/loss
+  const dayMap = {};
+  live.forEach(function(t) {
+    if (!t.date) return;
+    const d = (t.date || '').slice(0, 10);
+    if (!dayMap[d]) dayMap[d] = 0;
+    dayMap[d] += parseFloat(t.rm) || 0;
+  });
+  let dWinDays = 0, dLossDays = 0, dBeDays = 0;
+  Object.values(dayMap).forEach(function(rSum) {
+    if (rSum > 0.001) dWinDays++;
+    else if (rSum < -0.001) dLossDays++;
+    else dBeDays++;
+  });
+  const dayDecided = dWinDays + dLossDays;
+  const dayWR = dayDecided > 0 ? (dWinDays / dayDecided) : null;
+  const dayPctEl = document.getElementById('dDayWinPct');
+  if (dayPctEl) {
+    dayPctEl.textContent = dayWR === null ? '—' : (dayWR * 100).toFixed(2) + '%';
+    dayPctEl.style.color = dayWR === null ? 'var(--muted)' : dayWR >= 0.5 ? 'var(--win)' : 'var(--loss)';
+  }
+  setTxt('dDayWinCnt', dWinDays);
+  setTxt('dDayBeCnt', dBeDays);
+  setTxt('dDayLossCnt', dLossDays);
+  drawGauge('gaugeDayWin', dayWR);
+
+  // ── Avg Win / Avg Loss ──
+  const winR = wins.map(function(t) { return parseFloat(t.rm) || 0; }).filter(function(r) { return r > 0; });
+  const lossR = losses.map(function(t) { return parseFloat(t.rm) || 0; }).filter(function(r) { return r < 0; });
+  const avgWinR = winR.length ? winR.reduce(function(a,b) { return a+b; }, 0) / winR.length : 0;
+  const avgLossR = lossR.length ? Math.abs(lossR.reduce(function(a,b) { return a+b; }, 0) / lossR.length) : 0;
+  const avgWin$ = avgWinR * risk;
+  const avgLoss$ = avgLossR * risk;
+  const ratio = avgLossR > 0 ? (avgWinR / avgLossR) : (avgWinR > 0 ? Infinity : null);
+  const ratioEl = document.getElementById('dAvgWLRatio');
+  if (ratioEl) {
+    if (ratio === null) {
+      ratioEl.textContent = '—';
+      ratioEl.style.color = 'var(--muted)';
+    } else if (ratio === Infinity) {
+      ratioEl.textContent = '∞';
+      ratioEl.style.color = 'var(--win)';
+    } else {
+      ratioEl.textContent = ratio.toFixed(2);
+      ratioEl.style.color = ratio >= 1 ? 'var(--win)' : 'var(--loss)';
+    }
+  }
+  setTxt('dAvgWLWin',  fmtRorMoney(avgWinR,  {showSign:true}));
+  setTxt('dAvgWLLoss', fmtRorMoney(-avgLossR, {showSign:false}));
+  // Bar split: width proportional to avg amounts (always uses raw R, mode-independent)
+  const total = avgWinR + avgLossR;
+  const winPct = total > 0 ? (avgWinR / total) * 100 : 50;
+  const lossPct = total > 0 ? (avgLossR / total) * 100 : 50;
+  const winBar  = document.getElementById('dAvgWLBarWin');
+  const lossBar = document.getElementById('dAvgWLBarLoss');
+  if (winBar)  winBar.style.width  = winPct + '%';
+  if (lossBar) lossBar.style.width = lossPct + '%';
+}
+
+// Draw a half-circle gauge (semicircle facing up) showing win-rate split
+// pct: 0..1 or null. null = empty grey gauge
+function drawGauge(canvasId, pct) {
+  const c = document.getElementById(canvasId);
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = c.clientWidth || parseFloat(c.style.width) || 110;
+  const cssH = c.clientHeight || parseFloat(c.style.height) || 66;
+  if (c.width !== cssW * dpr) {
+    c.width  = cssW * dpr;
+    c.height = cssH * dpr;
+    ctx.scale(dpr, dpr);
+  }
+  ctx.clearRect(0, 0, cssW, cssH);
+
+  const cx = cssW / 2;
+  const cy = cssH * 0.82;                       // pulled up so glow fits under
+  const r  = Math.min(cssW * 0.34, cssH * 0.66); // smaller — glow needs room
+  const lineW = 12;
+  const gap = 0.14;
+
+  // Empty / no-data state — single grey arc
+  if (pct === null || isNaN(pct)) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, Math.PI, 2 * Math.PI);
+    ctx.lineWidth = lineW;
+    ctx.strokeStyle = 'rgba(125,135,145,0.18)';
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    return;
+  }
+
+  const splitAngle = Math.PI + (pct * Math.PI);
+  ctx.lineCap = 'round';
+  ctx.lineWidth = lineW;
+
+  // Win arc (green) — gap on inner edge if both segments exist + glow
+  if (pct > 0) {
+    ctx.shadowColor = 'rgba(46,204,113,0.55)';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    if (pct < 1) {
+      ctx.arc(cx, cy, r, Math.PI, splitAngle - gap/2);
+    } else {
+      ctx.arc(cx, cy, r, Math.PI, splitAngle);
+    }
+    ctx.strokeStyle = '#2ecc71';
+    ctx.stroke();
+  }
+  // Loss arc (red) + glow
+  if (pct < 1) {
+    ctx.shadowColor = 'rgba(231,76,60,0.55)';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    if (pct > 0) {
+      ctx.arc(cx, cy, r, splitAngle + gap/2, 2 * Math.PI);
+    } else {
+      ctx.arc(cx, cy, r, Math.PI, 2 * Math.PI);
+    }
+    ctx.strokeStyle = '#e74c3c';
+    ctx.stroke();
+  }
+  // Reset shadow so it doesn't leak into other draws
+  ctx.shadowBlur = 0;
+}
+
+// Draw a full donut split into 3 segments (wins green / losses red / break-even grey)
+// Used for Trade Win % and Day Win % cards. Center label is provided by HTML overlay.
+function drawDonut3(canvasId, wins, losses, bes) {
+  const c = document.getElementById(canvasId);
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = c.clientWidth || 96;
+  const cssH = c.clientHeight || 96;
+  if (c.width !== cssW * dpr) {
+    c.width  = cssW * dpr;
+    c.height = cssH * dpr;
+    ctx.scale(dpr, dpr);
+  }
+  ctx.clearRect(0, 0, cssW, cssH);
+
+  const cx = cssW / 2;
+  const cy = cssH / 2;
+  const r  = Math.min(cssW, cssH) * 0.40;
+  const lineW = 9;
+
+  const total = (wins || 0) + (losses || 0) + (bes || 0);
+
+  // Empty state — full grey ring
+  if (total <= 0) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+    ctx.lineWidth = lineW;
+    ctx.strokeStyle = 'rgba(125,135,145,0.18)';
+    ctx.stroke();
+    return;
+  }
+
+  const winFrac  = (wins  || 0) / total;
+  const lossFrac = (losses || 0) / total;
+  const beFrac   = (bes   || 0) / total;
+
+  let cur = -Math.PI / 2; // start at 12 o'clock
+
+  // Wins segment (green)
+  if (winFrac > 0) {
+    const next = cur + winFrac * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, cur, next);
+    ctx.lineWidth = lineW;
+    ctx.strokeStyle = '#2ecc71';
+    ctx.lineCap = 'butt';
+    ctx.stroke();
+    cur = next;
+  }
+  // Losses segment (red)
+  if (lossFrac > 0) {
+    const next = cur + lossFrac * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, cur, next);
+    ctx.lineWidth = lineW;
+    ctx.strokeStyle = '#e74c3c';
+    ctx.lineCap = 'butt';
+    ctx.stroke();
+    cur = next;
+  }
+  // Break-even segment (grey)
+  if (beFrac > 0) {
+    const next = cur + beFrac * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, cur, next);
+    ctx.lineWidth = lineW;
+    ctx.strokeStyle = '#7d8791';
+    ctx.lineCap = 'butt';
+    ctx.stroke();
+  }
+}
+
+// Draw a full ring (donut) split between gross wins (green) and gross losses (red)
+function drawPFRing(canvasId, grossWin, grossLoss) {
+  const c = document.getElementById(canvasId);
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = c.clientWidth || parseFloat(c.style.width) || 64;
+  const cssH = c.clientHeight || parseFloat(c.style.height) || 64;
+  if (c.width !== cssW * dpr) {
+    c.width  = cssW * dpr;
+    c.height = cssH * dpr;
+    ctx.scale(dpr, dpr);
+  }
+  ctx.clearRect(0, 0, cssW, cssH);
+
+  const cx = cssW / 2;
+  const cy = cssH / 2;
+  const r  = Math.min(cssW, cssH) * 0.32;   // smaller so glow has room to bleed
+  const lineW = 10;
+  const gap = 0.16;
+
+  const total = (grossWin || 0) + (grossLoss || 0);
+
+  if (total <= 0) {
+    // empty grey ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+    ctx.lineWidth = lineW;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(125,135,145,0.18)';
+    ctx.stroke();
+    return;
+  }
+
+  const winFrac  = (grossWin  || 0) / total;
+  const lossFrac = (grossLoss || 0) / total;
+  const startAng = -Math.PI / 2; // top
+  const winEnd   = startAng + winFrac * 2 * Math.PI;
+  const fullEnd  = startAng + 2 * Math.PI;
+
+  ctx.lineCap = 'round';
+  ctx.lineWidth = lineW;
+
+  // Win arc (green) — with gaps if both segments exist + glow
+  if (winFrac > 0) {
+    ctx.shadowColor = 'rgba(46,204,113,0.55)';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    if (lossFrac > 0) {
+      ctx.arc(cx, cy, r, startAng + gap/2, winEnd - gap/2);
+    } else {
+      ctx.arc(cx, cy, r, startAng, fullEnd);
+    }
+    ctx.strokeStyle = '#2ecc71';
+    ctx.stroke();
+  }
+  // Loss arc (red) — with gaps if both segments exist + glow
+  if (lossFrac > 0) {
+    ctx.shadowColor = 'rgba(231,76,60,0.55)';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    if (winFrac > 0) {
+      ctx.arc(cx, cy, r, winEnd + gap/2, fullEnd - gap/2);
+    } else {
+      ctx.arc(cx, cy, r, startAng, fullEnd);
+    }
+    ctx.strokeStyle = '#e74c3c';
+    ctx.stroke();
+  }
+  // Reset shadow so it doesn't leak into other draws
+  ctx.shadowBlur = 0;
+}
+
+// ── APEX PROGRESS PANEL ──
+function renderApexProgress(live) {
+  const panel = document.getElementById('apexProgressPanel');
+  if (!panel) return;
+  if (typeof SETTINGS === 'undefined' || !SETTINGS.riskPerTrade || SETTINGS.riskPerTrade <= 0) {
+    panel.innerHTML = '';
+    return;
+  }
+  const totalR = live.reduce((s, t) => s + (parseFloat(t.rm) || 0), 0);
+  const totalDollar = totalR * SETTINGS.riskPerTrade;
+
+  // Find max R-drawdown from peak (running)
+  let peakR = 0, curR = 0, maxDD = 0;
+  [...live].sort((a,b) => new Date(a.date)-new Date(b.date)).forEach(t => {
+    curR += (parseFloat(t.rm) || 0);
+    if (curR > peakR) peakR = curR;
+    const dd = peakR - curR;
+    if (dd > maxDD) maxDD = dd;
+  });
+  const curDD = peakR - curR;
+  const curDDdollar = curDD * SETTINGS.riskPerTrade;
+  const maxDDdollar = maxDD * SETTINGS.riskPerTrade;
+
+  const evalTarget = SETTINGS.apexEvalTarget || 1600;
+  const evalDD = SETTINGS.apexEvalDrawdown || 1500;
+  const liveTarget = SETTINGS.apexLiveTarget || 2500;
+
+  // Profit progress (positive direction)
+  const profitTarget = (dashAcct === 'live' ? liveTarget : evalTarget);
+  const profitTargetLbl = (dashAcct === 'live' ? 'Live Target' : 'Eval Target');
+  const profitPct = profitTarget > 0 ? Math.max(0, Math.min(100, (totalDollar / profitTarget) * 100)) : 0;
+
+  // Drawdown progress (danger)
+  const ddLimit = (dashAcct === 'live' ? SETTINGS.apexLiveDrawdown : SETTINGS.apexEvalDrawdown);
+  const ddPct = ddLimit > 0 ? Math.min(100, (curDDdollar / ddLimit) * 100) : 0;
+  const ddColor = ddPct >= 75 ? 'var(--loss)' : ddPct >= 50 ? 'var(--warn)' : 'var(--blue)';
+
+  let html = '';
+
+  // Block 1: Profit Target — sits inside hero card
+  const dollarColor = totalDollar >= 0 ? 'var(--gold)' : 'var(--loss)';
+  const remaining = Math.max(0, profitTarget - totalDollar);
+  html += '<div>';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);">' + profitTargetLbl + '</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);font-weight:600;">' + profitPct.toFixed(0) + '%</div>';
+  html += '</div>';
+  html += '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;">';
+  html += '<div style="font-family:Syne,sans-serif;font-size:32px;font-weight:800;color:' + (displayMode === 'private' ? 'var(--muted)' : dollarColor) + ';line-height:1;">' + fmtDollarOrR(totalDollar, {showSign:true}) + '</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:11px;color:var(--muted);">/ ' + fmtDollarOrR(profitTarget, {showSign:false}) + '</div>';
+  html += '</div>';
+  // Glow color for profit fill — gold-green when positive, red when negative
+  const profitGlow = totalDollar >= 0 ? 'rgba(46,204,113,0.55)' : 'rgba(231,76,60,0.55)';
+  html += '<div style="height:12px;background:rgba(255,255,255,0.04);border-radius:7px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.03);">';
+  html += '<div style="height:100%;width:' + profitPct + '%;background:' + (totalDollar >= 0 ? 'linear-gradient(90deg,var(--gold),var(--win))' : 'var(--loss)') + ';border-radius:7px;transition:width 0.5s ease;box-shadow:0 0 14px ' + profitGlow + ';"></div>';
+  html += '</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-top:10px;">' + (displayMode === 'private' ? '••• to go' : ((totalR >= 0 ? '+' : '') + totalR.toFixed(2) + 'R · ' + fmtDollarOrR(remaining, {showSign:false}) + ' to go')) + '</div>';
+  html += '</div>';
+
+  // Block 2: Drawdown — sits inside hero card
+  html += '<div>';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:' + ddColor + ';">Current Drawdown</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);font-weight:600;">' + ddPct.toFixed(0) + '%</div>';
+  html += '</div>';
+  html += '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;">';
+  html += '<div style="font-family:Syne,sans-serif;font-size:32px;font-weight:800;color:' + (displayMode === 'private' ? 'var(--muted)' : ddColor) + ';line-height:1;">' + fmtDollarOrR(-curDDdollar, {showSign:false}) + '</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:11px;color:var(--muted);">/ ' + fmtDollarOrR(ddLimit, {showSign:false}) + '</div>';
+  html += '</div>';
+  // Glow colors for drawdown — match the severity state. Empty track always glows softly.
+  const ddGlow = (ddPct >= 75) ? 'rgba(231,76,60,0.55)'
+              : (ddPct >= 50) ? 'rgba(218,165,32,0.55)'
+              :                 'rgba(91,139,214,0.55)';
+  const ddTrackGlow = (ddPct >= 75) ? 'rgba(231,76,60,0.30)'
+                   : (ddPct >= 50) ? 'rgba(218,165,32,0.30)'
+                   :                 'rgba(91,139,214,0.28)';
+  html += '<div style="height:12px;background:rgba(255,255,255,0.04);border-radius:7px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.03), 0 0 14px ' + ddTrackGlow + ';">';
+  html += '<div style="height:100%;width:' + ddPct + '%;background:' + ddColor + ';border-radius:7px;transition:width 0.5s ease;box-shadow:0 0 14px ' + ddGlow + ';"></div>';
+  html += '</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-top:10px;">';
+  if (ddPct >= 75) html += '<span style="color:var(--loss);font-weight:700;letter-spacing:0.05em;">DANGER — pause trading</span>';
+  else if (ddPct >= 50) html += '<span style="color:var(--warn);font-weight:600;letter-spacing:0.05em;">CAUTION — reduce size</span>';
+  else html += 'Peak: ' + fmtDollarOrR(peakR * SETTINGS.riskPerTrade, {showSign:true}) + ' · Worst DD: ' + fmtDollarOrR(-maxDDdollar, {showSign:false});
+  html += '</div>';
+  html += '</div>';
+
+  panel.innerHTML = html;
+}
+
+// ── QUALITY VS OUTCOME ──
+function renderQualityBreakdown(live) {
+  const el = document.getElementById('dQualityRow');
+  if (!el) return;
+  const grades = ['A+', 'A', 'B', 'C'];
+  const data = grades.map(g => {
+    const grTrades = live.filter(t => t.grade === g);
+    const w = grTrades.filter(t => t.result === 'Win').length;
+    const l = grTrades.filter(t => t.result === 'Loss').length;
+    const wr = (w + l) > 0 ? Math.round(w / (w + l) * 100) : null;
+    const r = grTrades.reduce((s, t) => s + (parseFloat(t.rm) || 0), 0);
+    return { g, count: grTrades.length, wr, r, w, l };
+  });
+  // Add "Untagged"
+  const untagged = live.filter(t => !t.grade);
+  if (untagged.length) {
+    const w = untagged.filter(t => t.result === 'Win').length;
+    const l = untagged.filter(t => t.result === 'Loss').length;
+    data.push({
+      g: 'Untagged',
+      count: untagged.length,
+      wr: (w+l) > 0 ? Math.round(w/(w+l)*100) : null,
+      r: untagged.reduce((s,t) => s + (parseFloat(t.rm) || 0), 0),
+      w, l
+    });
+  }
+
+  const colors = {
+    'A+':       { tone:'var(--gold)',  glow:'rgba(201,168,76,0.20)',  bgTint:'rgba(201,168,76,0.04)' },
+    'A':        { tone:'var(--win)',   glow:'rgba(46,204,113,0.20)',  bgTint:'rgba(46,204,113,0.04)' },
+    'B':        { tone:'var(--blue)',  glow:'rgba(91,91,214,0.20)',   bgTint:'rgba(91,91,214,0.04)' },
+    'C':        { tone:'#d97a3a',      glow:'rgba(217,122,58,0.20)',  bgTint:'rgba(217,122,58,0.04)' },
+    'Untagged': { tone:'var(--muted)', glow:'rgba(125,135,145,0.15)', bgTint:'rgba(125,135,145,0.03)' }
+  };
+
+  el.innerHTML = data.map(function(d) {
+    const c = colors[d.g] || colors.Untagged;
+    const isEmpty = d.count === 0;
+
+    if (isEmpty) {
+      return '' +
+        '<div class="qg-card qg-empty">' +
+          '<div class="qg-badge" style="background:transparent;border:1px solid var(--border);color:var(--muted);">' + d.g + '</div>' +
+          '<div class="qg-empty-msg">Awaiting trades</div>' +
+        '</div>';
+    }
+
+    const wrColor = d.wr === null ? 'var(--muted)' : (d.wr >= 50 ? 'var(--win)' : 'var(--loss)');
+    const rColor  = d.r >= 0 ? 'var(--win)' : 'var(--loss)';
+    const barWidth = d.wr === null ? 0 : d.wr;
+    const rTxt = (d.r >= 0 ? '+' : '') + d.r.toFixed(1) + 'R';
+
+    return '' +
+      '<div class="qg-card" style="background:linear-gradient(160deg,' + c.bgTint + ',transparent 70%);">' +
+        '<div class="qg-badge" style="background:' + c.glow + ';color:' + c.tone + ';border:1px solid ' + c.glow + ';">' + d.g + '</div>' +
+        '<div class="qg-mid">' +
+          '<div class="qg-mid-row">' +
+            '<span><span class="qg-mini-lbl">WR</span><span class="qg-stat-val" style="color:' + wrColor + ';">' + (d.wr !== null ? d.wr + '%' : '—') + '</span></span>' +
+            '<span><span class="qg-mini-lbl">R</span><span class="qg-stat-val" style="color:' + rColor + ';font-size:13px;">' + rTxt + '</span></span>' +
+          '</div>' +
+          '<div class="qg-mid-row">' +
+            '<span class="qg-count">' + d.count + ' ' + (d.count === 1 ? 'trade' : 'trades') + '</span>' +
+            '<span class="qg-count">' + d.w + 'W · ' + d.l + 'L</span>' +
+          '</div>' +
+          '<div class="qg-bar-wrap" title="' + d.w + 'W · ' + d.l + 'L">' +
+            '<div class="qg-bar-bg"></div>' +
+            '<div class="qg-bar-fill" style="width:' + barWidth + '%;background:' + c.tone + ';box-shadow:0 0 8px ' + c.glow + ';"></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }).join('');
+}
+
+// ── NQ LIVE PRICE ──
+let _nqPriceFetchedAt = 0;
+async function updateNQPrice() {
+  try {
+    // Throttle to once per 60 seconds
+    if (Date.now() - _nqPriceFetchedAt < 60000) return;
+    _nqPriceFetchedAt = Date.now();
+    // Yahoo Finance NQ futures via public endpoint (no key)
+    const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/NQ%3DF?interval=1m&range=1d');
+    if (!res.ok) return;
+    const data = await res.json();
+    const r = data.chart && data.chart.result && data.chart.result[0];
+    if (!r) return;
+    const price = r.meta.regularMarketPrice;
+    const prev = r.meta.previousClose;
+    const chg = price - prev;
+    const chgPct = (chg / prev) * 100;
+    const priceEl = document.getElementById('nqLivePrice');
+    const chgEl = document.getElementById('nqLiveChange');
+    if (priceEl) priceEl.textContent = price.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    if (chgEl) {
+      chgEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(1) + ' (' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(2) + '%)';
+      chgEl.style.color = chg >= 0 ? 'var(--win)' : 'var(--loss)';
+    }
+  } catch(e) {
+    // silently fail — not critical
+  }
+}
+// Update on dashboard view + every 60s
+setInterval(updateNQPrice, 60000);
+
+
 function renderDashChart() {
   const mo = {};
   trades.forEach(t => {
@@ -2934,6 +4083,75 @@ function renderBacktest() {
 }
 
 // ── MODAL ──
+// Convert a TradingView share URL like https://www.tradingview.com/x/gbDaTxsZ/
+// into the public snapshot image URL https://s3.tradingview.com/snapshots/g/gbDaTxsZ.png
+// Returns null if the URL doesn't match the expected pattern.
+function tvSnapshotUrl(url) {
+  if (!url || typeof url !== 'string') return null;
+  // Match /x/{id} or /x/{id}/ (id is alphanumeric)
+  const match = url.match(/tradingview\.com\/x\/([A-Za-z0-9]+)/);
+  if (!match) return null;
+  const id = match[1];
+  if (!id) return null;
+  const firstLetter = id.charAt(0).toLowerCase();
+  return 'https://s3.tradingview.com/snapshots/' + firstLetter + '/' + id + '.png';
+}
+
+// Switch which chart preview is showing in the trade modal
+function switchChartTab(idx) {
+  const previews = window._mPreviews;
+  if (!previews || !previews[idx]) return;
+  const p = previews[idx];
+
+  // Update tab styling
+  document.querySelectorAll('#mChartTabs [data-tab-i]').forEach(function(el) {
+    const i = parseInt(el.dataset.tabI, 10);
+    if (i === idx) {
+      el.style.background = 'var(--goldfade)';
+      el.style.color = 'var(--gold)';
+      el.style.border = '1px solid var(--gold-border)';
+    } else {
+      el.style.background = 'transparent';
+      el.style.color = 'var(--muted)';
+      el.style.border = '1px solid transparent';
+    }
+  });
+
+  // Update "Open in TradingView" button to point at this chart
+  const openBtn = document.getElementById('mChartOpen');
+  if (openBtn) openBtn.href = p.link;
+
+  // Swap image with fade
+  const img = document.getElementById('mChartImg');
+  const loader = document.getElementById('mChartLoader');
+  if (!img) return;
+  img.style.opacity = '0';
+  if (loader) loader.style.display = 'flex';
+  img.dataset.link = p.link;
+
+  if (!p.img) {
+    // No derivable snapshot — show fallback
+    if (loader) {
+      loader.innerHTML = '<div style="text-align:center;"><div style="margin-bottom:8px;">Preview not available for this URL</div>' +
+                        '<a href="' + p.link + '" target="_blank" style="color:var(--gold);text-decoration:underline;font-size:9px;">Open chart in TradingView ↗</a></div>';
+    }
+    return;
+  }
+
+  img.onload = function() {
+    if (loader) loader.style.display = 'none';
+    img.style.opacity = '1';
+  };
+  img.onerror = function() {
+    if (loader) {
+      loader.innerHTML = '<div style="text-align:center;"><div style="margin-bottom:8px;">Snapshot unavailable</div>' +
+                        '<a href="' + p.link + '" target="_blank" style="color:var(--gold);text-decoration:underline;font-size:9px;">Open chart in TradingView ↗</a></div>';
+      loader.style.display = 'flex';
+    }
+  };
+  img.src = p.img;
+}
+
 function openTrade(id, isBt) {
   const src = isBt ? backtests : trades;
   const t = src.find(t => t.id === id); if (!t) return;
@@ -2966,13 +4184,61 @@ function openTrade(id, isBt) {
     `<a class="link-btn" href="${lk.u.startsWith('http')?lk.u:'https://'+lk.u}" target="_blank">${lk.l}</a>`
   ).join('');
 
+  // ── CHART PREVIEWS (tabbed) ──
+  // TradingView snapshot URLs: tradingview.com/x/{id}/ → s3.tradingview.com/snapshots/{first-letter}/{id}.png
+  const previewSrc = [];
+  if (t.chart)   previewSrc.push({key:'confirm', label:'Confirmation', url:t.chart});
+  if (t.link15m) previewSrc.push({key:'15m',     label:'15M',          url:t.link15m});
+  if (t.link1h)  previewSrc.push({key:'1h',      label:'1Hr',          url:t.link1h});
+  if (t.link4h)  previewSrc.push({key:'4h',      label:'4Hr',          url:t.link4h});
+
+  const previewEl = document.getElementById('mChartPreviews');
+  if (previewSrc.length === 0) {
+    previewEl.style.display = 'none';
+    previewEl.innerHTML = '';
+  } else {
+    // Cache snapshot URLs once, reused on tab switch
+    window._mPreviews = previewSrc.map(function(p) {
+      return { key:p.key, label:p.label, link: p.url.startsWith('http') ? p.url : 'https://' + p.url, img: tvSnapshotUrl(p.url) };
+    });
+
+    const tabsHtml = window._mPreviews.map(function(p, i) {
+      return '<div onclick="switchChartTab(' + i + ')" data-tab-i="' + i + '" ' +
+             'style="cursor:pointer;padding:7px 14px;font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;border-radius:6px;transition:all 0.15s;' +
+             (i === 0 ? 'background:var(--goldfade);color:var(--gold);border:1px solid var(--gold-border);' : 'color:var(--muted);border:1px solid transparent;') +
+             '">' + p.label + '</div>';
+    }).join('');
+
+    previewEl.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;flex-wrap:wrap;">' +
+        '<div id="mChartTabs" style="display:flex;gap:4px;flex-wrap:wrap;">' + tabsHtml + '</div>' +
+        '<a id="mChartOpen" href="' + window._mPreviews[0].link + '" target="_blank" ' +
+          'style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);text-decoration:none;padding:6px 10px;border:1px solid var(--border);border-radius:6px;transition:all 0.15s;" ' +
+          'onmouseover="this.style.color=\'var(--gold)\';this.style.borderColor=\'var(--gold-border)\'" ' +
+          'onmouseout="this.style.color=\'var(--muted)\';this.style.borderColor=\'var(--border)\'">' +
+          'Open in TradingView ↗</a>' +
+      '</div>' +
+      '<div id="mChartFrame" style="background:#0a0a0a;border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;min-height:200px;">' +
+        '<div id="mChartLoader" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:DM Mono,monospace;font-size:10px;color:var(--muted);letter-spacing:0.1em;">Loading…</div>' +
+        '<img id="mChartImg" src="" alt="" style="width:100%;display:block;opacity:0;transition:opacity 0.25s;cursor:zoom-in;" onclick="window.open(this.dataset.link,\'_blank\')">' +
+      '</div>';
+
+    previewEl.style.display = 'block';
+    switchChartTab(0);
+  }
+
   const note = [t.preBias?'BIAS:\n'+t.preBias:'', t.notes?'NOTES:\n'+t.notes:''].filter(Boolean).join('\n\n');
   const nEl = document.getElementById('mNotes');
   if (note) { nEl.style.display='block'; document.getElementById('mNotesTxt').textContent=note; }
   else nEl.style.display='none';
   document.getElementById('overlay').classList.add('open');
 }
-function closeModal() { document.getElementById('overlay').classList.remove('open'); openId=null; }
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+  const pv = document.getElementById('mChartPreviews');
+  if (pv) { pv.style.display = 'none'; pv.innerHTML = ''; }
+  openId=null;
+}
 
 function editTrade() {
   const src = openBt ? backtests : trades;
@@ -3068,6 +4334,11 @@ function editTrade() {
     document.querySelectorAll('#fPOI .tg').forEach(function(el) {
       el.classList.remove('on');
       if (t.poi && t.poi.includes(el.dataset.v)) el.classList.add('on');
+    });
+    // Mistakes — multi select
+    document.querySelectorAll('#fMistakes .tg').forEach(function(el) {
+      el.classList.remove('on');
+      if (t.mistakes && t.mistakes.includes(el.dataset.v)) el.classList.add('on');
     });
     // Emotion
     selEmoji = t.emotion || '';
@@ -4174,6 +5445,9 @@ const DEFAULT_SETTINGS = {
   customLocations: [],
   // Hidden default locations
   hiddenLocations: [],
+  // Common mistakes
+  customMistakes: [],
+  hiddenMistakes: [],
   // Custom checklist items
   customChecklist: { pre: [], rules: [], psych: [], post: [] },
   // Hidden default checklist items (user removed)
@@ -4195,6 +5469,71 @@ function saveSettings(s) {
 }
 
 let SETTINGS = loadSettings();
+
+// ── Display mode (R · $ · Private) ──
+// Persisted across sessions; defaults to money
+let displayMode = (function() {
+  try { return localStorage.getItem('nq_display_mode') || 'money'; }
+  catch(e) { return 'money'; }
+})();
+
+function setDisplayMode(mode) {
+  if (['r','money','private'].indexOf(mode) === -1) return;
+  displayMode = mode;
+  try { localStorage.setItem('nq_display_mode', mode); } catch(e) {}
+  // Update toggle button highlight
+  ['r','money','private'].forEach(function(m) {
+    const el = document.getElementById('dispMode_' + m);
+    if (el) el.classList.toggle('active', m === mode);
+  });
+  // Re-render dashboard if we're on it
+  if (typeof renderDash === 'function') renderDash();
+}
+
+// Format an R value for display based on the current display mode.
+// rValue = number (raw R); options.showSign = include + for positive (default true)
+function fmtRorMoney(rValue, options) {
+  options = options || {};
+  const showSign = options.showSign !== false;
+  if (displayMode === 'private') return '•••';
+  rValue = parseFloat(rValue) || 0;
+  if (displayMode === 'r') {
+    const sign = rValue >= 0 ? (showSign ? '+' : '') : '-';
+    return sign + Math.abs(rValue).toFixed(2) + 'R';
+  }
+  // money
+  const risk = (SETTINGS && SETTINGS.riskPerTrade) ? SETTINGS.riskPerTrade : 300;
+  const dollarValue = rValue * risk;
+  const sign = dollarValue >= 0 ? (showSign ? '+' : '') : '-';
+  return sign + '$' + Math.abs(dollarValue).toLocaleString(undefined, {maximumFractionDigits: 0});
+}
+
+// Format a dollar value (already in $) for display — used for Apex targets
+// which are stored in dollars. In R mode, converts back to R.
+function fmtDollarOrR(dollarValue, options) {
+  options = options || {};
+  const showSign = options.showSign !== false;
+  if (displayMode === 'private') return '•••';
+  dollarValue = parseFloat(dollarValue) || 0;
+  if (displayMode === 'r') {
+    const risk = (SETTINGS && SETTINGS.riskPerTrade) ? SETTINGS.riskPerTrade : 300;
+    const r = risk > 0 ? dollarValue / risk : 0;
+    const sign = r >= 0 ? (showSign ? '+' : '') : '-';
+    return sign + Math.abs(r).toFixed(2) + 'R';
+  }
+  const sign = dollarValue >= 0 ? (showSign ? '+' : '') : '-';
+  return sign + '$' + Math.abs(dollarValue).toLocaleString(undefined, {maximumFractionDigits: 0});
+}
+
+// Restore display mode toggle highlight on page load
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    ['r','money','private'].forEach(function(m) {
+      const el = document.getElementById('dispMode_' + m);
+      if (el) el.classList.toggle('active', m === displayMode);
+    });
+  }, 50);
+});
 
 // Helper — convert R to $ for display
 function rToDollars(r) {
