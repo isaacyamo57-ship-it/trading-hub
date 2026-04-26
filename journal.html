@@ -2891,13 +2891,16 @@ function editTrade() {
   const src = openBt ? backtests : trades;
   const t = src.find(t => t.id === openId);
   if (!t) return;
+  // Capture these BEFORE closeModal() nulls them — bug fix
+  const editingId = openId;
+  const editingIsBt = openBt;
   closeModal();
 
   // Navigate to log page
   nav('log', document.querySelectorAll('.sb-btn')[1]);
 
   // Set account selector
-  if (!openBt) selAcct(t.acct === 'live' ? 'live' : 'eval');
+  if (!editingIsBt) selAcct(t.acct === 'live' ? 'live' : 'eval');
 
   // Fill all form fields
   setTimeout(function() {
@@ -2986,8 +2989,8 @@ function editTrade() {
     });
 
     // Mark form as editing this trade ID so save overwrites instead of creating new
-    window._editingTradeId = openId;
-    window._editingTradeIsBt = openBt;
+    window._editingTradeId = editingId;
+    window._editingTradeIsBt = editingIsBt;
 
     // Show a banner so user knows they are editing
     const banner = document.getElementById('editBanner');
