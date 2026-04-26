@@ -3589,9 +3589,9 @@ function _seasCardHTML(m, isCur, options) {
     'onmouseout="this.style.transform=\'translateY(0)\';this.style.boxShadow=\'none\'">';
 
   // Title row: month name + rating
-  html += '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">' +
-    '<div style="font-family:Syne,sans-serif;font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.02em;line-height:1;">' + m.name + (isCur ? ' <span style="font-size:13px;">📍</span>' : '') + '</div>' +
-    '<div style="font-family:Syne,sans-serif;font-size:26px;font-weight:800;color:' + m.color + ';line-height:1;">' + (m.rating === null ? '—' : m.rating) + '</div>' +
+  html += '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;min-width:0;">' +
+    '<div style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;color:var(--text);letter-spacing:-0.02em;line-height:1.05;word-break:break-word;">' + m.name + (isCur ? ' <span style="font-size:11px;">📍</span>' : '') + '</div>' +
+    '<div style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;color:' + m.color + ';line-height:1;flex-shrink:0;">' + (m.rating === null ? '—' : m.rating) + '</div>' +
   '</div>';
 
   // Tag
@@ -3783,7 +3783,7 @@ function renderSeasonality() {
   html += _seasBarHTML(MONTHS, curMonth, barLabel);
 
   // Month cards grid (4 cols)
-  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;">';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:18px;">';
   MONTHS.forEach(function(m) {
     html += _seasCardHTML(m, m.num === curMonth, { showStats: true });
   });
@@ -3797,7 +3797,7 @@ function renderSeasonality() {
     return m.stats.total > 0 && (m.stats.be / m.stats.total) > 0.4;
   }).map(function(m) { return m.name; });
 
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-bottom:18px;">';
 
   // Left: ranked best months
   html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 22px;">';
@@ -3960,7 +3960,7 @@ function renderNQSeasonality() {
   html += _seasBarHTML(MONTHS, curMonth, 'Oct = 10/10 🔥');
 
   // Month cards grid
-  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;">';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:18px;">';
   MONTHS.forEach(function(m) {
     html += _seasCardHTML(m, m.num === curMonth, { showStats: true });
   });
@@ -3969,7 +3969,7 @@ function renderNQSeasonality() {
   // Bottom dual panel: ranked best months + key takeaways (hardcoded generic)
   const ranked = MONTHS.slice().sort(function(a, b) { return b.rating - a.rating; });
 
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;">';
 
   // Left: ranked best months
   html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 22px;">';
@@ -4061,7 +4061,7 @@ function renderKnowledge() {
   if (!filtered.length) {
     html += '<div style="text-align:center;padding:60px;color:var(--muted);font-family:Fragment Mono,monospace;font-size:11px;">No lessons match this filter.</div>';
   } else {
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;">';
     filtered.forEach(function(l, idx) {
       var realIdx = lessons.indexOf(l);
       var catColors = {
