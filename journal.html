@@ -2062,14 +2062,18 @@ function nav(id, el) {
         const fSession = document.getElementById('fSession');
         if (fSession && !fSession.value) fSession.value = SETTINGS.defaultSession || 'NYAM';
         if (typeof selAcct === 'function' && SETTINGS.defaultAccount) selAcct(SETTINGS.defaultAccount);
-        // Inject custom POI tags into the form if they aren't already there
+        // Inject custom POI tags + locations
         injectCustomPOI();
+        injectCustomLocations();
       }
     }, 50);
   }
   // Also inject on backtest page
   if (id === 'backtest') {
-    setTimeout(function() { if (typeof injectCustomPOI === 'function') injectCustomPOI(); }, 50);
+    setTimeout(function() {
+      if (typeof injectCustomPOI === 'function') injectCustomPOI();
+      if (typeof injectCustomLocations === 'function') injectCustomLocations();
+    }, 50);
   }
   if (id === 'dashboard') renderDash();
   if (id === 'trades')    renderTradeLog();
@@ -2109,6 +2113,36 @@ function injectCustomPOI() {
         el.dataset.v = tag;
         el.textContent = tag;
         el.onclick = function() { togM(this); };
+        container.appendChild(el);
+      });
+    }
+  });
+}
+
+// Same logic but for Locations (single-select toggle)
+function injectCustomLocations() {
+  if (typeof SETTINGS === 'undefined') return;
+  ['fLoc', 'btLoc'].forEach(function(gid) {
+    const container = document.getElementById(gid);
+    if (!container) return;
+    // Hide default locations that are in hiddenLocations
+    const hidden = SETTINGS.hiddenLocations || [];
+    container.querySelectorAll('.tg').forEach(function(el) {
+      if (hidden.indexOf(el.dataset.v) !== -1) {
+        el.style.display = 'none';
+      } else {
+        el.style.display = '';
+      }
+    });
+    // Add custom locations
+    if (SETTINGS.customLocations && SETTINGS.customLocations.length) {
+      SETTINGS.customLocations.forEach(function(loc) {
+        if (container.querySelector('[data-v="' + loc.replace(/"/g, '\\"') + '"]')) return;
+        const el = document.createElement('div');
+        el.className = 'tg';
+        el.dataset.v = loc;
+        el.textContent = loc;
+        el.onclick = function() { tog(this, gid); };
         container.appendChild(el);
       });
     }
@@ -4136,6 +4170,10 @@ const DEFAULT_SETTINGS = {
   customPOI: [],
   // Hidden defaults (user removed)
   hiddenPOI: [],
+  // Custom locations
+  customLocations: [],
+  // Hidden default locations
+  hiddenLocations: [],
   // Custom checklist items
   customChecklist: { pre: [], rules: [], psych: [], post: [] },
   // Hidden default checklist items (user removed)
@@ -4304,6 +4342,60 @@ function renderSettings() {
   html += '<div style="display:flex;gap:6px;align-items:stretch;">';
   html += '<input type="text" class="fi" id="newPOIInput" placeholder="e.g. SMT, Turtle Soup, Imbalance" style="flex:1;min-width:0;" onkeypress="if(event.key===\'Enter\')addCustomPOI()">';
   html += '<button class="save-btn" style="width:auto;flex-shrink:0;padding:0 18px;font-size:11px;" onclick="addCustomPOI()">+ Add</button>';
+  html += '</div>';
+  html += '</div>';
+
+  // ── 6b. LOCATIONS ──
+  const DEFAULT_LOCATIONS = ['Home','Friends','Work','Gym','City','EP','Beach','Hotel','Car'];
+  html += '<div class="card" style="padding:18px 22px;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">📍 Locations</div>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;">Where You Trade From</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5;">Hide locations you don\'t use, or add your own. Tap × on default locations to hide them.</div>';
+
+  // Active default locations
+  const activeDefaultLocs = DEFAULT_LOCATIONS.filter(function(l) { return (SETTINGS.hiddenLocations || []).indexOf(l) === -1; });
+  if (activeDefaultLocs.length) {
+    html += '<div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Default · Active</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">';
+    activeDefaultLocs.forEach(function(loc) {
+      html += '<div style="display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;">';
+      html += '<span style="font-family:DM Mono,monospace;font-size:10px;color:var(--text2);">' + loc + '</span>';
+      html += '<span onclick="hideDefaultLocation(\'' + loc.replace(/'/g,"\\'") + '\')" title="Hide this location" style="cursor:pointer;color:var(--loss);font-size:14px;line-height:1;font-weight:700;">×</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Hidden defaults
+  if ((SETTINGS.hiddenLocations || []).length) {
+    html += '<div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Hidden · Tap to restore</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">';
+    SETTINGS.hiddenLocations.forEach(function(loc) {
+      html += '<div onclick="restoreDefaultLocation(\'' + loc.replace(/'/g,"\\'") + '\')" style="cursor:pointer;display:flex;align-items:center;gap:5px;background:transparent;border:1px dashed var(--border);border-radius:6px;padding:4px 8px;opacity:0.6;" title="Click to restore">';
+      html += '<span style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);text-decoration:line-through;">' + loc + '</span>';
+      html += '<span style="color:var(--win);font-size:11px;line-height:1;">↺</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Custom user locations
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Your Custom Locations</div>';
+  html += '<div id="customLocList" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;min-height:30px;">';
+  if ((SETTINGS.customLocations || []).length) {
+    SETTINGS.customLocations.forEach(function(loc, i) {
+      html += '<div style="display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--gold-border);border-radius:6px;padding:4px 8px;">';
+      html += '<span style="font-family:DM Mono,monospace;font-size:10px;color:var(--gold);">' + loc + '</span>';
+      html += '<span onclick="removeCustomLocation(' + i + ')" style="cursor:pointer;color:var(--loss);font-size:14px;line-height:1;font-weight:700;">×</span>';
+      html += '</div>';
+    });
+  } else {
+    html += '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--muted);font-style:italic;">No custom locations yet</div>';
+  }
+  html += '</div>';
+  html += '<div style="display:flex;gap:6px;align-items:stretch;">';
+  html += '<input type="text" class="fi" id="newLocInput" placeholder="e.g. Cafe, Library, Mum\'s" style="flex:1;min-width:0;" onkeypress="if(event.key===\'Enter\')addCustomLocation()">';
+  html += '<button class="save-btn" style="width:auto;flex-shrink:0;padding:0 18px;font-size:11px;" onclick="addCustomLocation()">+ Add</button>';
   html += '</div>';
   html += '</div>';
 
@@ -4529,6 +4621,40 @@ function hideDefaultCL(section, item) {
 function restoreDefaultCL(section, item) {
   if (!SETTINGS.hiddenChecklist || !SETTINGS.hiddenChecklist[section]) return;
   SETTINGS.hiddenChecklist[section] = SETTINGS.hiddenChecklist[section].filter(function(t) { return t !== item; });
+  saveSettings(SETTINGS);
+  renderSettings();
+}
+
+// ── LOCATION HELPERS ──
+function addCustomLocation() {
+  const input = document.getElementById('newLocInput');
+  if (!input) return;
+  const val = input.value.trim();
+  if (!val) return;
+  if (!SETTINGS.customLocations) SETTINGS.customLocations = [];
+  if (SETTINGS.customLocations.indexOf(val) !== -1) { alert('Location already exists'); return; }
+  SETTINGS.customLocations.push(val);
+  saveSettings(SETTINGS);
+  input.value = '';
+  renderSettings();
+}
+
+function removeCustomLocation(i) {
+  SETTINGS.customLocations.splice(i, 1);
+  saveSettings(SETTINGS);
+  renderSettings();
+}
+
+function hideDefaultLocation(loc) {
+  if (!SETTINGS.hiddenLocations) SETTINGS.hiddenLocations = [];
+  if (SETTINGS.hiddenLocations.indexOf(loc) === -1) SETTINGS.hiddenLocations.push(loc);
+  saveSettings(SETTINGS);
+  renderSettings();
+}
+
+function restoreDefaultLocation(loc) {
+  if (!SETTINGS.hiddenLocations) return;
+  SETTINGS.hiddenLocations = SETTINGS.hiddenLocations.filter(function(t) { return t !== loc; });
   saveSettings(SETTINGS);
   renderSettings();
 }
