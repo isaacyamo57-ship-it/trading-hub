@@ -327,6 +327,37 @@ tbody tr:hover td:first-child { border-left: 2px solid var(--gold); padding-left
   color: var(--muted);
   font-family: 'DM Mono', monospace; font-size: 10px;
 }
+/* Compact table for Trade Log + Backtest Log — fits in narrow widths */
+.tbl-compact {
+  table-layout: fixed;
+  width: 100%;
+}
+.tbl-compact thead th { padding: 7px 6px; font-size: 7px; overflow: hidden; text-overflow: ellipsis; }
+.tbl-compact tbody td { padding: 7px 6px; font-size: 11px; overflow: hidden; }
+.tbl-compact tbody td .chip { font-size: 8px; padding: 2px 5px; }
+/* Trade log column widths — explicit so columns distribute evenly */
+.tbl-compact .col-date    { width: 7%;  }
+.tbl-compact .col-session { width: 6%;  }
+.tbl-compact .col-location{ width: 8%;  }
+.tbl-compact .col-poi     { width: 14%; }
+.tbl-compact .col-grade   { width: 5%;  }
+.tbl-compact .col-exec    { width: 6%;  }
+.tbl-compact .col-bias    { width: 8%;  }
+.tbl-compact .col-emotion { width: 5%;  }
+.tbl-compact .col-rules   { width: 5%;  }
+.tbl-compact .col-rmult   { width: 6%;  }
+.tbl-compact .col-pts     { width: 7%;  }
+.tbl-compact .col-outcome { width: 9%;  }
+/* Backtest log columns */
+.tbl-compact .col-bt-date    { width: 8%;  }
+.tbl-compact .col-bt-session { width: 8%;  }
+.tbl-compact .col-bt-location{ width: 9%;  }
+.tbl-compact .col-bt-poi     { width: 24%; }
+.tbl-compact .col-bt-grade   { width: 7%;  }
+.tbl-compact .col-bt-bias    { width: 11%; }
+.tbl-compact .col-bt-rmult   { width: 8%;  }
+.tbl-compact .col-bt-pts     { width: 10%; }
+.tbl-compact .col-bt-outcome { width: 15%; }
 
 /* Chips */
 .chip {
@@ -1359,11 +1390,11 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
         <div class="fbtn" onclick="setF('Bearish',this,'logFbar')">Bearish</div>
       </div>
       <div class="card tbl-wrap">
-        <table>
+        <table class="tbl-compact">
           <thead><tr>
-            <th>Date</th><th>Session</th><th>Location</th><th>POI</th>
-            <th>Grade</th><th>Exec</th><th>Bias</th><th>Emotion</th>
-            <th>Rules</th><th>R Mult</th><th>Pts</th><th>Outcome</th>
+            <th class="col-date">Date</th><th class="col-session">Session</th><th class="col-location">Location</th><th class="col-poi">POI</th>
+            <th class="col-grade">Grade</th><th class="col-exec">Exec</th><th class="col-bias">Bias</th><th class="col-emotion">Emotion</th>
+            <th class="col-rules">Rules</th><th class="col-rmult">R Mult</th><th class="col-pts">Pts</th><th class="col-outcome">Outcome</th>
           </tr></thead>
           <tbody id="tradeBody"></tbody>
         </table>
@@ -1537,10 +1568,10 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
       </div>
 
       <div class="card tbl-wrap" style="margin-bottom:14px;">
-        <table>
+        <table class="tbl-compact">
           <thead><tr>
-            <th>Date</th><th>Session</th><th>Location</th><th>POI</th>
-            <th>Grade</th><th>Bias</th><th>R Mult</th><th>Pts</th><th>Outcome</th>
+            <th class="col-bt-date">Date</th><th class="col-bt-session">Session</th><th class="col-bt-location">Location</th><th class="col-bt-poi">POI</th>
+            <th class="col-bt-grade">Grade</th><th class="col-bt-bias">Bias</th><th class="col-bt-rmult">R Mult</th><th class="col-bt-pts">Pts</th><th class="col-bt-outcome">Outcome</th>
           </tr></thead>
           <tbody id="btBody"></tbody>
         </table>
@@ -2665,15 +2696,15 @@ function renderTradeLog() {
     const poi = (t.poi||[]).map(p=>`<span class="chip chip-gold" style="margin:1px;">${p}</span>`).join('');
     return `<tr onclick="openTrade(${t.id},false)">
       <td style="font-family:'DM Mono',monospace;font-size:10px;white-space:nowrap;">${fmtD(t.date)}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${t.session||'—'}</td>
-      <td>${t.location?`<span class="chip chip-dim">${t.location}</span>`:'—'}</td>
+      <td class="col-session" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${t.session||'—'}</td>
+      <td class="col-location">${t.location?`<span class="chip chip-dim">${t.location}</span>`:'—'}</td>
       <td style="max-width:150px;">${poi||'—'}</td>
       <td>${t.grade?gradeC(t.grade):'—'}</td>
-      <td>${t.exec?`<span class="chip ${t.exec==='Clean'?'chip-teal':t.exec==='OK'?'chip-gold':'chip-loss'}">${t.exec}</span>`:'—'}</td>
+      <td class="col-exec">${t.exec?`<span class="chip ${t.exec==='Clean'?'chip-teal':t.exec==='OK'?'chip-gold':'chip-loss'}">${t.exec}</span>`:'—'}</td>
       <td>${t.biasTrend?`<span class="chip ${t.biasTrend==='Bullish'?'chip-win':t.biasTrend==='Bearish'?'chip-loss':'chip-blue'}">${t.biasTrend}</span>`:'—'}</td>
-      <td style="font-size:15px;">${t.emotion||'—'}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${t.rules||'—'}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:10px;">${t.rm||'—'}</td>
+      <td class="col-emotion" style="font-size:15px;">${t.emotion||'—'}</td>
+      <td class="col-rules" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">${t.rules||'—'}</td>
+      <td class="col-rmult" style="font-family:'DM Mono',monospace;font-size:10px;">${t.rm||'—'}</td>
       <td><span class="${pc}">${(t.pts>0?'+':'')+t.pts}pts</span></td>
       <td><span class="rdot ${rc}"></span>${t.result}</td>
     </tr>`;
