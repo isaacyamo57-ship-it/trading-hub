@@ -2076,8 +2076,14 @@ function saveTrade() {
   if (window._editingTradeId) {
     const editId = window._editingTradeId;
     const editBt = window._editingTradeIsBt;
+    // Find existing trade so we can preserve its account type (especially 'backtest')
+    const originalTrade = editBt
+      ? backtests.find(t => t.id === editId)
+      : trades.find(t => t.id === editId);
+    // Preserve the original acct — if editing a backtest, it MUST stay 'backtest'
+    const preservedAcct = editBt ? 'backtest' : (originalTrade && originalTrade.acct ? originalTrade.acct : logAcct);
     const newTrade = {
-      id: editId, date, acct: logAcct,
+      id: editId, date, acct: preservedAcct,
       session: document.getElementById('fSession').value,
       location: getT('fLoc'), dir: getT('fDir'), result,
       biasTrend: getT('fBiasTrend'), poi: getM('fPOI'),
@@ -2097,10 +2103,14 @@ function saveTrade() {
       const idx = backtests.findIndex(t => t.id === editId);
       if (idx > -1) backtests[idx] = newTrade;
       svB();
+      // Sync to Supabase backtests table (was missing before — bug fix)
+      syncSaveBacktest(newTrade);
     } else {
       const idx = trades.findIndex(t => t.id === editId);
       if (idx > -1) trades[idx] = newTrade;
       sv();
+      // Sync to Supabase trades table (was missing before — bug fix)
+      syncSaveTrade(newTrade);
     }
     window._editingTradeId = null;
     window._editingTradeIsBt = false;
