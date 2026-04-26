@@ -2067,6 +2067,10 @@ function nav(id, el) {
       }
     }, 50);
   }
+  // Also inject on backtest page
+  if (id === 'backtest') {
+    setTimeout(function() { if (typeof injectCustomPOI === 'function') injectCustomPOI(); }, 50);
+  }
   if (id === 'dashboard') renderDash();
   if (id === 'trades')    renderTradeLog();
   if (id === 'monthly')   renderMonthly();
@@ -2081,21 +2085,33 @@ function nav(id, el) {
 }
 
 // Inject custom POI tags from settings into the trade log + backtest form
+// Also hides any default POI tags the user has chosen to hide
 function injectCustomPOI() {
-  if (typeof SETTINGS === 'undefined' || !SETTINGS.customPOI || !SETTINGS.customPOI.length) return;
+  if (typeof SETTINGS === 'undefined') return;
   ['fPOI', 'btPOI'].forEach(function(gid) {
     const container = document.getElementById(gid);
     if (!container) return;
-    SETTINGS.customPOI.forEach(function(tag) {
-      // Skip if already exists
-      if (container.querySelector('[data-v="' + tag + '"]')) return;
-      const el = document.createElement('div');
-      el.className = 'tg';
-      el.dataset.v = tag;
-      el.textContent = tag;
-      el.onclick = function() { togM(this); };
-      container.appendChild(el);
+    // Hide default tags that are in hiddenPOI
+    const hidden = SETTINGS.hiddenPOI || [];
+    container.querySelectorAll('.tg').forEach(function(el) {
+      if (hidden.indexOf(el.dataset.v) !== -1) {
+        el.style.display = 'none';
+      } else {
+        el.style.display = '';
+      }
     });
+    // Add custom tags
+    if (SETTINGS.customPOI && SETTINGS.customPOI.length) {
+      SETTINGS.customPOI.forEach(function(tag) {
+        if (container.querySelector('[data-v="' + tag.replace(/"/g, '\\"') + '"]')) return;
+        const el = document.createElement('div');
+        el.className = 'tg';
+        el.dataset.v = tag;
+        el.textContent = tag;
+        el.onclick = function() { togM(this); };
+        container.appendChild(el);
+      });
+    }
   });
 }
 
@@ -3187,7 +3203,10 @@ function renderJournal() {
 // ── CHECKLIST ──
 function renderChecklist() { ['pre','rules','psych','post'].forEach(k => buildCL(k)); }
 function buildCL(key) {
-  const baseItems = CL[key] || [];
+  const allDefaults = CL[key] || [];
+  // Filter out hidden defaults from settings
+  const hiddenList = (typeof SETTINGS !== 'undefined' && SETTINGS.hiddenChecklist && SETTINGS.hiddenChecklist[key]) ? SETTINGS.hiddenChecklist[key] : [];
+  const baseItems = allDefaults.filter(function(item) { return hiddenList.indexOf(item) === -1; });
   // Add custom items from settings
   const custom = (typeof SETTINGS !== 'undefined' && SETTINGS.customChecklist && SETTINGS.customChecklist[key]) ? SETTINGS.customChecklist[key] : [];
   const items = baseItems.concat(custom);
@@ -3197,7 +3216,7 @@ function buildCL(key) {
     return `<div class="cl-item"><div class="cl-box ${on?'on':''}" onclick="togCL('${key}',${i})"></div><div class="cl-text ${on?'done':''}">${txt}${isCustom ? ' <span style="font-size:8px;color:var(--gold);background:rgba(201,168,76,0.1);padding:2px 5px;border-radius:3px;margin-left:4px;">CUSTOM</span>' : ''}</div></div>`;
   }).join('');
   const done = items.filter((_,i)=>checks[`${key}_${i}`]).length;
-  document.getElementById('pb-'+key).style.width = (done/items.length*100)+'%';
+  document.getElementById('pb-'+key).style.width = items.length ? (done/items.length*100)+'%' : '0%';
   document.getElementById('pl-'+key).textContent = `${done}/${items.length}`;
 }
 function togCL(key,i) { checks[`${key}_${i}`]=!checks[`${key}_${i}`]; svC(); buildCL(key); }
@@ -4115,8 +4134,12 @@ const DEFAULT_SETTINGS = {
   weeklyReviewReminder: true,
   // Custom POI tags
   customPOI: [],
+  // Hidden defaults (user removed)
+  hiddenPOI: [],
   // Custom checklist items
   customChecklist: { pre: [], rules: [], psych: [], post: [] },
+  // Hidden default checklist items (user removed)
+  hiddenChecklist: { pre: [], rules: [], psych: [], post: [] },
 };
 
 function loadSettings() {
@@ -4231,10 +4254,41 @@ function renderSettings() {
   html += '</div>';
 
   // ── 6. CUSTOM POI TAGS ──
+  const DEFAULT_POI = ['FVG','IFVG','OB','MSS','CISD','BPR','EDH/L','Liq Sweep','Liq Grab','EQH/EQL','LRLR','Data Wick','Breaker'];
   html += '<div class="card" style="padding:18px 22px;">';
-  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">🏷️ Custom POI Tags</div>';
-  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;">Personal Setup Tags</div>';
-  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5;">Default: FVG · IFVG · OB · MSS · CISD · BPR · EDH/L · Liq Sweep · Liq Grab · EQH/EQL · LRLR · Data Wick · Breaker. Add your own below.</div>';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">🏷️ POI Tags</div>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;">Setup Tags</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5;">Hide tags you don\'t use, or add your own. Tap × on default tags to hide them, tap on hidden ones to bring back.</div>';
+
+  // Active defaults (not hidden)
+  const activeDefaults = DEFAULT_POI.filter(function(p) { return SETTINGS.hiddenPOI.indexOf(p) === -1; });
+  if (activeDefaults.length) {
+    html += '<div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Default · Active</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">';
+    activeDefaults.forEach(function(p) {
+      html += '<div style="display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;">';
+      html += '<span style="font-family:DM Mono,monospace;font-size:10px;color:var(--text2);">' + p + '</span>';
+      html += '<span onclick="hideDefaultPOI(\'' + p.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')" title="Hide this tag" style="cursor:pointer;color:var(--loss);font-size:14px;line-height:1;font-weight:700;">×</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Hidden defaults
+  if (SETTINGS.hiddenPOI.length) {
+    html += '<div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Hidden · Tap to restore</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">';
+    SETTINGS.hiddenPOI.forEach(function(p) {
+      html += '<div onclick="restoreDefaultPOI(\'' + p.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')" style="cursor:pointer;display:flex;align-items:center;gap:5px;background:transparent;border:1px dashed var(--border);border-radius:6px;padding:4px 8px;opacity:0.6;" title="Click to restore">';
+      html += '<span style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);text-decoration:line-through;">' + p + '</span>';
+      html += '<span style="color:var(--win);font-size:11px;line-height:1;">↺</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Custom user tags
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Your Custom Tags</div>';
   html += '<div id="customPOIList" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;min-height:30px;">';
   if (SETTINGS.customPOI.length) {
     SETTINGS.customPOI.forEach(function(p, i) {
@@ -4247,17 +4301,17 @@ function renderSettings() {
     html += '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--muted);font-style:italic;">No custom tags yet</div>';
   }
   html += '</div>';
-  html += '<div style="display:flex;gap:6px;">';
-  html += '<input type="text" class="fi" id="newPOIInput" placeholder="e.g. SMT, Turtle Soup, Imbalance" style="flex:1;" onkeypress="if(event.key===\'Enter\')addCustomPOI()">';
-  html += '<button class="save-btn" style="padding:0 16px;font-size:12px;" onclick="addCustomPOI()">+ Add</button>';
+  html += '<div style="display:flex;gap:6px;align-items:stretch;">';
+  html += '<input type="text" class="fi" id="newPOIInput" placeholder="e.g. SMT, Turtle Soup, Imbalance" style="flex:1;min-width:0;" onkeypress="if(event.key===\'Enter\')addCustomPOI()">';
+  html += '<button class="save-btn" style="width:auto;flex-shrink:0;padding:0 18px;font-size:11px;" onclick="addCustomPOI()">+ Add</button>';
   html += '</div>';
   html += '</div>';
 
   // ── 7. CUSTOM CHECKLIST ──
   html += '<div class="card" style="padding:18px 22px;grid-column:span 2;">';
-  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">✅ Custom Checklist Items</div>';
-  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;">Personal Checklist Additions</div>';
-  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Add custom items to any checklist section. Default items remain. These show up on the Checklist page automatically.</div>';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">✅ Checklist Items</div>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;">Customise Your Checklist</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Hide any item with × · Restore hidden items by tapping them · Add your own at the bottom of each section.</div>';
 
   const sections = [
     { key: 'pre', icon: '☀️', label: 'Pre-Session' },
@@ -4271,22 +4325,56 @@ function renderSettings() {
     html += '<div style="background:var(--bg3);border-radius:8px;padding:12px 14px;">';
     html += '<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:700;margin-bottom:8px;">' + sec.icon + ' ' + sec.label + '</div>';
 
-    html += '<div id="customCL_' + sec.key + '" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;">';
-    if (SETTINGS.customChecklist[sec.key].length) {
-      SETTINGS.customChecklist[sec.key].forEach(function(item, i) {
+    // Default items (active — not hidden)
+    const hiddenList = (SETTINGS.hiddenChecklist && SETTINGS.hiddenChecklist[sec.key]) ? SETTINGS.hiddenChecklist[sec.key] : [];
+    const activeDefaults = (CL[sec.key] || []).filter(function(item) { return hiddenList.indexOf(item) === -1; });
+    const hiddenDefaults = (CL[sec.key] || []).filter(function(item) { return hiddenList.indexOf(item) !== -1; });
+
+    if (activeDefaults.length) {
+      html += '<div style="font-family:Fragment Mono,monospace;font-size:7px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Default · Active</div>';
+      html += '<div style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;">';
+      activeDefaults.forEach(function(item) {
+        const safeItem = item.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
         html += '<div style="display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:5px 8px;">';
-        html += '<span style="flex:1;font-family:DM Mono,monospace;font-size:9px;color:var(--text2);">' + item + '</span>';
-        html += '<span onclick="removeCustomCL(\'' + sec.key + '\',' + i + ')" style="cursor:pointer;color:var(--loss);font-size:12px;line-height:1;font-weight:700;">×</span>';
+        html += '<span style="flex:1;font-family:DM Mono,monospace;font-size:9px;color:var(--text2);line-height:1.3;">' + item + '</span>';
+        html += '<span onclick="hideDefaultCL(\'' + sec.key + '\',\'' + safeItem + '\')" title="Hide this item" style="cursor:pointer;color:var(--loss);font-size:12px;line-height:1;font-weight:700;flex-shrink:0;">×</span>';
         html += '</div>';
       });
-    } else {
-      html += '<div style="font-family:DM Mono,monospace;font-size:8px;color:var(--muted);font-style:italic;">No custom items</div>';
+      html += '</div>';
+    }
+
+    // Hidden defaults — restorable
+    if (hiddenDefaults.length) {
+      html += '<div style="font-family:Fragment Mono,monospace;font-size:7px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Hidden · Tap to restore</div>';
+      html += '<div style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;">';
+      hiddenDefaults.forEach(function(item) {
+        const safeItem = item.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        html += '<div onclick="restoreDefaultCL(\'' + sec.key + '\',\'' + safeItem + '\')" style="cursor:pointer;display:flex;align-items:center;gap:6px;background:transparent;border:1px dashed var(--border);border-radius:5px;padding:5px 8px;opacity:0.6;">';
+        html += '<span style="flex:1;font-family:DM Mono,monospace;font-size:9px;color:var(--muted);text-decoration:line-through;line-height:1.3;">' + item + '</span>';
+        html += '<span style="color:var(--win);font-size:11px;line-height:1;flex-shrink:0;">↺</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    // Custom items
+    if (SETTINGS.customChecklist[sec.key].length) {
+      html += '<div style="font-family:Fragment Mono,monospace;font-size:7px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:5px;">Your Custom Items</div>';
+    }
+    html += '<div id="customCL_' + sec.key + '" style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;">';
+    if (SETTINGS.customChecklist[sec.key].length) {
+      SETTINGS.customChecklist[sec.key].forEach(function(item, i) {
+        html += '<div style="display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--gold-border);border-radius:5px;padding:5px 8px;">';
+        html += '<span style="flex:1;font-family:DM Mono,monospace;font-size:9px;color:var(--gold);line-height:1.3;">' + item + '</span>';
+        html += '<span onclick="removeCustomCL(\'' + sec.key + '\',' + i + ')" style="cursor:pointer;color:var(--loss);font-size:12px;line-height:1;font-weight:700;flex-shrink:0;">×</span>';
+        html += '</div>';
+      });
     }
     html += '</div>';
 
-    html += '<div style="display:flex;gap:4px;">';
-    html += '<input type="text" class="fi" id="newCLInput_' + sec.key + '" placeholder="Add item..." style="flex:1;font-size:10px;padding:5px 8px;" onkeypress="if(event.key===\'Enter\')addCustomCL(\'' + sec.key + '\')">';
-    html += '<button class="save-btn" style="padding:0 10px;font-size:9px;" onclick="addCustomCL(\'' + sec.key + '\')">+</button>';
+    html += '<div style="display:flex;gap:4px;align-items:stretch;">';
+    html += '<input type="text" class="fi" id="newCLInput_' + sec.key + '" placeholder="Add item..." style="flex:1;min-width:0;font-size:10px;padding:6px 8px;" onkeypress="if(event.key===\'Enter\')addCustomCL(\'' + sec.key + '\')">';
+    html += '<button class="save-btn" style="width:auto;flex-shrink:0;padding:0 14px;font-size:14px;" onclick="addCustomCL(\'' + sec.key + '\')">+</button>';
     html += '</div>';
     html += '</div>';
   });
@@ -4408,6 +4496,39 @@ function addCustomPOI() {
 
 function removeCustomPOI(i) {
   SETTINGS.customPOI.splice(i, 1);
+  saveSettings(SETTINGS);
+  renderSettings();
+}
+
+// Hide a default POI tag from the form picker
+function hideDefaultPOI(tag) {
+  if (!SETTINGS.hiddenPOI) SETTINGS.hiddenPOI = [];
+  if (SETTINGS.hiddenPOI.indexOf(tag) === -1) SETTINGS.hiddenPOI.push(tag);
+  saveSettings(SETTINGS);
+  renderSettings();
+}
+
+// Restore a hidden default POI tag
+function restoreDefaultPOI(tag) {
+  if (!SETTINGS.hiddenPOI) return;
+  SETTINGS.hiddenPOI = SETTINGS.hiddenPOI.filter(function(t) { return t !== tag; });
+  saveSettings(SETTINGS);
+  renderSettings();
+}
+
+// Hide a default checklist item
+function hideDefaultCL(section, item) {
+  if (!SETTINGS.hiddenChecklist) SETTINGS.hiddenChecklist = { pre: [], rules: [], psych: [], post: [] };
+  if (!SETTINGS.hiddenChecklist[section]) SETTINGS.hiddenChecklist[section] = [];
+  if (SETTINGS.hiddenChecklist[section].indexOf(item) === -1) SETTINGS.hiddenChecklist[section].push(item);
+  saveSettings(SETTINGS);
+  renderSettings();
+}
+
+// Restore a hidden default checklist item
+function restoreDefaultCL(section, item) {
+  if (!SETTINGS.hiddenChecklist || !SETTINGS.hiddenChecklist[section]) return;
+  SETTINGS.hiddenChecklist[section] = SETTINGS.hiddenChecklist[section].filter(function(t) { return t !== item; });
   saveSettings(SETTINGS);
   renderSettings();
 }
