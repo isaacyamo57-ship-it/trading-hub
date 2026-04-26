@@ -974,6 +974,10 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
     <div class="sb-btn" onclick="nav('nqseasonality',this)">🗓️<div class="sb-tooltip">NQ Seasonality</div></div>
     <div class="sb-btn" onclick="nav('knowledge',this)">📚<div class="sb-tooltip">Knowledge Base</div></div>
   </nav>
+  <div style="margin-top:auto;width:100%;padding:0 8px 0;">
+    <div class="sb-divider" style="margin-bottom:6px;"></div>
+    <div class="sb-btn" onclick="nav('settings',this)">⚙️<div class="sb-tooltip">Settings</div></div>
+  </div>
 </aside>
 
 <!-- ── MAIN ── -->
@@ -1830,6 +1834,7 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
     <!-- ══ NQ SEASONALITY (GENERIC) ══ -->
     <div class="page" id="page-nqseasonality"></div>
     <div class="page" id="page-knowledge"></div>
+    <div class="page" id="page-settings"></div>
 
   </div>
 </div>
@@ -2043,13 +2048,25 @@ function svJ() { localStorage.setItem('nq_v5_journals', JSON.stringify(journals)
 function svC() { localStorage.setItem('nq_v5_checks',   JSON.stringify(checks)); }
 
 // ── NAV ──
-const pageNames = { dashboard:'Dashboard', log:'Log Trade', trades:'Trade Log', monthly:'Monthly Stats', backtest:'Backtesting', journal:'Weekly Journal', checklist:'Checklist', analytics:'Analytics', seasonality:'My Seasonality', nqseasonality:'NQ Seasonality', knowledge:'Knowledge Base' };
+const pageNames = { dashboard:'Dashboard', log:'Log Trade', trades:'Trade Log', monthly:'Monthly Stats', backtest:'Backtesting', journal:'Weekly Journal', checklist:'Checklist', analytics:'Analytics', seasonality:'My Seasonality', nqseasonality:'NQ Seasonality', knowledge:'Knowledge Base', settings:'Settings' };
 function nav(id, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sb-btn').forEach(b => b.classList.remove('active'));
   var pageEl = document.getElementById('page-' + id); if (pageEl) pageEl.classList.add('active');
   if (el) el.classList.add('active');
   document.getElementById('tbTitle').textContent = pageNames[id] || id;
+  // Apply user's defaults when navigating to Log Trade (only if not editing)
+  if (id === 'log' && !window._editingTradeId) {
+    setTimeout(function() {
+      if (typeof SETTINGS !== 'undefined' && SETTINGS) {
+        const fSession = document.getElementById('fSession');
+        if (fSession && !fSession.value) fSession.value = SETTINGS.defaultSession || 'NYAM';
+        if (typeof selAcct === 'function' && SETTINGS.defaultAccount) selAcct(SETTINGS.defaultAccount);
+        // Inject custom POI tags into the form if they aren't already there
+        injectCustomPOI();
+      }
+    }, 50);
+  }
   if (id === 'dashboard') renderDash();
   if (id === 'trades')    renderTradeLog();
   if (id === 'monthly')   renderMonthly();
@@ -2060,6 +2077,26 @@ function nav(id, el) {
   if (id === 'seasonality') renderSeasonality();
   if (id === 'nqseasonality') renderNQSeasonality();
   if (id === 'knowledge') renderKnowledge();
+  if (id === 'settings') renderSettings();
+}
+
+// Inject custom POI tags from settings into the trade log + backtest form
+function injectCustomPOI() {
+  if (typeof SETTINGS === 'undefined' || !SETTINGS.customPOI || !SETTINGS.customPOI.length) return;
+  ['fPOI', 'btPOI'].forEach(function(gid) {
+    const container = document.getElementById(gid);
+    if (!container) return;
+    SETTINGS.customPOI.forEach(function(tag) {
+      // Skip if already exists
+      if (container.querySelector('[data-v="' + tag + '"]')) return;
+      const el = document.createElement('div');
+      el.className = 'tg';
+      el.dataset.v = tag;
+      el.textContent = tag;
+      el.onclick = function() { togM(this); };
+      container.appendChild(el);
+    });
+  });
 }
 
 // ── TOGGLE HELPERS ──
@@ -3150,10 +3187,14 @@ function renderJournal() {
 // ── CHECKLIST ──
 function renderChecklist() { ['pre','rules','psych','post'].forEach(k => buildCL(k)); }
 function buildCL(key) {
-  const items = CL[key];
+  const baseItems = CL[key] || [];
+  // Add custom items from settings
+  const custom = (typeof SETTINGS !== 'undefined' && SETTINGS.customChecklist && SETTINGS.customChecklist[key]) ? SETTINGS.customChecklist[key] : [];
+  const items = baseItems.concat(custom);
   document.getElementById('cl-'+key).innerHTML = items.map((txt,i) => {
     const on = checks[`${key}_${i}`];
-    return `<div class="cl-item"><div class="cl-box ${on?'on':''}" onclick="togCL('${key}',${i})"></div><div class="cl-text ${on?'done':''}">${txt}</div></div>`;
+    const isCustom = i >= baseItems.length;
+    return `<div class="cl-item"><div class="cl-box ${on?'on':''}" onclick="togCL('${key}',${i})"></div><div class="cl-text ${on?'done':''}">${txt}${isCustom ? ' <span style="font-size:8px;color:var(--gold);background:rgba(201,168,76,0.1);padding:2px 5px;border-radius:3px;margin-left:4px;">CUSTOM</span>' : ''}</div></div>`;
   }).join('');
   const done = items.filter((_,i)=>checks[`${key}_${i}`]).length;
   document.getElementById('pb-'+key).style.width = (done/items.length*100)+'%';
@@ -4049,6 +4090,465 @@ function renderNQSeasonality() {
 
   document.getElementById('page-nqseasonality').innerHTML = html;
 }
+
+
+// ─────────────────────────────────────────────────────────────
+// SETTINGS — full settings system
+// ─────────────────────────────────────────────────────────────
+
+// Default settings — used as fallback if localStorage is empty
+const DEFAULT_SETTINGS = {
+  // Risk
+  riskPerTrade: 300,           // $ per 1R
+  // Apex
+  apexEvalTarget: 1600,        // $ profit target for eval
+  apexLiveTarget: 2500,        // $ profit target for funded payout
+  apexEvalDrawdown: 1500,      // $ max drawdown eval
+  apexLiveDrawdown: 2500,      // $ max drawdown funded
+  apexAccountSize: 25000,      // $ starting account
+  // Defaults
+  defaultSession: 'NYAM',
+  defaultAccount: 'eval',
+  // Theme
+  theme: 'dark',
+  // Reminders
+  weeklyReviewReminder: true,
+  // Custom POI tags
+  customPOI: [],
+  // Custom checklist items
+  customChecklist: { pre: [], rules: [], psych: [], post: [] },
+};
+
+function loadSettings() {
+  try {
+    const stored = localStorage.getItem('nq_v5_settings');
+    if (!stored) return Object.assign({}, DEFAULT_SETTINGS);
+    return Object.assign({}, DEFAULT_SETTINGS, JSON.parse(stored));
+  } catch(e) {
+    return Object.assign({}, DEFAULT_SETTINGS);
+  }
+}
+
+function saveSettings(s) {
+  localStorage.setItem('nq_v5_settings', JSON.stringify(s));
+}
+
+let SETTINGS = loadSettings();
+
+// Helper — convert R to $ for display
+function rToDollars(r) {
+  const v = (parseFloat(r) || 0) * SETTINGS.riskPerTrade;
+  return (v >= 0 ? '+$' : '-$') + Math.abs(v).toFixed(0);
+}
+
+function renderSettings() {
+  SETTINGS = loadSettings();
+
+  let html = '';
+
+  // Header
+  html += '<div style="margin-bottom:24px;">' +
+    '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">System · Configuration</div>' +
+    '<div style="font-family:Syne,sans-serif;font-size:32px;font-weight:800;color:var(--text);letter-spacing:-0.02em;">Settings</div>' +
+    '<div style="font-family:Fragment Mono,monospace;font-size:11px;color:var(--muted);margin-top:5px;">Configure your trading system · Saved automatically</div>' +
+  '</div>';
+
+  // Container — 2 column grid
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:14px;max-width:1100px;">';
+
+  // ── 1. RISK PER TRADE ──
+  html += '<div class="card" style="padding:18px 22px;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">💵 Risk Per Trade</div>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:10px;">Dollar Value of 1R</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5;">When you risk $300 to make $300 (1R), enter 300. This unlocks $ values everywhere R is shown.</div>';
+  html += '<div style="display:flex;align-items:center;gap:10px;">';
+  html += '<span style="font-family:Syne,sans-serif;font-size:18px;color:var(--gold);">$</span>';
+  html += '<input type="number" class="fi" id="setRiskPerTrade" value="' + SETTINGS.riskPerTrade + '" style="flex:1;font-family:Syne,sans-serif;font-size:18px;font-weight:700;" oninput="updateSetting(\'riskPerTrade\', parseFloat(this.value)||0)">';
+  html += '<span style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);">per 1R</span>';
+  html += '</div>';
+  html += '<div id="riskPreview" style="margin-top:10px;font-family:DM Mono,monospace;font-size:9px;color:var(--text2);background:var(--bg3);padding:8px 12px;border-radius:6px;">' +
+    'Preview: +1R = ' + rToDollars(1) + ' &nbsp;·&nbsp; -1R = ' + rToDollars(-1) + ' &nbsp;·&nbsp; +5R = ' + rToDollars(5) +
+  '</div>';
+  html += '</div>';
+
+  // ── 2. APEX ACCOUNT ──
+  html += '<div class="card" style="padding:18px 22px;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">🎯 Apex Account</div>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:10px;">Targets &amp; Drawdown Limits</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
+  html += '<div><label class="fl">Account Size</label><input type="number" class="fi" id="setApexSize" value="' + SETTINGS.apexAccountSize + '" oninput="updateSetting(\'apexAccountSize\', parseFloat(this.value)||0)"></div>';
+  html += '<div><label class="fl">Eval Target ($)</label><input type="number" class="fi" id="setApexEvalT" value="' + SETTINGS.apexEvalTarget + '" oninput="updateSetting(\'apexEvalTarget\', parseFloat(this.value)||0)"></div>';
+  html += '<div><label class="fl">Live Target ($)</label><input type="number" class="fi" id="setApexLiveT" value="' + SETTINGS.apexLiveTarget + '" oninput="updateSetting(\'apexLiveTarget\', parseFloat(this.value)||0)"></div>';
+  html += '<div><label class="fl">Eval DD Limit ($)</label><input type="number" class="fi" id="setApexEvalDD" value="' + SETTINGS.apexEvalDrawdown + '" oninput="updateSetting(\'apexEvalDrawdown\', parseFloat(this.value)||0)"></div>';
+  html += '<div style="grid-column:span 2;"><label class="fl">Live DD Limit ($)</label><input type="number" class="fi" id="setApexLiveDD" value="' + SETTINGS.apexLiveDrawdown + '" oninput="updateSetting(\'apexLiveDrawdown\', parseFloat(this.value)||0)"></div>';
+  html += '</div>';
+  html += '<div id="apexPreview" style="margin-top:12px;font-family:DM Mono,monospace;font-size:9px;color:var(--text2);background:var(--bg3);padding:10px 12px;border-radius:6px;line-height:1.7;">' +
+    '<div><span style="color:var(--muted);">Eval target in R:</span> <strong style="color:var(--gold);">' + (SETTINGS.apexEvalTarget / SETTINGS.riskPerTrade).toFixed(1) + 'R</strong></div>' +
+    '<div><span style="color:var(--muted);">Live target in R:</span> <strong style="color:var(--gold);">' + (SETTINGS.apexLiveTarget / SETTINGS.riskPerTrade).toFixed(1) + 'R</strong></div>' +
+    '<div><span style="color:var(--muted);">Eval DD in R:</span> <strong style="color:var(--loss);">' + (SETTINGS.apexEvalDrawdown / SETTINGS.riskPerTrade).toFixed(1) + 'R</strong></div>' +
+  '</div>';
+  html += '</div>';
+
+  // ── 3. DEFAULTS ──
+  html += '<div class="card" style="padding:18px 22px;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">⚡ Quick Log Defaults</div>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;">Faster Trade Logging</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Pre-fills these when you click Log Trade.</div>';
+  html += '<div><label class="fl">Default Session</label>';
+  html += '<select class="fi" id="setDefSession" onchange="updateSetting(\'defaultSession\', this.value)">';
+  ['NYAM','London AM','NY PM','Asia'].forEach(function(s) {
+    html += '<option value="' + s + '"' + (SETTINGS.defaultSession === s ? ' selected' : '') + '>' + s + '</option>';
+  });
+  html += '</select></div>';
+  html += '<div style="margin-top:10px;"><label class="fl">Default Account</label>';
+  html += '<select class="fi" id="setDefAcct" onchange="updateSetting(\'defaultAccount\', this.value)">';
+  ['eval','live'].forEach(function(a) {
+    html += '<option value="' + a + '"' + (SETTINGS.defaultAccount === a ? ' selected' : '') + '>' + (a === 'eval' ? 'Apex Eval' : 'Apex Live / Funded') + '</option>';
+  });
+  html += '</select></div>';
+  html += '</div>';
+
+  // ── 4. THEME ──
+  html += '<div class="card" style="padding:18px 22px;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">🎨 Theme</div>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:10px;">Appearance</div>';
+  html += '<div style="display:flex;gap:8px;">';
+  html += '<div class="tg ' + (SETTINGS.theme === 'dark' ? 'on' : '') + '" style="flex:1;text-align:center;padding:14px;cursor:pointer;border-radius:8px;" onclick="setTheme(\'dark\')">🌙 Dark</div>';
+  html += '<div class="tg ' + (SETTINGS.theme === 'light' ? 'on' : '') + '" style="flex:1;text-align:center;padding:14px;cursor:pointer;border-radius:8px;" onclick="setTheme(\'light\')">☀️ Light</div>';
+  html += '</div>';
+  html += '<div style="margin-top:10px;font-family:DM Mono,monospace;font-size:9px;color:var(--muted);line-height:1.5;">Changes take effect immediately.</div>';
+  html += '</div>';
+
+  // ── 5. REMINDERS ──
+  html += '<div class="card" style="padding:18px 22px;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">🔔 Reminders</div>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:10px;">Stay On Track</div>';
+  html += '<label style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg3);border-radius:7px;cursor:pointer;">';
+  html += '<input type="checkbox" id="setWeeklyReview" ' + (SETTINGS.weeklyReviewReminder ? 'checked' : '') + ' onchange="updateSetting(\'weeklyReviewReminder\', this.checked)" style="width:16px;height:16px;cursor:pointer;">';
+  html += '<div><div style="font-family:Syne,sans-serif;font-size:12px;font-weight:600;">Weekly Review Reminder</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--muted);margin-top:2px;">Friday 5pm prompt to do your weekly journal entry</div></div>';
+  html += '</label>';
+  html += '</div>';
+
+  // ── 6. CUSTOM POI TAGS ──
+  html += '<div class="card" style="padding:18px 22px;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">🏷️ Custom POI Tags</div>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;">Personal Setup Tags</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5;">Default: FVG · IFVG · OB · MSS · CISD · BPR · EDH/L · Liq Sweep · Liq Grab · EQH/EQL · LRLR · Data Wick · Breaker. Add your own below.</div>';
+  html += '<div id="customPOIList" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;min-height:30px;">';
+  if (SETTINGS.customPOI.length) {
+    SETTINGS.customPOI.forEach(function(p, i) {
+      html += '<div style="display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--gold-border);border-radius:6px;padding:4px 8px;">';
+      html += '<span style="font-family:DM Mono,monospace;font-size:10px;color:var(--gold);">' + p + '</span>';
+      html += '<span onclick="removeCustomPOI(' + i + ')" style="cursor:pointer;color:var(--loss);font-size:14px;line-height:1;font-weight:700;">×</span>';
+      html += '</div>';
+    });
+  } else {
+    html += '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--muted);font-style:italic;">No custom tags yet</div>';
+  }
+  html += '</div>';
+  html += '<div style="display:flex;gap:6px;">';
+  html += '<input type="text" class="fi" id="newPOIInput" placeholder="e.g. SMT, Turtle Soup, Imbalance" style="flex:1;" onkeypress="if(event.key===\'Enter\')addCustomPOI()">';
+  html += '<button class="save-btn" style="padding:0 16px;font-size:12px;" onclick="addCustomPOI()">+ Add</button>';
+  html += '</div>';
+  html += '</div>';
+
+  // ── 7. CUSTOM CHECKLIST ──
+  html += '<div class="card" style="padding:18px 22px;grid-column:span 2;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">✅ Custom Checklist Items</div>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;">Personal Checklist Additions</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Add custom items to any checklist section. Default items remain. These show up on the Checklist page automatically.</div>';
+
+  const sections = [
+    { key: 'pre', icon: '☀️', label: 'Pre-Session' },
+    { key: 'rules', icon: '📐', label: 'ICT Entry Rules' },
+    { key: 'psych', icon: '🧠', label: 'Psychology' },
+    { key: 'post', icon: '🌙', label: 'Post-Session' },
+  ];
+
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">';
+  sections.forEach(function(sec) {
+    html += '<div style="background:var(--bg3);border-radius:8px;padding:12px 14px;">';
+    html += '<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:700;margin-bottom:8px;">' + sec.icon + ' ' + sec.label + '</div>';
+
+    html += '<div id="customCL_' + sec.key + '" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;">';
+    if (SETTINGS.customChecklist[sec.key].length) {
+      SETTINGS.customChecklist[sec.key].forEach(function(item, i) {
+        html += '<div style="display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:5px 8px;">';
+        html += '<span style="flex:1;font-family:DM Mono,monospace;font-size:9px;color:var(--text2);">' + item + '</span>';
+        html += '<span onclick="removeCustomCL(\'' + sec.key + '\',' + i + ')" style="cursor:pointer;color:var(--loss);font-size:12px;line-height:1;font-weight:700;">×</span>';
+        html += '</div>';
+      });
+    } else {
+      html += '<div style="font-family:DM Mono,monospace;font-size:8px;color:var(--muted);font-style:italic;">No custom items</div>';
+    }
+    html += '</div>';
+
+    html += '<div style="display:flex;gap:4px;">';
+    html += '<input type="text" class="fi" id="newCLInput_' + sec.key + '" placeholder="Add item..." style="flex:1;font-size:10px;padding:5px 8px;" onkeypress="if(event.key===\'Enter\')addCustomCL(\'' + sec.key + '\')">';
+    html += '<button class="save-btn" style="padding:0 10px;font-size:9px;" onclick="addCustomCL(\'' + sec.key + '\')">+</button>';
+    html += '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '</div>';
+
+  // ── 8. DATA MANAGEMENT ──
+  html += '<div class="card" style="padding:18px 22px;grid-column:span 2;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">💾 Data Management</div>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:10px;">Backup &amp; Export</div>';
+
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:14px;">';
+  html += '<button class="save-btn" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);" onclick="exportTradesCSV()">📊 Export Trades (CSV)</button>';
+  html += '<button class="save-btn" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);" onclick="exportBacktestsCSV()">🔬 Export Backtests (CSV)</button>';
+  html += '<button class="save-btn" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);" onclick="exportAllJSON()">💾 Backup All (JSON)</button>';
+  html += '<button class="save-btn" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);" onclick="document.getElementById(\'restoreFile\').click()">📥 Restore Backup</button>';
+  html += '<input type="file" id="restoreFile" accept=".json" style="display:none;" onchange="restoreFromJSON(event)">';
+  html += '</div>';
+
+  // Stats
+  const tradeCount = trades.filter(function(t) { return t.acct !== 'backtest'; }).length;
+  const btCount = backtests.length;
+  const journalCount = journals.length;
+  html += '<div style="background:var(--bg3);border-radius:7px;padding:10px 14px;font-family:DM Mono,monospace;font-size:10px;color:var(--muted);line-height:1.7;">';
+  html += '<div><span style="color:var(--text2);font-weight:600;">' + tradeCount + '</span> live trades · <span style="color:var(--text2);font-weight:600;">' + btCount + '</span> backtests · <span style="color:var(--text2);font-weight:600;">' + journalCount + '</span> journal entries</div>';
+  html += '<div style="margin-top:4px;">Last backup: <span id="lastBackupDate" style="color:var(--text2);">' + (localStorage.getItem('nq_last_backup') || 'never') + '</span></div>';
+  html += '</div>';
+
+  html += '<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--loss);margin-bottom:6px;">⚠️ Danger Zone</div>';
+  html += '<button class="save-btn" style="background:rgba(201,106,106,0.1);color:var(--loss);border:1px solid var(--loss);max-width:240px;" onclick="resetAllSettings()">Reset Settings to Defaults</button>';
+  html += '</div>';
+
+  html += '</div>';
+
+  html += '</div>'; // end grid
+
+  document.getElementById('page-settings').innerHTML = html;
+}
+
+// ─── SETTINGS HELPER FUNCTIONS ───
+
+function updateSetting(key, value) {
+  SETTINGS[key] = value;
+  saveSettings(SETTINGS);
+
+  // Live update preview panels
+  if (key === 'riskPerTrade') {
+    const preview = document.getElementById('riskPreview');
+    if (preview) preview.innerHTML = 'Preview: +1R = ' + rToDollars(1) + ' &nbsp;·&nbsp; -1R = ' + rToDollars(-1) + ' &nbsp;·&nbsp; +5R = ' + rToDollars(5);
+    // Also refresh apex preview since it uses risk
+    const ap = document.getElementById('apexPreview');
+    if (ap) {
+      ap.innerHTML =
+        '<div><span style="color:var(--muted);">Eval target in R:</span> <strong style="color:var(--gold);">' + (SETTINGS.apexEvalTarget / SETTINGS.riskPerTrade).toFixed(1) + 'R</strong></div>' +
+        '<div><span style="color:var(--muted);">Live target in R:</span> <strong style="color:var(--gold);">' + (SETTINGS.apexLiveTarget / SETTINGS.riskPerTrade).toFixed(1) + 'R</strong></div>' +
+        '<div><span style="color:var(--muted);">Eval DD in R:</span> <strong style="color:var(--loss);">' + (SETTINGS.apexEvalDrawdown / SETTINGS.riskPerTrade).toFixed(1) + 'R</strong></div>';
+    }
+  }
+  if (key.startsWith('apex')) {
+    const ap = document.getElementById('apexPreview');
+    if (ap) {
+      ap.innerHTML =
+        '<div><span style="color:var(--muted);">Eval target in R:</span> <strong style="color:var(--gold);">' + (SETTINGS.apexEvalTarget / SETTINGS.riskPerTrade).toFixed(1) + 'R</strong></div>' +
+        '<div><span style="color:var(--muted);">Live target in R:</span> <strong style="color:var(--gold);">' + (SETTINGS.apexLiveTarget / SETTINGS.riskPerTrade).toFixed(1) + 'R</strong></div>' +
+        '<div><span style="color:var(--muted);">Eval DD in R:</span> <strong style="color:var(--loss);">' + (SETTINGS.apexEvalDrawdown / SETTINGS.riskPerTrade).toFixed(1) + 'R</strong></div>';
+    }
+  }
+}
+
+// Theme switching — applies CSS variables for light/dark
+function setTheme(t) {
+  SETTINGS.theme = t;
+  saveSettings(SETTINGS);
+  applyTheme();
+  renderSettings();
+}
+
+function applyTheme() {
+  const root = document.documentElement;
+  if (SETTINGS.theme === 'light') {
+    root.style.setProperty('--bg', '#f5f3ed');
+    root.style.setProperty('--bg1', '#ebe7dd');
+    root.style.setProperty('--bg2', '#fffefa');
+    root.style.setProperty('--bg3', '#f0ece0');
+    root.style.setProperty('--bg4', '#e0dccf');
+    root.style.setProperty('--text', '#1a1a1d');
+    root.style.setProperty('--text2', '#3a3a3d');
+    root.style.setProperty('--muted', '#7a7570');
+    root.style.setProperty('--border', '#d8d2c5');
+    root.style.setProperty('--border2', '#c0baad');
+  } else {
+    // dark — defaults
+    root.style.removeProperty('--bg');
+    root.style.removeProperty('--bg1');
+    root.style.removeProperty('--bg2');
+    root.style.removeProperty('--bg3');
+    root.style.removeProperty('--bg4');
+    root.style.removeProperty('--text');
+    root.style.removeProperty('--text2');
+    root.style.removeProperty('--muted');
+    root.style.removeProperty('--border');
+    root.style.removeProperty('--border2');
+  }
+}
+
+// Custom POI
+function addCustomPOI() {
+  const input = document.getElementById('newPOIInput');
+  if (!input) return;
+  const val = input.value.trim();
+  if (!val) return;
+  if (SETTINGS.customPOI.indexOf(val) !== -1) { alert('Tag already exists'); return; }
+  SETTINGS.customPOI.push(val);
+  saveSettings(SETTINGS);
+  input.value = '';
+  renderSettings();
+}
+
+function removeCustomPOI(i) {
+  SETTINGS.customPOI.splice(i, 1);
+  saveSettings(SETTINGS);
+  renderSettings();
+}
+
+// Custom checklist
+function addCustomCL(section) {
+  const input = document.getElementById('newCLInput_' + section);
+  if (!input) return;
+  const val = input.value.trim();
+  if (!val) return;
+  if (!SETTINGS.customChecklist[section]) SETTINGS.customChecklist[section] = [];
+  SETTINGS.customChecklist[section].push(val);
+  saveSettings(SETTINGS);
+  input.value = '';
+  renderSettings();
+}
+
+function removeCustomCL(section, i) {
+  SETTINGS.customChecklist[section].splice(i, 1);
+  saveSettings(SETTINGS);
+  renderSettings();
+}
+
+// Data export
+function exportTradesCSV() {
+  const real = trades.filter(function(t) { return t.acct !== 'backtest'; });
+  if (!real.length) { alert('No trades to export.'); return; }
+  const headers = ['date','acct','session','location','dir','result','biasTrend','poi','grade','exec','rules','rm','pts','contract','preBias','notes','chart'];
+  const rows = real.map(function(t) {
+    return headers.map(function(h) {
+      let v = t[h];
+      if (Array.isArray(v)) v = v.join('; ');
+      if (v === undefined || v === null) v = '';
+      v = String(v).replace(/"/g, '""');
+      return '"' + v + '"';
+    }).join(',');
+  });
+  const csv = headers.join(',') + '\n' + rows.join('\n');
+  downloadFile('nq_trades_' + new Date().toISOString().split('T')[0] + '.csv', csv, 'text/csv');
+}
+
+function exportBacktestsCSV() {
+  if (!backtests.length) { alert('No backtests to export.'); return; }
+  const headers = ['date','session','location','dir','result','biasTrend','poi','grade','rm','pts','chart'];
+  const rows = backtests.map(function(t) {
+    return headers.map(function(h) {
+      let v = t[h];
+      if (Array.isArray(v)) v = v.join('; ');
+      if (v === undefined || v === null) v = '';
+      v = String(v).replace(/"/g, '""');
+      return '"' + v + '"';
+    }).join(',');
+  });
+  const csv = headers.join(',') + '\n' + rows.join('\n');
+  downloadFile('nq_backtests_' + new Date().toISOString().split('T')[0] + '.csv', csv, 'text/csv');
+}
+
+function exportAllJSON() {
+  const data = {
+    exportDate: new Date().toISOString(),
+    version: 'v5',
+    trades: trades,
+    backtests: backtests,
+    journals: journals,
+    settings: SETTINGS,
+  };
+  downloadFile('nq_journal_backup_' + new Date().toISOString().split('T')[0] + '.json', JSON.stringify(data, null, 2), 'application/json');
+  localStorage.setItem('nq_last_backup', new Date().toLocaleString('en-GB'));
+}
+
+function downloadFile(filename, content, type) {
+  const blob = new Blob([content], { type: type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function restoreFromJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!confirm('Restore will REPLACE all current data. Are you sure?\n\nThis cannot be undone — export current data first if needed.')) return;
+      if (data.trades) { trades = data.trades; sv(); }
+      if (data.backtests) { backtests = data.backtests; svB(); }
+      if (data.journals) { journals = data.journals; svJ(); }
+      if (data.settings) { SETTINGS = Object.assign({}, DEFAULT_SETTINGS, data.settings); saveSettings(SETTINGS); }
+      alert('Restore complete — refresh the page to see all changes.');
+      location.reload();
+    } catch(err) {
+      alert('Failed to restore: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetAllSettings() {
+  if (!confirm('Reset all settings to defaults?\n\nThis will not affect your trades or journal entries — only the Settings page values.')) return;
+  SETTINGS = Object.assign({}, DEFAULT_SETTINGS);
+  saveSettings(SETTINGS);
+  applyTheme();
+  renderSettings();
+}
+
+// ── Hooks for other parts of app to use settings ──
+
+// Apply theme on load
+applyTheme();
+
+// Weekly review reminder check — fires if Friday after 5pm and no entry this week
+function checkWeeklyReviewReminder() {
+  if (!SETTINGS.weeklyReviewReminder) return;
+  const now = new Date();
+  // Friday is 5
+  if (now.getDay() !== 5 || now.getHours() < 17) return;
+  // Check if a journal exists for this week
+  const dayOfWeek = now.getDay();
+  const offset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + offset);
+  const mondayStr = monday.toISOString().split('T')[0];
+  const exists = journals.some(function(j) { return j.type === 'weekly' && j.date === mondayStr; });
+  if (exists) return;
+  // Check if we already prompted today
+  const today = now.toDateString();
+  if (localStorage.getItem('nq_review_prompted') === today) return;
+  setTimeout(function() {
+    if (confirm('🗓️ Friday wrap-up — have you done your weekly review yet?\n\nClick OK to go to Weekly Journal.')) {
+      nav('journal', document.querySelectorAll('.sb-btn')[5]);
+    }
+    localStorage.setItem('nq_review_prompted', today);
+  }, 1500);
+}
+checkWeeklyReviewReminder();
 
 
 function renderKnowledge() {
