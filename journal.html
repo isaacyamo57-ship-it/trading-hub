@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23c9a84c'/%3E%3Ctext x='96' y='130' font-family='Arial Black,sans-serif' font-size='90' font-weight='900' fill='%23080601' text-anchor='middle' letter-spacing='-4'%3EIA%3C/text%3E%3C/svg%3E">
 <title>Isaac · NQ Journal v5</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e0e10'/%3E%3Crect x='2' y='2' width='28' height='28' rx='5' fill='%231a1a1c' stroke='%23c9a84c' stroke-width='1.5'/%3E%3Cpolyline points='5,22 10,14 15,18 20,10 27,16' fill='none' stroke='%23c9a84c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='27' cy='16' r='2' fill='%23c9a84c'/%3E%3C/svg%3E">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&family=Fragment+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&family=Fragment+Mono&family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -40,13 +40,69 @@
   --be:       #7a7570;
   --blue:     #6b9fd4;
   --sidebar:  52px;
+  /* Fonts — defaults (current "playful" theme) */
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'Outfit', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+  --font-label:   'Fragment Mono', monospace;
+}
+/* Theme: Clean / Minimal (Inter + Geist Mono) */
+body[data-fonts="clean"] {
+  --font-display: 'Inter', sans-serif;
+  --font-body:    'Inter', sans-serif;
+  --font-mono:    'Geist Mono', 'JetBrains Mono', monospace;
+  --font-label:   'Geist Mono', 'JetBrains Mono', monospace;
+}
+/* Theme: Financial / Bloomberg-ish (IBM Plex) */
+body[data-fonts="financial"] {
+  --font-display: 'IBM Plex Sans', sans-serif;
+  --font-body:    'IBM Plex Sans', sans-serif;
+  --font-mono:    'IBM Plex Mono', monospace;
+  --font-label:   'IBM Plex Mono', monospace;
+}
+
+/* Override every font-family inline reference globally based on theme.
+   Inline styles like font-family:"Syne" will be overridden by these
+   high-specificity rules because the theme attr selector + element
+   targeting beats inline declarations using !important. */
+body[data-fonts="clean"] *,
+body[data-fonts="financial"] * {
+  font-family: var(--font-body) !important;
+}
+body[data-fonts="clean"] [style*="Syne"],
+body[data-fonts="financial"] [style*="Syne"] {
+  font-family: var(--font-display) !important;
+  letter-spacing: -0.02em;
+}
+body[data-fonts="clean"] [style*="Fragment Mono"],
+body[data-fonts="financial"] [style*="Fragment Mono"] {
+  font-family: var(--font-label) !important;
+}
+body[data-fonts="clean"] [style*="DM Mono"],
+body[data-fonts="financial"] [style*="DM Mono"] {
+  font-family: var(--font-mono) !important;
+}
+/* Also override the named CSS classes */
+body[data-fonts="clean"] .sw-val, body[data-fonts="financial"] .sw-val,
+body[data-fonts="clean"] .tz-val, body[data-fonts="financial"] .tz-val,
+body[data-fonts="clean"] .qg-stat-val, body[data-fonts="financial"] .qg-stat-val,
+body[data-fonts="clean"] .qg-badge, body[data-fonts="financial"] .qg-badge,
+body[data-fonts="clean"] .ring-val, body[data-fonts="financial"] .ring-val,
+body[data-fonts="clean"] .card-title, body[data-fonts="financial"] .card-title {
+  font-family: var(--font-display) !important;
+  letter-spacing: -0.02em !important;
+}
+body[data-fonts="clean"] .sw-lbl, body[data-fonts="financial"] .sw-lbl,
+body[data-fonts="clean"] .sw-sub, body[data-fonts="financial"] .sw-sub,
+body[data-fonts="clean"] .small-muted, body[data-fonts="financial"] .small-muted {
+  font-family: var(--font-mono) !important;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 13px; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
   display: flex;
   min-height: 100vh;
   line-height: 1.5;
@@ -467,6 +523,40 @@ body {
   letter-spacing: -0.01em;
 }
 
+/* Font theme toggle (A A A) — preview different font themes */
+.font-toggle {
+  display: flex;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+.font-mode-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 5px;
+  transition: all 0.15s;
+  user-select: none;
+  line-height: 1;
+}
+.font-mode-btn:hover { color: var(--text2); background: rgba(255,255,255,0.03); }
+.font-mode-btn.active {
+  background: var(--gold);
+  color: #1a1a1a;
+}
+.font-mode-btn.active:hover { background: var(--gold); }
+#fontMode_default  { font-family: 'Syne', sans-serif; font-weight: 800; }
+#fontMode_clean    { font-family: 'Inter', sans-serif; font-weight: 800; letter-spacing: -0.02em; }
+#fontMode_financial{ font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; }
+
 /* Display mode toggle (R / $ / private) */
 .disp-toggle {
   display: flex;
@@ -505,12 +595,14 @@ body {
   background: var(--bg3);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 10px 12px;
+  padding: 9px 10px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex: 1;
   min-height: 0;
   transition: transform 0.15s ease, border-color 0.15s ease;
+  overflow: hidden;
 }
 .qg-card:hover {
   border-color: rgba(255,255,255,0.08);
@@ -524,29 +616,47 @@ body {
 .qg-badge {
   display: inline-flex;
   align-items: center; justify-content: center;
-  min-width: 32px;
+  width: 30px;
+  max-width: 30px;
   height: 24px;
-  padding: 0 8px;
+  padding: 0 4px;
   border-radius: 5px;
   font-family: 'Syne', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.02em;
   line-height: 1;
   flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.qg-badge.qg-badge-long {
+  font-size: 7px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0 3px;
 }
 .qg-mid {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
+  overflow: hidden;
 }
 .qg-mid-row {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 6px;
+  min-width: 0;
+}
+.qg-mid-row > span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+  min-width: 0;
 }
 .qg-count {
   font-family: 'DM Mono', monospace;
@@ -554,28 +664,30 @@ body {
   color: var(--muted);
   font-weight: 500;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .qg-stat-val {
   font-family: 'Syne', sans-serif;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 .qg-mini-lbl {
   font-family: 'Fragment Mono', monospace;
-  font-size: 7.5px;
-  letter-spacing: 0.16em;
+  font-size: 7px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-right: 5px;
   font-weight: 400;
 }
 .qg-bar-wrap {
   position: relative;
-  height: 4px;
+  height: 3px;
   border-radius: 2px;
-  margin-top: 3px;
+  margin-top: 2px;
 }
 .qg-bar-bg {
   position: absolute;
@@ -1305,6 +1417,30 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
     <!-- ══ DASHBOARD ══ -->
     <div class="page active" id="page-dashboard">
 
+      <!-- ADDITIONAL STATS — Total Points / Avg R Multiple / Rules Kept / Total Trades -->
+      <div class="wgrid wg5" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:14px;">
+        <div class="stat-wid go">
+          <div class="sw-lbl">Total Points</div>
+          <div class="sw-val" id="dStatPts" style="color:var(--gold);">—</div>
+          <div class="sw-sub" id="dStatPtsSub">—</div>
+        </div>
+        <div class="stat-wid b">
+          <div class="sw-lbl">Avg R Multiple</div>
+          <div class="sw-val" id="dStatAvgR" style="color:var(--blue);">—</div>
+          <div class="sw-sub">live trades</div>
+        </div>
+        <div class="stat-wid go">
+          <div class="sw-lbl">Rules Kept</div>
+          <div class="sw-val" id="dStatRules" style="color:var(--gold);">—</div>
+          <div class="sw-sub" id="dStatRulesSub">—</div>
+        </div>
+        <div class="stat-wid g">
+          <div class="sw-lbl">Total Trades</div>
+          <div class="sw-val" id="dStatTrades" style="color:var(--text);">0</div>
+          <div class="sw-sub" id="dStatTradesSub">—</div>
+        </div>
+      </div>
+
       <!-- ══ HERO / COMMAND CENTER ══ -->
       <div class="card" style="padding:20px 24px;margin-bottom:18px;background:linear-gradient(180deg,rgba(201,168,76,0.04),transparent 70%);overflow:hidden;">
         <!-- Top strip: account selector + NQ price -->
@@ -1321,12 +1457,6 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-            <!-- Display mode toggle: R / $ / Private -->
-            <div class="disp-toggle">
-              <div class="disp-mode-btn" id="dispMode_r" onclick="setDisplayMode('r')" title="Show R-multiples">R</div>
-              <div class="disp-mode-btn active" id="dispMode_money" onclick="setDisplayMode('money')" title="Show dollars">$</div>
-              <div class="disp-mode-btn" id="dispMode_private" onclick="setDisplayMode('private')" title="Hide values (privacy)">👁</div>
-            </div>
             <div id="nqPriceWidget" style="display:flex;align-items:center;gap:10px;font-family:'DM Mono',monospace;">
               <span style="color:var(--muted);font-size:8px;letter-spacing:0.22em;text-transform:uppercase;">NQ Live</span>
               <span id="nqLivePrice" style="color:var(--gold);font-weight:700;font-size:14px;">—</span>
@@ -1362,7 +1492,7 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
           </div>
           <div class="tz-body">
             <div class="tz-val" id="dPFNew">—</div>
-            <canvas id="ringPF" width="140" height="140" style="width:64px;height:64px;flex-shrink:0;"></canvas>
+            <div style="position:relative;width:64px;height:64px;flex-shrink:0;"><canvas id="ringPF"></canvas></div>
           </div>
         </div>
       </div>
@@ -1382,7 +1512,7 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
                 <span class="tz-pill tz-pill-loss" id="dDayLossCnt">0</span>
               </div>
             </div>
-            <canvas id="gaugeDayWin" width="200" height="120" style="width:110px;height:66px;flex-shrink:0;"></canvas>
+            <div style="position:relative;width:120px;height:64px;flex-shrink:0;overflow:hidden;"><div style="width:120px;height:120px;"><canvas id="gaugeDayWin"></canvas></div></div>
           </div>
         </div>
         <!-- Avg win/loss trade -->
@@ -1394,8 +1524,8 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
             <div class="tz-val" id="dAvgWLRatio">—</div>
             <div style="flex:1;min-width:0;">
               <div id="dAvgWLBarOuter" style="display:flex;height:14px;gap:6px;">
-                <div id="dAvgWLBarWin"  style="background:#2ecc71;height:100%;border-radius:8px;box-shadow:0 0 12px rgba(46,204,113,0.35);"></div>
-                <div id="dAvgWLBarLoss" style="background:#e74c3c;height:100%;border-radius:8px;box-shadow:0 0 12px rgba(231,76,60,0.35);"></div>
+                <div id="dAvgWLBarWin"  style="background:#2ecc71;height:100%;border-radius:8px;border:2px solid #000;box-sizing:border-box;"></div>
+                <div id="dAvgWLBarLoss" style="background:#e74c3c;height:100%;border-radius:8px;border:2px solid #000;box-sizing:border-box;"></div>
               </div>
               <div style="display:flex;justify-content:space-between;margin-top:10px;font-family:'DM Mono',monospace;font-size:11px;">
                 <span style="color:var(--win);font-weight:700;" id="dAvgWLWin">$0</span>
@@ -1403,30 +1533,6 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- ADDITIONAL STATS — Total Points / Avg R Multiple / Rules Kept / Total Trades -->
-      <div class="wgrid wg5" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:20px;">
-        <div class="stat-wid go">
-          <div class="sw-lbl">Total Points</div>
-          <div class="sw-val" id="dStatPts" style="color:var(--gold);">—</div>
-          <div class="sw-sub" id="dStatPtsSub">—</div>
-        </div>
-        <div class="stat-wid b">
-          <div class="sw-lbl">Avg R Multiple</div>
-          <div class="sw-val" id="dStatAvgR" style="color:var(--blue);">—</div>
-          <div class="sw-sub">live trades</div>
-        </div>
-        <div class="stat-wid go">
-          <div class="sw-lbl">Rules Kept</div>
-          <div class="sw-val" id="dStatRules" style="color:var(--gold);">—</div>
-          <div class="sw-sub" id="dStatRulesSub">—</div>
-        </div>
-        <div class="stat-wid g">
-          <div class="sw-lbl">Total Trades</div>
-          <div class="sw-val" id="dStatTrades" style="color:var(--text);">0</div>
-          <div class="sw-sub" id="dStatTradesSub">—</div>
         </div>
       </div>
 
@@ -1458,7 +1564,7 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
               </div>
             </div>
           </div>
-          <div id="dQualityRow" style="display:flex;flex-direction:column;gap:8px;flex:1;"></div>
+          <div id="dQualityRow" style="display:flex;flex-direction:column;gap:8px;flex:1;justify-content:space-between;"></div>
         </div>
 
         <div class="card r-curve-card" style="display:flex;flex-direction:column;">
@@ -1499,8 +1605,8 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
               <div id="dDiscipline" style="font-family:Syne,sans-serif;font-size:34px;font-weight:800;color:var(--gold);line-height:1;">—</div>
               <div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);">/ 100</div>
             </div>
-            <div style="height:8px;background:rgba(255,255,255,0.05);border-radius:5px;margin-top:10px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.03), 0 0 14px rgba(201,168,76,0.20);">
-              <div id="dDisciplineBar" style="height:100%;width:0%;background:var(--gold);border-radius:5px;transition:width 0.4s ease;box-shadow:0 0 14px rgba(201,168,76,0.55);"></div>
+            <div style="height:10px;background:rgba(0,0,0,0.5);border:2px solid #000;border-radius:7px;padding:1px;margin-top:10px;">
+              <div id="dDisciplineBar" style="height:100%;width:0%;background:var(--gold);border-radius:4px;transition:width 0.4s ease;"></div>
             </div>
           </div>
         </div>
@@ -3382,7 +3488,7 @@ function renderTzCards(live, wins, losses, bes, totalR, pf, grossWinR, grossLoss
       pfEl.style.color = pf >= 1.5 ? 'var(--win)' : pf >= 1 ? 'var(--gold)' : 'var(--loss)';
     }
   }
-  drawPFRing('ringPF', grossWinR, grossLossR);
+  drawChartRing('ringPF', grossWinR, grossLossR);
 
   // ── Day Win % ──
   // Group trades by date, sum R per day, classify each day as win/be/loss
@@ -3409,7 +3515,7 @@ function renderTzCards(live, wins, losses, bes, totalR, pf, grossWinR, grossLoss
   setTxt('dDayWinCnt', dWinDays);
   setTxt('dDayBeCnt', dBeDays);
   setTxt('dDayLossCnt', dLossDays);
-  drawGauge('gaugeDayWin', dayWR);
+  drawChartGauge('gaugeDayWin', dayWR === null ? 0 : dayWR, dayWR !== null);
 
   // ── Avg Win / Avg Loss ──
   const winR = wins.map(function(t) { return parseFloat(t.rm) || 0; }).filter(function(r) { return r > 0; });
@@ -3442,6 +3548,79 @@ function renderTzCards(live, wins, losses, bes, totalR, pf, grossWinR, grossLoss
   const lossBar = document.getElementById('dAvgWLBarLoss');
   if (winBar)  winBar.style.width  = winPct + '%';
   if (lossBar) lossBar.style.width = lossPct + '%';
+}
+
+// Chart.js full ring (for Profit Factor) — green/red split with clean black-bg borders
+function drawChartRing(canvasId, grossWin, grossLoss) {
+  const c = document.getElementById(canvasId);
+  if (!c) return;
+  const existing = Chart.getChart(canvasId);
+  if (existing) existing.destroy();
+  const total = (grossWin || 0) + (grossLoss || 0);
+  const borderCol = getComputedStyle(document.documentElement).getPropertyValue('--bg2').trim() || '#0d0d0d';
+  if (total <= 0) {
+    new Chart(c.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        datasets: [{
+          data: [1],
+          backgroundColor: ['rgba(125,135,145,0.18)'],
+          borderColor: borderCol, borderWidth: 3, hoverOffset: 0
+        }]
+      },
+      options: { cutout: '66%', responsive: true, maintainAspectRatio: false, plugins: { legend:{display:false}, tooltip:{enabled:false} }, animation:{duration:600} }
+    });
+    return;
+  }
+  new Chart(c.getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [grossWin || 0.001, grossLoss || 0.001],
+        backgroundColor: ['rgba(46,204,113,0.95)', 'rgba(231,76,60,0.95)'],
+        borderColor: borderCol, borderWidth: 3, hoverOffset: 0
+      }]
+    },
+    options: { cutout: '66%', responsive: true, maintainAspectRatio: false, plugins: { legend:{display:false}, tooltip:{enabled:false} }, animation:{duration:700, easing:'easeInOutQuart'} }
+  });
+}
+
+// Chart.js half-donut gauge (for Day Win %) — semicircle facing up with a green/red split
+function drawChartGauge(canvasId, pct, hasData) {
+  const c = document.getElementById(canvasId);
+  if (!c) return;
+  const existing = Chart.getChart(canvasId);
+  if (existing) existing.destroy();
+  const borderCol = getComputedStyle(document.documentElement).getPropertyValue('--bg2').trim() || '#0d0d0d';
+  if (!hasData) {
+    new Chart(c.getContext('2d'), {
+      type: 'doughnut',
+      data: { datasets: [{ data: [1], backgroundColor: ['rgba(125,135,145,0.18)'], borderWidth: 0, hoverOffset: 0 }] },
+      options: { cutout: '70%', circumference: 180, rotation: 270, responsive: true, maintainAspectRatio: false, plugins: { legend:{display:false}, tooltip:{enabled:false} }, animation:{duration:500} }
+    });
+    return;
+  }
+  const winFrac = pct;
+  const lossFrac = 1 - pct;
+  new Chart(c.getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [winFrac || 0.001, lossFrac || 0.001],
+        backgroundColor: ['rgba(46,204,113,0.95)', 'rgba(231,76,60,0.95)'],
+        borderColor: borderCol, borderWidth: 3, hoverOffset: 0
+      }]
+    },
+    options: {
+      cutout: '70%',
+      circumference: 180,
+      rotation: 270,
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend:{display:false}, tooltip:{enabled:false} },
+      animation: { duration: 700, easing: 'easeInOutQuart' }
+    }
+  });
 }
 
 // Draw a half-circle gauge (semicircle facing up) showing win-rate split
@@ -3478,37 +3657,44 @@ function drawGauge(canvasId, pct) {
   }
 
   const splitAngle = Math.PI + (pct * Math.PI);
-  ctx.lineCap = 'round';
-  ctx.lineWidth = lineW;
 
-  // Win arc (green) — gap on inner edge if both segments exist + glow
+  // Colored arcs — round caps so outer ends are nicely rounded
+  ctx.lineWidth = lineW;
+  ctx.lineCap = 'round';
+  ctx.shadowBlur = 0;
+
   if (pct > 0) {
-    ctx.shadowColor = 'rgba(46,204,113,0.55)';
-    ctx.shadowBlur = 10;
     ctx.beginPath();
-    if (pct < 1) {
-      ctx.arc(cx, cy, r, Math.PI, splitAngle - gap/2);
-    } else {
-      ctx.arc(cx, cy, r, Math.PI, splitAngle);
-    }
+    if (pct < 1) ctx.arc(cx, cy, r, Math.PI, splitAngle);
+    else         ctx.arc(cx, cy, r, Math.PI, splitAngle);
     ctx.strokeStyle = '#2ecc71';
     ctx.stroke();
   }
-  // Loss arc (red) + glow
   if (pct < 1) {
-    ctx.shadowColor = 'rgba(231,76,60,0.55)';
-    ctx.shadowBlur = 10;
     ctx.beginPath();
-    if (pct > 0) {
-      ctx.arc(cx, cy, r, splitAngle + gap/2, 2 * Math.PI);
-    } else {
-      ctx.arc(cx, cy, r, Math.PI, 2 * Math.PI);
-    }
+    if (pct > 0) ctx.arc(cx, cy, r, splitAngle, 2 * Math.PI);
+    else         ctx.arc(cx, cy, r, Math.PI, 2 * Math.PI);
     ctx.strokeStyle = '#e74c3c';
     ctx.stroke();
   }
-  // Reset shadow so it doesn't leak into other draws
-  ctx.shadowBlur = 0;
+
+  // Black radial divider line at the split point — drawn ON TOP of the colored arcs.
+  // The line spans only the stroke width (inner radius to outer radius).
+  if (pct > 0 && pct < 1) {
+    const inner = r - lineW / 2;
+    const outer = r + lineW / 2;
+    const sx = cx + Math.cos(splitAngle) * inner;
+    const sy = cy + Math.sin(splitAngle) * inner;
+    const ex = cx + Math.cos(splitAngle) * outer;
+    const ey = cy + Math.sin(splitAngle) * outer;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(ex, ey);
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'butt';
+    ctx.strokeStyle = '#000';
+    ctx.stroke();
+  }
 }
 
 // Draw a full donut split into 3 segments (wins green / losses red / break-even grey)
@@ -3624,37 +3810,42 @@ function drawPFRing(canvasId, grossWin, grossLoss) {
   const winEnd   = startAng + winFrac * 2 * Math.PI;
   const fullEnd  = startAng + 2 * Math.PI;
 
+  // Colored arcs — round caps for nice outer ends, no gap between segments
   ctx.lineCap = 'round';
   ctx.lineWidth = lineW;
+  ctx.shadowBlur = 0;
 
-  // Win arc (green) — with gaps if both segments exist + glow
   if (winFrac > 0) {
-    ctx.shadowColor = 'rgba(46,204,113,0.55)';
-    ctx.shadowBlur = 10;
     ctx.beginPath();
-    if (lossFrac > 0) {
-      ctx.arc(cx, cy, r, startAng + gap/2, winEnd - gap/2);
-    } else {
-      ctx.arc(cx, cy, r, startAng, fullEnd);
-    }
+    ctx.arc(cx, cy, r, startAng, lossFrac > 0 ? winEnd : fullEnd);
     ctx.strokeStyle = '#2ecc71';
     ctx.stroke();
   }
-  // Loss arc (red) — with gaps if both segments exist + glow
   if (lossFrac > 0) {
-    ctx.shadowColor = 'rgba(231,76,60,0.55)';
-    ctx.shadowBlur = 10;
     ctx.beginPath();
-    if (winFrac > 0) {
-      ctx.arc(cx, cy, r, winEnd + gap/2, fullEnd - gap/2);
-    } else {
-      ctx.arc(cx, cy, r, startAng, fullEnd);
-    }
+    ctx.arc(cx, cy, r, winFrac > 0 ? winEnd : startAng, fullEnd);
     ctx.strokeStyle = '#e74c3c';
     ctx.stroke();
   }
-  // Reset shadow so it doesn't leak into other draws
-  ctx.shadowBlur = 0;
+
+  // Black radial divider lines at segment boundaries — drawn ON TOP of the colored arcs
+  if (winFrac > 0 && lossFrac > 0) {
+    const inner = r - lineW / 2;
+    const outer = r + lineW / 2;
+    [winEnd, startAng].forEach(function(angle) {
+      const sx = cx + Math.cos(angle) * inner;
+      const sy = cy + Math.sin(angle) * inner;
+      const ex = cx + Math.cos(angle) * outer;
+      const ey = cy + Math.sin(angle) * outer;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(ex, ey);
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'butt';
+      ctx.strokeStyle = '#000';
+      ctx.stroke();
+    });
+  }
 }
 
 // ── APEX PROGRESS PANEL ──
@@ -3708,10 +3899,9 @@ function renderApexProgress(live) {
   html += '<div style="font-family:Syne,sans-serif;font-size:32px;font-weight:800;color:' + (displayMode === 'private' ? 'var(--muted)' : dollarColor) + ';line-height:1;">' + fmtDollarOrR(totalDollar, {showSign:true}) + '</div>';
   html += '<div style="font-family:DM Mono,monospace;font-size:11px;color:var(--muted);">/ ' + fmtDollarOrR(profitTarget, {showSign:false}) + '</div>';
   html += '</div>';
-  // Glow color for profit fill — gold-green when positive, red when negative
-  const profitGlow = totalDollar >= 0 ? 'rgba(46,204,113,0.55)' : 'rgba(231,76,60,0.55)';
-  html += '<div style="height:12px;background:rgba(255,255,255,0.04);border-radius:7px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.03);">';
-  html += '<div style="height:100%;width:' + profitPct + '%;background:' + (totalDollar >= 0 ? 'linear-gradient(90deg,var(--gold),var(--win))' : 'var(--loss)') + ';border-radius:7px;transition:width 0.5s ease;box-shadow:0 0 14px ' + profitGlow + ';"></div>';
+  // Dark outline border instead of glow
+  html += '<div style="height:14px;background:rgba(0,0,0,0.5);border:2px solid #000;border-radius:9px;padding:1px;">';
+  html += '<div style="height:100%;width:' + profitPct + '%;background:' + (totalDollar >= 0 ? 'var(--win)' : 'var(--loss)') + ';border-radius:6px;transition:width 0.5s ease;"></div>';
   html += '</div>';
   html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-top:10px;">' + (displayMode === 'private' ? '••• to go' : ((totalR >= 0 ? '+' : '') + totalR.toFixed(2) + 'R · ' + fmtDollarOrR(remaining, {showSign:false}) + ' to go')) + '</div>';
   html += '</div>';
@@ -3726,15 +3916,9 @@ function renderApexProgress(live) {
   html += '<div style="font-family:Syne,sans-serif;font-size:32px;font-weight:800;color:' + (displayMode === 'private' ? 'var(--muted)' : ddColor) + ';line-height:1;">' + fmtDollarOrR(-curDDdollar, {showSign:false}) + '</div>';
   html += '<div style="font-family:DM Mono,monospace;font-size:11px;color:var(--muted);">/ ' + fmtDollarOrR(ddLimit, {showSign:false}) + '</div>';
   html += '</div>';
-  // Glow colors for drawdown — match the severity state. Empty track always glows softly.
-  const ddGlow = (ddPct >= 75) ? 'rgba(231,76,60,0.55)'
-              : (ddPct >= 50) ? 'rgba(218,165,32,0.55)'
-              :                 'rgba(91,139,214,0.55)';
-  const ddTrackGlow = (ddPct >= 75) ? 'rgba(231,76,60,0.30)'
-                   : (ddPct >= 50) ? 'rgba(218,165,32,0.30)'
-                   :                 'rgba(91,139,214,0.28)';
-  html += '<div style="height:12px;background:rgba(255,255,255,0.04);border-radius:7px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.03), 0 0 14px ' + ddTrackGlow + ';">';
-  html += '<div style="height:100%;width:' + ddPct + '%;background:' + ddColor + ';border-radius:7px;transition:width 0.5s ease;box-shadow:0 0 14px ' + ddGlow + ';"></div>';
+  // Dark outline border instead of glow
+  html += '<div style="height:14px;background:rgba(0,0,0,0.5);border:2px solid #000;border-radius:9px;padding:1px;">';
+  html += '<div style="height:100%;width:' + ddPct + '%;background:' + ddColor + ';border-radius:6px;transition:width 0.5s ease;"></div>';
   html += '</div>';
   html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-top:10px;">';
   if (ddPct >= 75) html += '<span style="color:var(--loss);font-weight:700;letter-spacing:0.05em;">DANGER — pause trading</span>';
@@ -3786,9 +3970,10 @@ function renderQualityBreakdown(live) {
     const isEmpty = d.count === 0;
 
     if (isEmpty) {
+      const longCls = d.g.length > 3 ? ' qg-badge-long' : '';
       return '' +
         '<div class="qg-card qg-empty">' +
-          '<div class="qg-badge" style="background:transparent;border:1px solid var(--border);color:var(--muted);">' + d.g + '</div>' +
+          '<div class="qg-badge' + longCls + '" style="background:transparent;border:1px solid var(--border);color:var(--muted);">' + d.g + '</div>' +
           '<div class="qg-empty-msg">Awaiting trades</div>' +
         '</div>';
     }
@@ -3797,22 +3982,23 @@ function renderQualityBreakdown(live) {
     const rColor  = d.r >= 0 ? 'var(--win)' : 'var(--loss)';
     const barWidth = d.wr === null ? 0 : d.wr;
     const rTxt = (d.r >= 0 ? '+' : '') + d.r.toFixed(1) + 'R';
+    const longCls = d.g.length > 3 ? ' qg-badge-long' : '';
 
     return '' +
       '<div class="qg-card" style="background:linear-gradient(160deg,' + c.bgTint + ',transparent 70%);">' +
-        '<div class="qg-badge" style="background:' + c.glow + ';color:' + c.tone + ';border:1px solid ' + c.glow + ';">' + d.g + '</div>' +
+        '<div class="qg-badge' + longCls + '" style="background:' + c.glow + ';color:' + c.tone + ';border:1px solid ' + c.glow + ';">' + d.g + '</div>' +
         '<div class="qg-mid">' +
           '<div class="qg-mid-row">' +
             '<span><span class="qg-mini-lbl">WR</span><span class="qg-stat-val" style="color:' + wrColor + ';">' + (d.wr !== null ? d.wr + '%' : '—') + '</span></span>' +
-            '<span><span class="qg-mini-lbl">R</span><span class="qg-stat-val" style="color:' + rColor + ';font-size:13px;">' + rTxt + '</span></span>' +
+            '<span><span class="qg-mini-lbl">R</span><span class="qg-stat-val" style="color:' + rColor + ';">' + rTxt + '</span></span>' +
           '</div>' +
           '<div class="qg-mid-row">' +
             '<span class="qg-count">' + d.count + ' ' + (d.count === 1 ? 'trade' : 'trades') + '</span>' +
-            '<span class="qg-count">' + d.w + 'W · ' + d.l + 'L</span>' +
+            '<span class="qg-count">' + d.w + 'W·' + d.l + 'L</span>' +
           '</div>' +
           '<div class="qg-bar-wrap" title="' + d.w + 'W · ' + d.l + 'L">' +
             '<div class="qg-bar-bg"></div>' +
-            '<div class="qg-bar-fill" style="width:' + barWidth + '%;background:' + c.tone + ';box-shadow:0 0 8px ' + c.glow + ';"></div>' +
+            '<div class="qg-bar-fill" style="width:' + barWidth + '%;background:' + c.tone + ';"></div>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -5470,6 +5656,31 @@ function saveSettings(s) {
 
 let SETTINGS = loadSettings();
 
+// ── Font theme (default · clean · financial) ──
+let fontMode = (function() {
+  try { return localStorage.getItem('nq_font_mode') || 'default'; }
+  catch(e) { return 'default'; }
+})();
+
+function setFontMode(mode) {
+  if (['default','clean','financial'].indexOf(mode) === -1) return;
+  fontMode = mode;
+  try { localStorage.setItem('nq_font_mode', mode); } catch(e) {}
+  // Apply theme attribute on body — CSS does the rest
+  if (mode === 'default') document.body.removeAttribute('data-fonts');
+  else                    document.body.setAttribute('data-fonts', mode);
+  // Update toggle highlight
+  ['default','clean','financial'].forEach(function(m) {
+    const el = document.getElementById('fontMode_' + m);
+    if (el) el.classList.toggle('active', m === mode);
+  });
+}
+
+// Apply on load
+window.addEventListener('DOMContentLoaded', function() {
+  setFontMode(fontMode);
+});
+
 // ── Display mode (R · $ · Private) ──
 // Persisted across sessions; defaults to money
 let displayMode = (function() {
@@ -5555,6 +5766,46 @@ function renderSettings() {
 
   // Container — 2 column grid
   html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:14px;max-width:1100px;">';
+
+  // ── 0a. DISPLAY MODE (R / $ / Private) ──
+  html += '<div class="card" style="padding:18px 22px;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">👁 Display Mode</div>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;">How values are shown</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Switch between R-multiples, dollars, or privacy mode (hides sensitive numbers).</div>';
+  html += '<div style="display:flex;gap:8px;">';
+  ['r','money','private'].forEach(function(m) {
+    const lbl = m === 'r' ? 'R-Multiples' : (m === 'money' ? 'Dollars' : 'Private 👁');
+    const active = (typeof displayMode !== 'undefined' && displayMode === m);
+    html += '<div onclick="setDisplayMode(\'' + m + '\');renderSettings();" style="flex:1;cursor:pointer;padding:12px 14px;border-radius:8px;font-family:DM Mono,monospace;font-size:11px;font-weight:700;text-align:center;transition:all 0.15s;' +
+      (active ? 'background:var(--gold);color:#1a1a1a;' : 'background:var(--bg3);color:var(--muted);border:1px solid var(--border);') + '">' + lbl + '</div>';
+  });
+  html += '</div>';
+  html += '</div>';
+
+  // ── 0b. FONT THEME ──
+  html += '<div class="card" style="padding:18px 22px;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">🅰️ Font Theme</div>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;">Typography style</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Each preview shows the actual font in use.</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+  const fontPreviews = [
+    { id: 'default',   name: 'Playful',    desc: 'Syne · DM Mono · Fragment Mono',    sample: '+13.2R',    style: 'font-family:Syne,sans-serif;font-weight:800;letter-spacing:-0.01em;' },
+    { id: 'clean',     name: 'Clean',      desc: 'Inter · Geist Mono',                 sample: '+13.2R',    style: 'font-family:Inter,sans-serif;font-weight:800;letter-spacing:-0.02em;' },
+    { id: 'financial', name: 'Financial',  desc: 'IBM Plex Sans · IBM Plex Mono',     sample: '+13.2R',    style: 'font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;' },
+  ];
+  fontPreviews.forEach(function(f) {
+    const active = (typeof fontMode !== 'undefined' && fontMode === f.id) || (typeof fontMode === 'undefined' && f.id === 'default');
+    html += '<div onclick="setFontMode(\'' + f.id + '\');renderSettings();" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-radius:8px;transition:all 0.15s;' +
+      (active ? 'background:var(--gold-dim);border:1px solid var(--gold-border);' : 'background:var(--bg3);border:1px solid var(--border);') + '">';
+    html += '<div style="flex:1;min-width:0;">';
+    html += '<div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;color:' + (active ? 'var(--gold)' : 'var(--text)') + ';">' + f.name + '</div>';
+    html += '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--muted);margin-top:2px;">' + f.desc + '</div>';
+    html += '</div>';
+    html += '<div style="' + f.style + 'font-size:22px;color:' + (active ? 'var(--gold)' : 'var(--text2)') + ';">' + f.sample + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '</div>';
 
   // ── 1. RISK PER TRADE ──
   html += '<div class="card" style="padding:18px 22px;">';
