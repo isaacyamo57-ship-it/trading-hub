@@ -6,56 +6,75 @@ function fetchJson(url) {
     const req = https.get({
       hostname: urlObj.hostname,
       path: urlObj.pathname + urlObj.search,
-      headers: { 'User-Agent': 'TradingHub/1.0' }
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
     }, res => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => { try { resolve(JSON.parse(data)); } catch(e) { reject(new Error('Invalid JSON')); } });
     });
     req.on('error', reject);
-    req.setTimeout(8000, () => { req.destroy(); reject(new Error('Timeout')); });
+    req.setTimeout(15000, () => { req.destroy(); reject(new Error('Timeout')); });
   });
 }
+
+function yahooInterval(iv) {
+  const map = { '1min': '1m', '5min': '5m', '15min': '15m', '30min': '30m', '1h': '60m' };
+  return map[iv] || '5m';
+}
+
+const YAHOO_SYMBOL = 'NQ=F';
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
-  const { date, interval = '5min', symbol = 'NQ1!' } = req.query;
+  const { date, interval = '5min', symbol } = req.query;
   if (!date) return res.status(400).json({ error: 'date param required' });
 
-  // Use env var, fall back to hardcoded key
-  const apiKey = process.env.TWELVEDATA_API_KEY || '7aa664b3342f48049e2ee9925f63faf1';
-  if (!apiKey) return res.status(500).json({ error: 'TwelveData API key not configured' });
-
-  const url = 'https://api.twelvedata.com/time_series?' +
-    'symbol=' + encodeURIComponent(symbol) +
-    '&interval=' + interval +
-    '&start_date=' + encodeURIComponent(date + ' 08:00:00') +
-    '&end_date=' + encodeURIComponent(date + ' 17:30:00') +
-    '&order=asc' +
-    '&format=JSON' +
-    '&apikey=' + apiKey;
+  const yahooIv = yahooInterval(interval);
+  const url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + YAHOO_SYMBOL +
+    '?interval=' + yahooIv + '&range=1mo&includePrePost=false';
 
   try {
     const data = await fetchJson(url);
+    const result = data.chart.result[0];
+    if (!result) return res.status(404).json({ error: 'No data from Yahoo Finance' });
 
-    if (data.status === 'error') {
-      return res.status(400).json({ error: data.message || 'TwelveData error' });
+    const timestamps = result.timestamp || [];
+    const q = result.indicators.quote[0] || {};
+
+    const dayStart = Math.floor(new Date(date + 'T00:00:00Z').getTime() / 1000);
+    const dayEnd = dayStart + 86400;
+
+    // Get candles for the selected day
+    const dayCandles = [];
+    for (let i = 0; i < timestamps.length; i++) {
+      const t = timestamps[i];
+      if (q.open[i] == null) continue;
+      if (t >= dayStart && t < dayEnd) {
+        dayCandles.push({ time: t, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i] });
+      }
     }
-    if (!data.values || data.values.length === 0) {
+
+    if (dayCandles.length === 0) {
       return res.status(404).json({ error: 'No candles for this date — market may be closed' });
     }
 
-    const candles = data.values.map(v => ({
-      time: Math.floor(new Date(v.datetime.replace(' ', 'T') + 'Z').getTime() / 1000),
-      open: parseFloat(v.open),
-      high: parseFloat(v.high),
-      low: parseFloat(v.low),
-      close: parseFloat(v.close),
-    }));
+    // Add context bars (up to 50 before the day)
+    const ctxBars = [];
+    let ctxCount = 0;
+    for (let i = timestamps.length - 1; i >= 0 && ctxCount < 50; i--) {
+      const t = timestamps[i];
+      if (q.open[i] == null) continue;
+      if (t < dayStart && t >= dayStart - 86400) {
+        ctxBars.unshift({ time: t, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i] });
+        ctxCount++;
+      }
+    }
+
+    const candles = ctxBars.concat(dayCandles);
 
     res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
-    res.status(200).json({ candles, count: candles.length, symbol: (data.meta && data.meta.symbol) || symbol });
+    res.status(200).json({ candles, count: candles.length, symbol: YAHOO_SYMBOL });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
