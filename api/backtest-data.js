@@ -23,8 +23,9 @@ module.exports = async (req, res) => {
   const { date, interval = '5min', symbol = 'NQ1!' } = req.query;
   if (!date) return res.status(400).json({ error: 'date param required' });
 
-  const apiKey = process.env.TWELVEDATA_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'TWELVEDATA_API_KEY not configured in Vercel env vars' });
+  // Use env var, fall back to hardcoded key
+  const apiKey = process.env.TWELVEDATA_API_KEY || '7aa664b3342f48049e2ee9925f63faf1';
+  if (!apiKey) return res.status(500).json({ error: 'TwelveData API key not configured' });
 
   const url = 'https://api.twelvedata.com/time_series?' +
     'symbol=' + encodeURIComponent(symbol) +
@@ -45,7 +46,6 @@ module.exports = async (req, res) => {
       return res.status(404).json({ error: 'No candles for this date — market may be closed' });
     }
 
-    // Treat datetimes as UTC so chart displays market-local times (09:30 etc)
     const candles = data.values.map(v => ({
       time: Math.floor(new Date(v.datetime.replace(' ', 'T') + 'Z').getTime() / 1000),
       open: parseFloat(v.open),
