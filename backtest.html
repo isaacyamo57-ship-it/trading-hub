@@ -454,6 +454,8 @@ function setIv(iv, el) {
   document.querySelectorAll('.tf-btn').forEach(function(b) {
     b.classList.toggle('active', b.dataset.iv === iv);
   });
+  // Auto-reload if data was loaded before
+  if (allCandles.length > 0) loadData();
 }
 
 // ── TRADE FORM ──
