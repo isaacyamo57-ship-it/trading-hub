@@ -458,7 +458,7 @@ function setIv(iv, el) {
     b.classList.toggle('active', b.dataset.iv === iv);
   });
   // Auto-reload if data was loaded before
-  if (allCandles.length > 0) loadData();
+  if (allCandles && allCandles.length > 0 && typeof chartObj !== 'undefined' && chartObj) loadData();
 }
 
 // ── TRADE FORM ──
@@ -710,8 +710,8 @@ function updateBarCounter() {
 
 // ── KEYBOARD SHORTCUTS ──
 document.addEventListener('keydown', function(e) {
-  // Only if data is loaded
-  if (allCandles.length === 0) return;
+  // Only if data is loaded and chart ready
+  if (!allCandles || allCandles.length === 0 || !candleSeries) return;
   // Ignore if typing in input fields
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
 
