@@ -18,7 +18,7 @@ function fetchJson(url) {
 }
 
 function yahooInterval(iv) {
-  const map = { '1min': '1m', '5min': '5m', '15min': '15m', '30min': '30m', '1h': '60m' };
+  const map = { '1min': '1m', '2min': '2m', '3min': '5m', '5min': '5m', '15min': '15m', '30min': '30m', '1h': '60m' };
   return map[iv] || '5m';
 }
 
@@ -30,9 +30,12 @@ module.exports = async (req, res) => {
   const { date, interval = '5min', symbol } = req.query;
   if (!date) return res.status(400).json({ error: 'date param required' });
 
-  const yahooIv = yahooInterval(interval);
+  // 4h needs 1h data then aggregated
+  const needsAggregate = (interval === '4h');
+  const fetchIv = needsAggregate ? '60m' : yahooInterval(interval);
+
   const url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + YAHOO_SYMBOL +
-    '?interval=' + yahooIv + '&range=1mo&includePrePost=false';
+    '?interval=' + fetchIv + '&range=3mo&includePrePost=false';
 
   try {
     const data = await fetchJson(url);
@@ -71,7 +74,29 @@ module.exports = async (req, res) => {
       }
     }
 
-    const candles = ctxBars.concat(dayCandles);
+    // Aggregate into 4h candles if needed
+    let candles;
+    if (needsAggregate) {
+      const allBars = ctxBars.concat(dayCandles);
+      const agg = [];
+      let group = null;
+      for (const b of allBars) {
+        const hour = new Date(b.time * 1000).getUTCHours();
+        const groupKey = Math.floor(hour / 4) * 4;
+        if (!group || group.key !== groupKey) {
+          if (group) agg.push(group.c);
+          group = { key: groupKey, c: { time: b.time, open: b.open, high: b.high, low: b.low, close: b.close } };
+        } else {
+          group.c.high = Math.max(group.c.high, b.high);
+          group.c.low = Math.min(group.c.low, b.low);
+          group.c.close = b.close;
+        }
+      }
+      if (group) agg.push(group.c);
+      candles = agg;
+    } else {
+      candles = ctxBars.concat(dayCandles);
+    }
 
     res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
     res.status(200).json({ candles, count: candles.length, symbol: YAHOO_SYMBOL });
