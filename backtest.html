@@ -132,6 +132,21 @@
     .r-inp::placeholder { color:rgba(255,255,255,0.2); }
     .r-save-btn { background:rgba(201,168,76,0.1); border:1px solid rgba(201,168,76,0.2); color:var(--gold); border-radius:4px; padding:4px 10px; font-size:10px; font-weight:700; cursor:pointer; font-family:var(--font-ui); transition:all 0.12s; white-space:nowrap; }
     .r-save-btn:hover { background:rgba(201,168,76,0.2); }
+
+    /* ── PROGRESS BAR ── */
+    .rb-progress-wrap { flex:1; display:flex; align-items:center; gap:8px; min-width:0; padding:0 4px; }
+    .rb-progress-track { flex:1; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; cursor:pointer; position:relative; min-width:60px; }
+    .rb-progress-track:hover { height:6px; }
+    .rb-progress-fill { height:100%; background:linear-gradient(90deg,rgba(201,168,76,0.6),rgba(201,168,76,0.9)); border-radius:2px; transition:width 0.1s; pointer-events:none; }
+    .rb-progress-thumb { position:absolute; top:50%; width:12px; height:12px; background:var(--gold); border:2px solid #080601; border-radius:50%; transform:translate(-50%,-50%); pointer-events:none; transition:box-shadow 0.1s, width 0.1s, height 0.1s; }
+    .rb-progress-track:hover .rb-progress-thumb { width:14px; height:14px; box-shadow:0 0 8px rgba(201,168,76,0.3); }
+    .rb-progress-input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; z-index:2; }
+    .rb-progress-ct { font-family:var(--font-mono); font-size:9px; color:var(--muted); white-space:nowrap; min-width:80px; text-align:right; }
+
+    /* ── REPLAY TF PILLS ── */
+    .rb-tf-pill { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); color:var(--muted); border-radius:3px; padding:2px 6px; font-size:10px; font-family:var(--font-mono); cursor:pointer; transition:all 0.12s; height:22px; display:flex; align-items:center; }
+    .rb-tf-pill:hover { color:var(--text2); border-color:rgba(255,255,255,0.15); }
+    .rb-tf-pill.active { background:rgba(93,143,196,0.12); border-color:rgba(93,143,196,0.35); color:var(--blue); }
   </style>
 </head>
 <body>
@@ -171,20 +186,36 @@
 
 <!-- REPLAY BAR -->
 <div class="replay-bar">
-  <button class="rb-btn" id="btn-reset" onclick="resetReplay()" disabled title="Reset to start">⏮</button>
-  <button class="rb-btn" id="btn-back" onclick="stepBack(1)" disabled>◀ -1</button>
-  <button class="rb-btn play-btn" id="btn-play" onclick="togglePlay()" disabled>▶ Play</button>
-  <button class="rb-btn" id="btn-s1" onclick="stepFwd(1)" disabled>+1</button>
-  <button class="rb-btn" id="btn-s5" onclick="stepFwd(5)" disabled>+5</button>
-  <button class="rb-btn" id="btn-s10" onclick="stepFwd(10)" disabled>+10</button>
+  <button class="rb-btn" id="btn-jump-start" onclick="jumpToStart()" disabled title="Jump to start">⏮</button>
+  <button class="rb-btn" id="btn-back" onclick="stepBack(1)" disabled title="Back 1 bar">◀</button>
+  <button class="rb-btn play-btn" id="btn-play" onclick="togglePlay()" disabled title="Play/Pause">▶</button>
+  <button class="rb-btn" id="btn-fwd" onclick="stepFwd(1)" disabled title="Forward 1 bar">▶</button>
+  <button class="rb-btn" id="btn-jump-end" onclick="jumpToEnd()" disabled title="Jump to end">⏭</button>
+
+  <div class="rb-progress-wrap">
+    <div class="rb-progress-track" id="progress-track">
+      <div class="rb-progress-fill" id="progress-fill" style="width:0%"></div>
+      <div class="rb-progress-thumb" id="progress-thumb" style="left:0%"></div>
+      <input type="range" class="rb-progress-input" id="progress-input" min="0" max="100" value="0" step="0.1" oninput="seekProgress(this.value)">
+    </div>
+    <span class="rb-progress-ct" id="bar-counter">— / —</span>
+  </div>
+
   <div class="rb-sep"></div>
+
+  <button class="rb-tf-pill" data-iv="1min" onclick="setIvRB('1min',this)">1m</button>
+  <button class="rb-tf-pill active" data-iv="5min" onclick="setIvRB('5min',this)">5m</button>
+  <button class="rb-tf-pill" data-iv="15min" onclick="setIvRB('15min',this)">15m</button>
+  <button class="rb-tf-pill" data-iv="1h" onclick="setIvRB('1h',this)">1H</button>
+
+  <div class="rb-sep"></div>
+
   <select class="speed-sel" onchange="setSpeed(this.value)">
     <option value="800">1x</option>
     <option value="400">2x</option>
     <option value="150">5x</option>
     <option value="60">10x</option>
   </select>
-  <span class="bar-counter" id="bar-counter">Bar — / —</span>
 </div>
 
 <!-- MAIN LAYOUT -->
@@ -346,7 +377,59 @@ function initChart() {
 }
 
 // ── LOAD DATA ──
-async function loadData() {
+async function jumpToStart() {
+  pause();
+  var start = Math.min(50, allCandles.length);
+  displayBar = start;
+  candleSeries.setData(allCandles.slice(0, start));
+  chartObj.timeScale().fitContent();
+  removeAllLines();
+  syncCurrentBar();
+  updateProgressBar();
+}
+
+function jumpToEnd() {
+  pause();
+  displayBar = allCandles.length;
+  candleSeries.setData(allCandles);
+  chartObj.timeScale().scrollToRealTime();
+  removeAllLines();
+  syncCurrentBar();
+  updateProgressBar();
+}
+
+function updateProgressBar() {
+  var fill = document.getElementById('progress-fill');
+  var thumb = document.getElementById('progress-thumb');
+  var input = document.getElementById('progress-input');
+  if (!allCandles || allCandles.length === 0) {
+    fill.style.width = '0%';
+    thumb.style.left = '0%';
+    input.value = 0;
+    return;
+  }
+  var pct = ((displayBar - 1) / (allCandles.length - 1)) * 100;
+  if (allCandles.length === 1) pct = 0;
+  fill.style.width = pct + '%';
+  thumb.style.left = pct + '%';
+  input.value = pct;
+}
+
+function seekProgress(val) {
+  if (!allCandles || allCandles.length === 0) return;
+  pause();
+  var pct = parseFloat(val);
+  var target = Math.round((pct / 100) * (allCandles.length - 1)) + 1;
+  target = Math.max(1, Math.min(target, allCandles.length));
+  displayBar = target;
+  candleSeries.setData(allCandles.slice(0, displayBar));
+  chartObj.timeScale().scrollToRealTime();
+  removeAllLines();
+  syncCurrentBar();
+  updateProgressBar();
+}
+
+function loadData() {
   var date = document.getElementById('date-pick').value;
   if (!date) { setStatus('Pick a date first', 'err'); return; }
 
@@ -381,6 +464,7 @@ async function loadData() {
       document.getElementById('tn-price').textContent = 'NQ ' + cur.close.toFixed(2);
     }
 
+    updateProgressBar();
     updateBarCounter();
     setStatus(allCandles.length + ' bars loaded', 'ok');
     setRBtns(true);
@@ -399,6 +483,7 @@ function stepFwd(n) {
     displayBar++;
   }
   syncCurrentBar();
+  updateProgressBar();
 }
 
 function stepBack(n) {
@@ -406,6 +491,7 @@ function stepBack(n) {
   candleSeries.setData(allCandles.slice(0, displayBar));
   chartObj.timeScale().scrollToRealTime();
   syncCurrentBar();
+  updateProgressBar();
 }
 
 function resetReplay() {
@@ -416,6 +502,7 @@ function resetReplay() {
   chartObj.timeScale().fitContent();
   removeAllLines();
   syncCurrentBar();
+  updateProgressBar();
 }
 
 function syncCurrentBar() {
@@ -699,13 +786,24 @@ function setStatus(msg, type) {
 }
 
 function setRBtns(on) {
-  ['btn-reset','btn-back','btn-play','btn-s1','btn-s5','btn-s10'].forEach(function(id) {
+  ['btn-jump-start','btn-back','btn-play','btn-fwd','btn-jump-end'].forEach(function(id) {
     document.getElementById(id).disabled = !on;
   });
 }
 
+function setIvRB(iv, el) {
+  activeIv = iv;
+  document.querySelectorAll('.rb-tf-pill').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.iv === iv);
+  });
+  document.querySelectorAll('.tf-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.iv === iv);
+  });
+  if (allCandles && allCandles.length > 0) loadData();
+}
+
 function updateBarCounter() {
-  document.getElementById('bar-counter').textContent = 'Bar ' + displayBar + ' / ' + allCandles.length;
+  document.getElementById('bar-counter').textContent = displayBar + ' / ' + allCandles.length;
 }
 
 // ── KEYBOARD SHORTCUTS ──
