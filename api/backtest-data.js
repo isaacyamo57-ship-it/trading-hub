@@ -39,7 +39,7 @@ module.exports = async (req, res) => {
 
   try {
     const data = await fetchJson(url);
-    const result = data.chart.result[0];
+    const result = (data.chart.result || [])[0];
     if (!result) return res.status(404).json({ error: 'No data from Yahoo Finance' });
 
     const timestamps = result.timestamp || [];
