@@ -35,11 +35,11 @@ module.exports = async (req, res) => {
   const fetchIv = needsAggregate ? '60m' : yahooInterval(interval);
 
   const url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + YAHOO_SYMBOL +
-    '?interval=' + fetchIv + '&range=3mo&includePrePost=false';
+    '?interval=' + fetchIv + '&range=60d&includePrePost=false';
 
   try {
     const data = await fetchJson(url);
-    const result = (data.chart.result || [])[0];
+    const result = data.chart.result[0];
     if (!result) return res.status(404).json({ error: 'No data from Yahoo Finance' });
 
     const timestamps = result.timestamp || [];
