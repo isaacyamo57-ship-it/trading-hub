@@ -1965,8 +1965,8 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
                 <label class="fl" style="margin:0;">Pre-trade Bias / Plan</label>
                 <div style="display:flex;gap:6px;align-items:center;">
-                  <button class="voice-btn" id="micBias" onclick="startVoice('fPreBias','micBias')" title="Speak your bias">🎙️</button>
-                  <button class="ai-draft-btn" onclick="aiDraft('bias')" title="AI draft from trade data">✨ AI Draft</button>
+                  <button type="button" class="voice-btn" id="micBias" onclick="startVoice('fPreBias','micBias')" title="Speak your bias">🎙️</button>
+                  <button type="button" class="ai-draft-btn" onclick="aiDraft('bias')" title="AI draft from trade data">✨ AI Draft</button>
                 </div>
               </div>
               <textarea class="fi" id="fPreBias" placeholder="HTF bias, draw on liquidity, what you were expecting..." style="min-height:80px;"></textarea>
@@ -1974,8 +1974,8 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                   <div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);">✨ AI Draft</div>
                   <div style="display:flex;gap:6px;">
-                    <button onclick="acceptDraft('fPreBias','aiDraftBias')" style="font-family:DM Mono,monospace;font-size:10px;background:var(--gold);color:#1a1a1a;border:none;border-radius:5px;padding:4px 10px;cursor:pointer;font-weight:700;">Use this</button>
-                    <button onclick="document.getElementById('aiDraftBias').style.display='none'" style="font-family:DM Mono,monospace;font-size:10px;background:var(--bg4);color:var(--muted);border:none;border-radius:5px;padding:4px 10px;cursor:pointer;">Dismiss</button>
+                    <button type="button" onclick="acceptDraft('fPreBias','aiDraftBias')" style="font-family:DM Mono,monospace;font-size:10px;background:var(--gold);color:#1a1a1a;border:none;border-radius:5px;padding:4px 10px;cursor:pointer;font-weight:700;">Use this</button>
+                    <button type="button" onclick="document.getElementById('aiDraftBias').style.display='none'" style="font-family:DM Mono,monospace;font-size:10px;background:var(--bg4);color:var(--muted);border:none;border-radius:5px;padding:4px 10px;cursor:pointer;">Dismiss</button>
                   </div>
                 </div>
                 <div id="aiDraftBiasText" style="font-family:DM Mono,monospace;font-size:11px;color:var(--text2);line-height:1.6;white-space:pre-wrap;"></div>
@@ -1987,8 +1987,8 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
                 <label class="fl" style="margin:0;">Notes / Mistakes / Emotions</label>
                 <div style="display:flex;gap:6px;align-items:center;">
-                  <button class="voice-btn" id="micNotes" onclick="startVoice('fNotes','micNotes')" title="Speak your notes">🎙️</button>
-                  <button class="ai-draft-btn" onclick="aiDraft('notes')" title="AI draft from trade data">✨ AI Draft</button>
+                  <button type="button" class="voice-btn" id="micNotes" onclick="startVoice('fNotes','micNotes')" title="Speak your notes">🎙️</button>
+                  <button type="button" class="ai-draft-btn" onclick="aiDraft('notes')" title="AI draft from trade data">✨ AI Draft</button>
                 </div>
               </div>
               <textarea class="fi" id="fNotes" placeholder="What happened? Tilt? What went right or wrong?" style="min-height:80px;"></textarea>
@@ -1996,8 +1996,8 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                   <div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);">✨ AI Draft</div>
                   <div style="display:flex;gap:6px;">
-                    <button onclick="acceptDraft('fNotes','aiDraftNotes')" style="font-family:DM Mono,monospace;font-size:10px;background:var(--gold);color:#1a1a1a;border:none;border-radius:5px;padding:4px 10px;cursor:pointer;font-weight:700;">Use this</button>
-                    <button onclick="document.getElementById('aiDraftNotes').style.display='none'" style="font-family:DM Mono,monospace;font-size:10px;background:var(--bg4);color:var(--muted);border:none;border-radius:5px;padding:4px 10px;cursor:pointer;">Dismiss</button>
+                    <button type="button" onclick="acceptDraft('fNotes','aiDraftNotes')" style="font-family:DM Mono,monospace;font-size:10px;background:var(--gold);color:#1a1a1a;border:none;border-radius:5px;padding:4px 10px;cursor:pointer;font-weight:700;">Use this</button>
+                    <button type="button" onclick="document.getElementById('aiDraftNotes').style.display='none'" style="font-family:DM Mono,monospace;font-size:10px;background:var(--bg4);color:var(--muted);border:none;border-radius:5px;padding:4px 10px;cursor:pointer;">Dismiss</button>
                   </div>
                 </div>
                 <div id="aiDraftNotesText" style="font-family:DM Mono,monospace;font-size:11px;color:var(--text2);line-height:1.6;white-space:pre-wrap;"></div>
@@ -2898,6 +2898,92 @@ function stopVoice() {
   _voiceBtnId = null;
 }
 
+// ── API KEY MANAGER (multi-slot key swapping) ──
+// Stored in localStorage as { keys: [{name, key}], active: 0 }
+// Active key is sent with /api/draft requests via x-user-api-key header.
+// Backend prefers user-supplied key, falls back to env var if absent.
+
+function loadApiKeys() {
+  try {
+    const raw = localStorage.getItem('nq_api_keys');
+    if (!raw) return { keys: [], active: -1 };
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed.keys)) parsed.keys = [];
+    if (typeof parsed.active !== 'number') parsed.active = -1;
+    return parsed;
+  } catch(e) {
+    return { keys: [], active: -1 };
+  }
+}
+
+function saveApiKeys(state) {
+  try { localStorage.setItem('nq_api_keys', JSON.stringify(state)); } catch(e) {}
+}
+
+function getActiveApiKey() {
+  const s = loadApiKeys();
+  if (s.active < 0 || !s.keys[s.active]) return '';
+  return s.keys[s.active].key || '';
+}
+
+function getActiveApiKeyName() {
+  const s = loadApiKeys();
+  if (s.active < 0 || !s.keys[s.active]) return '';
+  return s.keys[s.active].name || '';
+}
+
+function addApiKey() {
+  const nameEl = document.getElementById('newApiKeyName');
+  const keyEl = document.getElementById('newApiKeyValue');
+  if (!nameEl || !keyEl) return;
+  const name = nameEl.value.trim();
+  const key = keyEl.value.trim();
+  if (!name || !key) { alert('Both name and key are required.'); return; }
+  if (!key.startsWith('sk-')) {
+    if (!confirm('That doesn\'t look like an Anthropic API key (should start with "sk-"). Save anyway?')) return;
+  }
+  const s = loadApiKeys();
+  s.keys.push({ name: name, key: key });
+  // If this is the first key, make it active
+  if (s.active < 0) s.active = 0;
+  saveApiKeys(s);
+  nameEl.value = '';
+  keyEl.value = '';
+  renderSettings();
+}
+
+function setActiveApiKey(idx) {
+  const s = loadApiKeys();
+  if (idx < 0 || idx >= s.keys.length) return;
+  s.active = idx;
+  saveApiKeys(s);
+  renderSettings();
+}
+
+function deleteApiKey(idx) {
+  if (!confirm('Delete this API key?')) return;
+  const s = loadApiKeys();
+  s.keys.splice(idx, 1);
+  // Adjust active index
+  if (s.active === idx) s.active = s.keys.length > 0 ? 0 : -1;
+  else if (s.active > idx) s.active -= 1;
+  saveApiKeys(s);
+  renderSettings();
+}
+
+function clearActiveApiKey() {
+  const s = loadApiKeys();
+  s.active = -1;
+  saveApiKeys(s);
+  renderSettings();
+}
+
+// Mask a key for display: sk-ant-api03-...XYZ
+function maskApiKey(key) {
+  if (!key || key.length < 12) return '••••••••';
+  return key.slice(0, 11) + '…' + key.slice(-4);
+}
+
 // ── AI DRAFT ──
 async function aiDraft(type) {
   // Gather current form state
@@ -2951,21 +3037,45 @@ async function aiDraft(type) {
     + (type === 'notes' && notes ? '\n\nPartial notes already written: ' + notes : '');
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    // Get the active API key from settings (if user has saved any)
+    const userKey = getActiveApiKey();
+    const headers = { 'Content-Type': 'application/json' };
+    if (userKey) headers['x-user-api-key'] = userKey;
+
+    const resp = await fetch('/api/draft', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: headers,
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 400,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userMsg }]
+        type: type,
+        tradeContext: tradeContext,
+        existingBias: type === 'notes' ? preBias : '',
+        existingNotes: type === 'notes' ? notes : ''
       })
     });
-    const data = await resp.json();
-    const text = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text.trim() : 'Could not generate draft.';
+    const data = await resp.json().catch(function() { return {}; });
+    if (!resp.ok) {
+      // Surface specific error types so the user knows what to do
+      const detail = (data && (data.detail || data.error)) || '';
+      const detailStr = typeof detail === 'string' ? detail : JSON.stringify(detail);
+      if (resp.status === 404) {
+        textEl.textContent = '⚠️ /api/draft endpoint not found. Deploy api/draft.js to Vercel.';
+      } else if (detailStr.toLowerCase().includes('credit') || detailStr.toLowerCase().includes('balance') || detailStr.toLowerCase().includes('billing')) {
+        const activeName = getActiveApiKeyName();
+        textEl.textContent = '💳 API credit balance is too low' + (activeName ? ' on key "' + activeName + '"' : '') + '.\n\nGo to Settings → API Keys to switch to another key, or top up at https://console.anthropic.com/settings/billing';
+      } else if (resp.status === 401 || detailStr.toLowerCase().includes('api_key') || detailStr.toLowerCase().includes('authentication') || detailStr.toLowerCase().includes('invalid')) {
+        textEl.textContent = '🔑 API key invalid.\n\nGo to Settings → API Keys to add or switch keys.';
+      } else if (resp.status === 429) {
+        textEl.textContent = '⏱️ Rate limited. Wait a moment and try again.';
+      } else {
+        textEl.textContent = '⚠️ Backend error (' + resp.status + ').\n\n' + (detailStr || 'No details from server.');
+      }
+      return;
+    }
+    const text = data.draft || 'Could not generate draft.';
     textEl.textContent = text;
   } catch(err) {
-    textEl.textContent = 'Error generating draft. Check your connection.';
+    console.error('AI draft error:', err);
+    textEl.textContent = '⚠️ Network error. Cannot reach /api/draft.\n\nIs the journal hosted on Vercel? (Voice 🎙️ works without backend.)';
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '✨ AI Draft'; }
   }
@@ -6038,6 +6148,57 @@ function renderSettings() {
     html += '<div style="' + f.style + 'font-size:22px;color:' + (active ? 'var(--gold)' : 'var(--text2)') + ';">' + f.sample + '</div>';
     html += '</div>';
   });
+  html += '</div>';
+  html += '</div>';
+
+  // ── 0c. API KEYS (multi-slot) ──
+  const apiState = loadApiKeys();
+  html += '<div class="card" style="padding:18px 22px;grid-column:span 2;">';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);">🔑 Anthropic API Keys</div>';
+  html += '<a href="https://console.anthropic.com/settings/keys" target="_blank" style="font-family:DM Mono,monospace;font-size:9px;color:var(--muted);text-decoration:none;">Get a key ↗</a>';
+  html += '</div>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;">Save & Switch Keys On The Fly</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Add multiple keys (different accounts, free trial keys, friends\' keys). When one runs out of credits, just tap another to switch — no Vercel redeploy needed. Keys are stored locally in your browser only and sent over HTTPS to your own backend.</div>';
+
+  // Saved keys list
+  if (apiState.keys.length === 0) {
+    html += '<div style="background:var(--bg3);border:1px dashed var(--border);border-radius:8px;padding:14px;text-align:center;font-family:DM Mono,monospace;font-size:10px;color:var(--muted);font-style:italic;margin-bottom:14px;">No keys saved yet — using the Vercel env var key as fallback.</div>';
+  } else {
+    html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">';
+    apiState.keys.forEach(function(k, i) {
+      const isActive = i === apiState.active;
+      html += '<div style="display:flex;align-items:center;gap:10px;background:' + (isActive ? 'var(--gold-dim)' : 'var(--bg3)') + ';border:1px solid ' + (isActive ? 'var(--gold-border)' : 'var(--border)') + ';border-radius:8px;padding:10px 14px;">';
+      // Active indicator
+      html += '<div style="width:8px;height:8px;border-radius:50%;background:' + (isActive ? 'var(--win)' : 'var(--muted)') + ';flex-shrink:0;"></div>';
+      // Name + masked key
+      html += '<div style="flex:1;min-width:0;">';
+      html += '<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:700;color:' + (isActive ? 'var(--gold)' : 'var(--text)') + ';">' + (k.name || 'Unnamed') + (isActive ? ' · ACTIVE' : '') + '</div>';
+      html += '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:0.05em;">' + maskApiKey(k.key) + '</div>';
+      html += '</div>';
+      // Actions
+      if (!isActive) {
+        html += '<button type="button" onclick="setActiveApiKey(' + i + ')" style="font-family:DM Mono,monospace;font-size:10px;background:var(--gold);color:#1a1a1a;border:none;border-radius:5px;padding:6px 12px;cursor:pointer;font-weight:700;">Use this</button>';
+      }
+      html += '<button type="button" onclick="deleteApiKey(' + i + ')" title="Delete key" style="font-family:DM Mono,monospace;font-size:14px;background:var(--bg4);color:var(--loss);border:none;border-radius:5px;padding:6px 10px;cursor:pointer;line-height:1;">×</button>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    // Clear active selection (fall back to env var)
+    if (apiState.active >= 0) {
+      html += '<button type="button" onclick="clearActiveApiKey()" style="font-family:DM Mono,monospace;font-size:10px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:5px;padding:6px 12px;cursor:pointer;margin-bottom:14px;">Clear active · use Vercel env var instead</button>';
+    }
+  }
+
+  // Add new key form
+  html += '<div style="border-top:1px solid var(--border);padding-top:14px;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">+ Add a new key</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 2fr auto;gap:8px;align-items:stretch;">';
+  html += '<input type="text" class="fi" id="newApiKeyName" placeholder="Name (e.g. Main, Backup)" style="font-family:Syne,sans-serif;font-size:13px;">';
+  html += '<input type="password" class="fi" id="newApiKeyValue" placeholder="sk-ant-api03-..." style="font-family:DM Mono,monospace;font-size:11px;letter-spacing:0.05em;">';
+  html += '<button type="button" class="save-btn" onclick="addApiKey()" style="width:auto;flex-shrink:0;padding:0 18px;font-size:11px;">+ Save</button>';
+  html += '</div>';
   html += '</div>';
   html += '</div>';
 
