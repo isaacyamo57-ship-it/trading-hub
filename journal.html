@@ -709,6 +709,43 @@ body {
   flex: 1;
 }
 
+/* Voice + AI draft buttons on textarea fields */
+.voice-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1;
+}
+.voice-btn:hover { border-color: var(--gold-border); background: var(--bg4); }
+.voice-btn.recording {
+  background: rgba(231,76,60,0.15);
+  border-color: rgba(231,76,60,0.5);
+  animation: pulse-rec 1s infinite;
+}
+@keyframes pulse-rec {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.ai-draft-btn {
+  background: var(--bg3);
+  border: 1px solid var(--gold-border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--gold);
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1.4;
+}
+.ai-draft-btn:hover { background: var(--gold-dim); }
+.ai-draft-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 /* Mobile: collapse to 1-column */
 @media (max-width: 720px) {
   .tz-row-3, .tz-row-2 {
@@ -1923,8 +1960,49 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.35); }
                 <div class="tg" onclick="togM(this)" data-v="Skipped checklist">Skipped checklist</div>
               </div>
             </div>
-            <div class="fb" style="margin-bottom:12px;"><label class="fl">Pre-trade Bias / Plan</label><textarea class="fi" id="fPreBias" placeholder="HTF bias, draw on liquidity, what you were expecting..."></textarea></div>
-            <div class="fb"><label class="fl">Notes / Mistakes / Emotions</label><textarea class="fi" id="fNotes" placeholder="What happened? Tilt? What went right or wrong?"></textarea></div>
+            <!-- Pre-trade Bias / Plan — voice + AI draft -->
+            <div class="fb" style="margin-bottom:12px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <label class="fl" style="margin:0;">Pre-trade Bias / Plan</label>
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <button class="voice-btn" id="micBias" onclick="startVoice('fPreBias','micBias')" title="Speak your bias">🎙️</button>
+                  <button class="ai-draft-btn" onclick="aiDraft('bias')" title="AI draft from trade data">✨ AI Draft</button>
+                </div>
+              </div>
+              <textarea class="fi" id="fPreBias" placeholder="HTF bias, draw on liquidity, what you were expecting..." style="min-height:80px;"></textarea>
+              <div id="aiDraftBias" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--gold-border);border-radius:8px;padding:12px 14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                  <div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);">✨ AI Draft</div>
+                  <div style="display:flex;gap:6px;">
+                    <button onclick="acceptDraft('fPreBias','aiDraftBias')" style="font-family:DM Mono,monospace;font-size:10px;background:var(--gold);color:#1a1a1a;border:none;border-radius:5px;padding:4px 10px;cursor:pointer;font-weight:700;">Use this</button>
+                    <button onclick="document.getElementById('aiDraftBias').style.display='none'" style="font-family:DM Mono,monospace;font-size:10px;background:var(--bg4);color:var(--muted);border:none;border-radius:5px;padding:4px 10px;cursor:pointer;">Dismiss</button>
+                  </div>
+                </div>
+                <div id="aiDraftBiasText" style="font-family:DM Mono,monospace;font-size:11px;color:var(--text2);line-height:1.6;white-space:pre-wrap;"></div>
+              </div>
+            </div>
+
+            <!-- Notes / Mistakes / Emotions — voice + AI draft -->
+            <div class="fb">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <label class="fl" style="margin:0;">Notes / Mistakes / Emotions</label>
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <button class="voice-btn" id="micNotes" onclick="startVoice('fNotes','micNotes')" title="Speak your notes">🎙️</button>
+                  <button class="ai-draft-btn" onclick="aiDraft('notes')" title="AI draft from trade data">✨ AI Draft</button>
+                </div>
+              </div>
+              <textarea class="fi" id="fNotes" placeholder="What happened? Tilt? What went right or wrong?" style="min-height:80px;"></textarea>
+              <div id="aiDraftNotes" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--gold-border);border-radius:8px;padding:12px 14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                  <div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);">✨ AI Draft</div>
+                  <div style="display:flex;gap:6px;">
+                    <button onclick="acceptDraft('fNotes','aiDraftNotes')" style="font-family:DM Mono,monospace;font-size:10px;background:var(--gold);color:#1a1a1a;border:none;border-radius:5px;padding:4px 10px;cursor:pointer;font-weight:700;">Use this</button>
+                    <button onclick="document.getElementById('aiDraftNotes').style.display='none'" style="font-family:DM Mono,monospace;font-size:10px;background:var(--bg4);color:var(--muted);border:none;border-radius:5px;padding:4px 10px;cursor:pointer;">Dismiss</button>
+                  </div>
+                </div>
+                <div id="aiDraftNotesText" style="font-family:DM Mono,monospace;font-size:11px;color:var(--text2);line-height:1.6;white-space:pre-wrap;"></div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -2746,6 +2824,162 @@ function oLink(fid, e) {
 }
 
 // ── SAVE TRADE ──
+// ── VOICE-TO-TEXT ──
+let _voiceRecognition = null;
+let _voiceTarget = null;
+let _voiceBtnId = null;
+
+function startVoice(targetId, btnId) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert('Voice input is not supported in this browser. Try Chrome.');
+    return;
+  }
+
+  // If already recording, stop it
+  if (_voiceRecognition && _voiceTarget === targetId) {
+    _voiceRecognition.stop();
+    return;
+  }
+
+  // Stop any existing session first
+  if (_voiceRecognition) _voiceRecognition.stop();
+
+  const btn = document.getElementById(btnId);
+  const textarea = document.getElementById(targetId);
+  if (!btn || !textarea) return;
+
+  btn.classList.add('recording');
+  btn.textContent = '⏹️';
+  _voiceTarget = targetId;
+  _voiceBtnId = btnId;
+
+  const rec = new SpeechRecognition();
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.lang = 'en-GB';
+  _voiceRecognition = rec;
+
+  let finalText = textarea.value;
+  const baseLength = finalText.length;
+
+  rec.onresult = function(e) {
+    let interim = '';
+    let final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    if (final) {
+      finalText = (finalText + (finalText.length > 0 ? ' ' : '') + final).trim();
+    }
+    textarea.value = finalText + (interim ? ' ' + interim : '');
+  };
+
+  rec.onerror = function(e) {
+    console.error('Voice error:', e.error);
+    stopVoice();
+  };
+
+  rec.onend = function() {
+    stopVoice();
+  };
+
+  rec.start();
+}
+
+function stopVoice() {
+  if (_voiceBtnId) {
+    const btn = document.getElementById(_voiceBtnId);
+    if (btn) { btn.classList.remove('recording'); btn.textContent = '🎙️'; }
+  }
+  _voiceRecognition = null;
+  _voiceTarget = null;
+  _voiceBtnId = null;
+}
+
+// ── AI DRAFT ──
+async function aiDraft(type) {
+  // Gather current form state
+  const date     = document.getElementById('fDate')?.value || new Date().toISOString().slice(0,10);
+  const session  = document.getElementById('fSession')?.value || '';
+  const dir      = document.querySelector('#fDir .on')?.dataset.v || '';
+  const result   = document.querySelector('#fResult .on')?.dataset.v || '';
+  const grade    = document.querySelector('#fGrade .on')?.dataset.v || '';
+  const exec     = document.querySelector('#fExec .on')?.dataset.v || '';
+  const rules    = document.querySelector('#fRules .on')?.dataset.v || '';
+  const emotion  = document.querySelector('#fEmotion .on')?.dataset.v || '';
+  const biasTrend = document.querySelector('#fBiasTrend .on')?.dataset.v || '';
+  const poi      = Array.from(document.querySelectorAll('#fPOI .on')).map(function(e) { return e.dataset.v; }).join(', ');
+  const mistakes = Array.from(document.querySelectorAll('#fMistakes .on')).map(function(e) { return e.dataset.v; }).join(', ');
+  const rm       = document.getElementById('fRM')?.value || '';
+  const preBias  = document.getElementById('fPreBias')?.value || '';
+  const notes    = document.getElementById('fNotes')?.value || '';
+
+  const draftEl  = document.getElementById(type === 'bias' ? 'aiDraftBias' : 'aiDraftNotes');
+  const textEl   = document.getElementById(type === 'bias' ? 'aiDraftBiasText' : 'aiDraftNotesText');
+  const btn      = document.querySelector('[onclick="aiDraft(\'' + type + '\')"]');
+
+  if (!draftEl || !textEl) return;
+
+  // Show loading state
+  draftEl.style.display = 'block';
+  textEl.textContent = 'Drafting…';
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Drafting…'; }
+
+  const tradeContext = [
+    'Date: ' + date,
+    'Session: ' + (session || 'NYAM'),
+    'Direction: ' + (dir || 'unknown'),
+    'Result: ' + (result || 'unknown'),
+    'Grade: ' + (grade || 'ungraded'),
+    'Execution: ' + (exec || 'unknown'),
+    'Rules followed: ' + (rules || 'unknown'),
+    'Emotion: ' + (emotion || 'neutral'),
+    'HTF Bias: ' + (biasTrend || 'unknown'),
+    'POI used: ' + (poi || 'none tagged'),
+    'Mistakes tagged: ' + (mistakes || 'none'),
+    'R multiple: ' + (rm || '0') + 'R',
+  ].join('\n');
+
+  const systemPrompt = type === 'bias'
+    ? 'You are an ICT 2022 trading journal assistant for an NQ futures trader. Generate a concise pre-trade bias and plan entry (3-6 lines) based on the trade data. Use ICT concepts: HTF bias, draw on liquidity, FVG, IFVG, displacement, MSS, CISD. Write in first person, past tense. Be specific and clinical. No fluff. Return only the journal text, no headings or markdown.'
+    : 'You are an ICT 2022 trading journal assistant for an NQ futures trader. Generate a concise post-trade notes entry (4-8 lines) covering: what happened, execution quality, emotional state, key lesson. Reference the mistakes and result. Write in first person. Be honest and analytical. Return only the journal text, no headings or markdown.';
+
+  const userMsg = 'Trade data:\n' + tradeContext
+    + (type === 'notes' && preBias ? '\n\nPre-trade bias written: ' + preBias : '')
+    + (type === 'notes' && notes ? '\n\nPartial notes already written: ' + notes : '');
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 400,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMsg }]
+      })
+    });
+    const data = await resp.json();
+    const text = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text.trim() : 'Could not generate draft.';
+    textEl.textContent = text;
+  } catch(err) {
+    textEl.textContent = 'Error generating draft. Check your connection.';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '✨ AI Draft'; }
+  }
+}
+
+// Accept AI draft into the textarea
+function acceptDraft(targetId, draftId) {
+  const textarea = document.getElementById(targetId);
+  const textEl   = document.getElementById(draftId + 'Text');
+  if (!textarea || !textEl) return;
+  textarea.value = textEl.textContent;
+  document.getElementById(draftId).style.display = 'none';
+}
+
 function saveTrade() {
   const date = document.getElementById('fDate').value;
   const result = getT('fResult');
