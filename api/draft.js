@@ -1,16 +1,15 @@
 // Vercel serverless function: POST /api/draft
-// Generates ICT-style trade journal drafts.
+// Multi-provider: Anthropic, DeepSeek, OpenAI, Groq, Gemini
 //
-// API key resolution (in order):
-//   1. x-user-api-key header (user-supplied key from journal Settings)
-//   2. ANTHROPIC_API_KEY env var (Vercel fallback)
-//
-// Deploy: drop this file at `api/draft.js` in your trading-hub repo, push to GitHub.
+// Reads x-user-api-key + x-user-provider headers from the journal Settings.
+// Falls back to ANTHROPIC_API_KEY env var if no user key is sent.
+
+const { callAI, resolveProvider } = require('./_lib/aiProvider');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-user-api-key');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-user-api-key, x-user-provider');
 
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
   if (req.method !== 'POST')   { res.status(405).json({ error: 'Method not allowed' }); return; }
@@ -23,11 +22,7 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    // Resolve API key: user-supplied (from journal Settings) > env var
-    const userKey = req.headers['x-user-api-key'];
-    const apiKey = (userKey && typeof userKey === 'string' && userKey.length > 0)
-      ? userKey
-      : process.env.ANTHROPIC_API_KEY;
+    const { provider, apiKey, source } = resolveProvider(req);
 
     if (!apiKey) {
       res.status(500).json({
@@ -45,41 +40,26 @@ module.exports = async function handler(req, res) {
       + (type === 'notes' && existingBias ? '\n\nPre-trade bias the trader already wrote:\n' + existingBias : '')
       + (type === 'notes' && existingNotes ? '\n\nPartial notes already written:\n' + existingNotes : '');
 
-    const apiResp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 600,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userMsg }]
-      })
+    const draft = await callAI({
+      provider: provider,
+      apiKey: apiKey,
+      system: systemPrompt,
+      user: userMsg,
+      maxTokens: 600
     });
 
-    if (!apiResp.ok) {
-      const errText = await apiResp.text();
-      console.error('Anthropic API error:', apiResp.status, errText);
-      res.status(apiResp.status).json({ error: 'Anthropic API error', detail: errText });
-      return;
-    }
-
-    const data = await apiResp.json();
-    const draft = (data.content && data.content[0] && data.content[0].text)
-      ? data.content[0].text.trim()
-      : '';
-
-    if (!draft) {
+    if (!draft || !draft.trim()) {
       res.status(500).json({ error: 'No draft returned from model' });
       return;
     }
 
-    res.status(200).json({ draft: draft, model: data.model });
+    res.status(200).json({ draft: draft.trim(), provider: provider });
   } catch (err) {
     console.error('Draft handler error:', err);
-    res.status(500).json({ error: 'Server error', detail: String(err && err.message || err) });
+    const status = err.status || 500;
+    res.status(status).json({
+      error: err.message || 'Server error',
+      detail: err.detail || String(err)
+    });
   }
 };
