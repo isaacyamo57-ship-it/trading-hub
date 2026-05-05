@@ -622,6 +622,44 @@ function tick(){
 }
 setInterval(tick,1000);tick();
 
+/* ── NQ LIVE PRICE ──
+   Fetches /api/price (server-side proxy to Yahoo + Stooq fallback).
+   Direct Yahoo calls fail in browser due to CORS; that's why this is proxied. */
+let _nqLast=null,_nqInFlight=false,_nqTimer=null;
+async function fetchNQPrice(){
+  if(_nqInFlight) return;
+  _nqInFlight=true;
+  try{
+    const r=await fetch('/api/price?symbol=NQ=F',{cache:'no-store'});
+    if(!r.ok) throw new Error('http '+r.status);
+    const q=await r.json();
+    if(typeof q.price!=='number') throw new Error('bad payload');
+    const el=document.getElementById('nq-price');
+    if(!el) return;
+    const txt=q.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const chg=q.change||0, chgPct=q.changePct||0;
+    const sign=chg>=0?'+':'';
+    el.innerHTML=txt+' <span style="color:'+(chg>=0?'var(--win)':'var(--loss)')+';font-size:0.75em;letter-spacing:0;">'+sign+chg.toFixed(1)+'</span>';
+    el.title='NQ=F · '+(q.marketState||'—')+' · '+sign+chgPct.toFixed(2)+'% · via '+(q.source||'live');
+    // Tick-flash: brief color change when price moves
+    if(_nqLast!=null && q.price!==_nqLast){
+      el.style.transition='none';
+      el.style.color=q.price>_nqLast?'var(--win)':'var(--loss)';
+      void el.offsetWidth;
+      el.style.transition='color 1.2s ease';
+      el.style.color='';
+    }
+    _nqLast=q.price;
+  }catch(e){
+    const el=document.getElementById('nq-price');
+    if(el && el.textContent==='—') el.textContent='offline';
+  }finally{_nqInFlight=false;}
+}
+function startNQ(){if(_nqTimer)clearInterval(_nqTimer);fetchNQPrice();_nqTimer=setInterval(fetchNQPrice,15000);}
+function stopNQ(){if(_nqTimer){clearInterval(_nqTimer);_nqTimer=null;}}
+document.addEventListener('visibilitychange',()=>{document.hidden?stopNQ():startNQ();});
+startNQ();
+
 /* ── NEWS ── */
 const NEWS=[
   'Fed minutes signal rates on hold through Q3',
