@@ -58,15 +58,20 @@ function parseReddit(json, sub) {
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-user-api-key');
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
 
   const NEWS_KEY    = process.env.NEWS_API_KEY;
-  const CLAUDE_KEY  = process.env.ANTHROPIC_API_KEY;
   const PERIGON_KEY = process.env.PERIGON_API_KEY;
 
+  // Resolve Anthropic API key: user-supplied (from journal Settings) > env var
+  const userKey = req.headers['x-user-api-key'];
+  const CLAUDE_KEY = (userKey && typeof userKey === 'string' && userKey.length > 0)
+    ? userKey
+    : process.env.ANTHROPIC_API_KEY;
+
   if (!CLAUDE_KEY) {
-    res.status(500).json({ error: 'ANTHROPIC_API_KEY missing in Vercel environment variables.' });
+    res.status(500).json({ error: 'No API key available. Add a key in Journal → Settings → API Keys, or set ANTHROPIC_API_KEY env var on Vercel.' });
     return;
   }
 
@@ -136,7 +141,7 @@ Output ONLY this JSON object, nothing else:
     if (aiRes._raw) {
       try { const p = JSON.parse(aiRes._raw); aiText = p?.content?.[0]?.text || ''; } catch(e) { aiText = aiRes._raw; }
     } else {
-      if (aiRes.error) { res.status(500).json({ error: 'Claude error: ' + JSON.stringify(aiRes.error) }); return; }
+      if (aiRes.error) { res.status(500).json({ error: 'Claude error: ' + JSON.stringify(aiRes.error), detail: JSON.stringify(aiRes.error) }); return; }
       aiText = aiRes?.content?.[0]?.text || '';
     }
 
