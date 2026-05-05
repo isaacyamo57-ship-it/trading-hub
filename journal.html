@@ -4372,35 +4372,92 @@ function renderQualityBreakdown(live) {
 }
 
 // ── NQ LIVE PRICE ──
-let _nqPriceFetchedAt = 0;
+// Calls /api/price (Vercel serverless proxy → Yahoo + Stooq fallback).
+// Direct Yahoo fetches fail in browser due to CORS — that's why this lives server-side.
+let _nqLastPrice = null;
+let _nqLastSuccessAt = 0;
+let _nqInFlight = false;
+let _nqTimer = null;
+
 async function updateNQPrice() {
+  if (_nqInFlight) return;
+  _nqInFlight = true;
   try {
-    // Throttle to once per 60 seconds
-    if (Date.now() - _nqPriceFetchedAt < 60000) return;
-    _nqPriceFetchedAt = Date.now();
-    // Yahoo Finance NQ futures via public endpoint (no key)
-    const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/NQ%3DF?interval=1m&range=1d');
-    if (!res.ok) return;
-    const data = await res.json();
-    const r = data.chart && data.chart.result && data.chart.result[0];
-    if (!r) return;
-    const price = r.meta.regularMarketPrice;
-    const prev = r.meta.previousClose;
-    const chg = price - prev;
-    const chgPct = (chg / prev) * 100;
+    const res = await fetch('/api/price?symbol=NQ=F', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const q = await res.json();
+    if (!q || typeof q.price !== 'number') throw new Error('bad payload');
+
     const priceEl = document.getElementById('nqLivePrice');
     const chgEl = document.getElementById('nqLiveChange');
-    if (priceEl) priceEl.textContent = price.toLocaleString('en-US', { maximumFractionDigits: 2 });
-    if (chgEl) {
-      chgEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(1) + ' (' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(2) + '%)';
-      chgEl.style.color = chg >= 0 ? 'var(--win)' : 'var(--loss)';
+    if (!priceEl || !chgEl) return;
+
+    const newPrice = q.price;
+    const formatted = newPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    priceEl.textContent = formatted;
+
+    // Flash on tick: green if up, red if down. Only if we've seen a prior price.
+    if (_nqLastPrice != null && newPrice !== _nqLastPrice) {
+      const dir = newPrice > _nqLastPrice ? 'var(--win)' : 'var(--loss)';
+      priceEl.style.transition = 'none';
+      priceEl.style.color = dir;
+      // force reflow so the next transition applies
+      void priceEl.offsetWidth;
+      priceEl.style.transition = 'color 1.2s ease';
+      priceEl.style.color = 'var(--gold)';
+    } else {
+      priceEl.style.color = 'var(--gold)';
     }
-  } catch(e) {
-    // silently fail — not critical
+    _nqLastPrice = newPrice;
+    _nqLastSuccessAt = Date.now();
+
+    const chg = q.change;
+    const chgPct = q.changePct;
+    chgEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(1) + ' (' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(2) + '%)';
+    chgEl.style.color = chg >= 0 ? 'var(--win)' : 'var(--loss)';
+    chgEl.style.opacity = '1';
+
+    // Tooltip: source + market state for debugging at a glance
+    const widget = document.getElementById('nqPriceWidget');
+    if (widget) {
+      widget.title = `NQ=F · ${q.marketState || '—'} · via ${q.source || 'live'} · prev close ${q.prevClose}`;
+    }
+  } catch (e) {
+    // Mark stale if we've gone >2min without a successful fetch
+    const chgEl = document.getElementById('nqLiveChange');
+    if (chgEl && _nqLastSuccessAt > 0 && Date.now() - _nqLastSuccessAt > 120000) {
+      chgEl.style.opacity = '0.4';
+      chgEl.textContent = (chgEl.textContent || '—') + ' · stale';
+    } else if (chgEl && _nqLastSuccessAt === 0) {
+      // Never succeeded — show explicit offline state instead of silent dash
+      const priceEl = document.getElementById('nqLivePrice');
+      if (priceEl && priceEl.textContent === '—') {
+        chgEl.textContent = 'offline';
+        chgEl.style.color = 'var(--muted)';
+        chgEl.style.opacity = '0.6';
+      }
+    }
+  } finally {
+    _nqInFlight = false;
   }
 }
-// Update on dashboard view + every 60s
-setInterval(updateNQPrice, 60000);
+
+function startNQPriceLoop() {
+  if (_nqTimer) clearInterval(_nqTimer);
+  updateNQPrice();
+  // 15s cadence — backend edge-caches at 10s so this is the right rate.
+  _nqTimer = setInterval(updateNQPrice, 15000);
+}
+function stopNQPriceLoop() {
+  if (_nqTimer) { clearInterval(_nqTimer); _nqTimer = null; }
+}
+// Pause polling when tab hidden (battery / quota saver), resume + refresh on focus
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopNQPriceLoop();
+  else startNQPriceLoop();
+});
+// Kick off immediately rather than waiting 15s for the first paint
+startNQPriceLoop();
 
 
 function renderDashChart() {
