@@ -302,6 +302,11 @@ function getActiveApiKeyName() {
   if (s.active < 0 || !s.keys[s.active]) return '';
   return s.keys[s.active].name || '';
 }
+function getActiveProvider() {
+  var s = loadApiKeys();
+  if (s.active < 0 || !s.keys[s.active]) return '';
+  return s.keys[s.active].provider || 'anthropic';
+}
 // Cycle to the next saved key — quick swap mid-session
 function cycleApiKey() {
   var s = loadApiKeys();
@@ -327,7 +332,9 @@ function updateKeyChip() {
     name.textContent = 'env (default)';
     chip.style.opacity = '0.6';
   } else {
-    name.textContent = 'KEY · ' + s.keys[s.active].name;
+    var k = s.keys[s.active];
+    var providerShort = ({anthropic:'Claude',deepseek:'DeepSeek',openai:'GPT',groq:'Groq',gemini:'Gemini'})[k.provider || 'anthropic'] || 'Claude';
+    name.textContent = providerShort + ' · ' + k.name;
     chip.style.opacity = '1';
   }
 }
@@ -398,7 +405,11 @@ async function runAnalysis() {
   try {
     var headers = {'Content-Type':'application/json'};
     var userKey = getActiveApiKey();
-    if (userKey) headers['x-user-api-key'] = userKey;
+    var userProvider = getActiveProvider();
+    if (userKey) {
+      headers['x-user-api-key'] = userKey;
+      headers['x-user-provider'] = userProvider;
+    }
     var res = await fetch('/api/analyse',{method:'POST',headers:headers,body:'{}'});
     var json = await res.json();
     stopSteps();
