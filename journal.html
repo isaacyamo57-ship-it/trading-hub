@@ -2932,19 +2932,37 @@ function getActiveApiKeyName() {
   return s.keys[s.active].name || '';
 }
 
+function getActiveProvider() {
+  const s = loadApiKeys();
+  if (s.active < 0 || !s.keys[s.active]) return '';
+  return s.keys[s.active].provider || 'anthropic';
+}
+
 function addApiKey() {
   const nameEl = document.getElementById('newApiKeyName');
   const keyEl = document.getElementById('newApiKeyValue');
+  const providerEl = document.getElementById('newApiKeyProvider');
   if (!nameEl || !keyEl) return;
   const name = nameEl.value.trim();
   const key = keyEl.value.trim();
-  if (!name || !key) { alert('Both name and key are required.'); return; }
-  if (!key.startsWith('sk-')) {
-    if (!confirm('That doesn\'t look like an Anthropic API key (should start with "sk-"). Save anyway?')) return;
+  const provider = providerEl ? providerEl.value : 'anthropic';
+  if (!name || !key) { alert('Name and key are required.'); return; }
+
+  // Light-touch validation per provider — confirm if format looks off
+  const providerHints = {
+    anthropic: { prefix: 'sk-ant-', label: 'Anthropic key (sk-ant-...)' },
+    openai:    { prefix: 'sk-',     label: 'OpenAI key (sk-...)' },
+    deepseek:  { prefix: 'sk-',     label: 'DeepSeek key (sk-...)' },
+    groq:      { prefix: 'gsk_',    label: 'Groq key (gsk_...)' },
+    gemini:    { prefix: 'AIza',    label: 'Gemini / Google AI key (AIza...)' }
+  };
+  const hint = providerHints[provider];
+  if (hint && !key.startsWith(hint.prefix)) {
+    if (!confirm('That doesn\'t look like a ' + hint.label + '. Save anyway?')) return;
   }
+
   const s = loadApiKeys();
-  s.keys.push({ name: name, key: key });
-  // If this is the first key, make it active
+  s.keys.push({ name: name, key: key, provider: provider });
   if (s.active < 0) s.active = 0;
   saveApiKeys(s);
   nameEl.value = '';
@@ -3037,10 +3055,14 @@ async function aiDraft(type) {
     + (type === 'notes' && notes ? '\n\nPartial notes already written: ' + notes : '');
 
   try {
-    // Get the active API key from settings (if user has saved any)
+    // Get the active API key + provider from settings
     const userKey = getActiveApiKey();
+    const userProvider = getActiveProvider();
     const headers = { 'Content-Type': 'application/json' };
-    if (userKey) headers['x-user-api-key'] = userKey;
+    if (userKey) {
+      headers['x-user-api-key'] = userKey;
+      headers['x-user-provider'] = userProvider;
+    }
 
     const resp = await fetch('/api/draft', {
       method: 'POST',
@@ -6151,26 +6173,41 @@ function renderSettings() {
   html += '</div>';
   html += '</div>';
 
-  // ── 0c. API KEYS (multi-slot) ──
+  // ── 0c. API KEYS (multi-slot, multi-provider) ──
   const apiState = loadApiKeys();
+  const PROVIDERS = {
+    anthropic: { label: 'Anthropic',  short: 'Claude',   color: '#c9a84c', url: 'https://console.anthropic.com/settings/keys' },
+    deepseek:  { label: 'DeepSeek',   short: 'DeepSeek', color: '#5d8fc4', url: 'https://platform.deepseek.com/api_keys' },
+    openai:    { label: 'OpenAI',     short: 'GPT',      color: '#5cb88a', url: 'https://platform.openai.com/api-keys' },
+    groq:      { label: 'Groq',       short: 'Groq',     color: '#f55036', url: 'https://console.groq.com/keys' },
+    gemini:    { label: 'Google AI',  short: 'Gemini',   color: '#9c8fff', url: 'https://aistudio.google.com/apikey' }
+  };
+
   html += '<div class="card" style="padding:18px 22px;grid-column:span 2;">';
-  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">';
-  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);">🔑 Anthropic API Keys</div>';
-  html += '<a href="https://console.anthropic.com/settings/keys" target="_blank" style="font-family:DM Mono,monospace;font-size:9px;color:var(--muted);text-decoration:none;">Get a key ↗</a>';
-  html += '</div>';
-  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;">Save & Switch Keys On The Fly</div>';
-  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Add multiple keys (different accounts, free trial keys, friends\' keys). When one runs out of credits, just tap another to switch — no Vercel redeploy needed. Keys are stored locally in your browser only and sent over HTTPS to your own backend.</div>';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px;">';
+  html += '<div style="font-family:Fragment Mono,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);">🔑 AI Provider Keys</div>';
+  html += '<div style="display:flex;gap:8px;font-family:DM Mono,monospace;font-size:9px;">';
+  Object.keys(PROVIDERS).forEach(function(p) {
+    html += '<a href="' + PROVIDERS[p].url + '" target="_blank" style="color:' + PROVIDERS[p].color + ';text-decoration:none;opacity:0.7;">' + PROVIDERS[p].short + ' ↗</a>';
+  });
+  html += '</div></div>';
+  html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;">Multi-Provider Key Manager</div>';
+  html += '<div style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Add keys from any supported provider. When one runs out of credits, just tap another to switch — the backend routes to the right API automatically. Keys stay in your browser only.</div>';
 
   // Saved keys list
   if (apiState.keys.length === 0) {
-    html += '<div style="background:var(--bg3);border:1px dashed var(--border);border-radius:8px;padding:14px;text-align:center;font-family:DM Mono,monospace;font-size:10px;color:var(--muted);font-style:italic;margin-bottom:14px;">No keys saved yet — using the Vercel env var key as fallback.</div>';
+    html += '<div style="background:var(--bg3);border:1px dashed var(--border);border-radius:8px;padding:14px;text-align:center;font-family:DM Mono,monospace;font-size:10px;color:var(--muted);font-style:italic;margin-bottom:14px;">No keys saved — falling back to Vercel env var (Anthropic).</div>';
   } else {
     html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">';
     apiState.keys.forEach(function(k, i) {
       const isActive = i === apiState.active;
+      const providerKey = k.provider || 'anthropic';
+      const provider = PROVIDERS[providerKey] || PROVIDERS.anthropic;
       html += '<div style="display:flex;align-items:center;gap:10px;background:' + (isActive ? 'var(--gold-dim)' : 'var(--bg3)') + ';border:1px solid ' + (isActive ? 'var(--gold-border)' : 'var(--border)') + ';border-radius:8px;padding:10px 14px;">';
       // Active indicator
       html += '<div style="width:8px;height:8px;border-radius:50%;background:' + (isActive ? 'var(--win)' : 'var(--muted)') + ';flex-shrink:0;"></div>';
+      // Provider badge
+      html += '<div style="font-family:DM Mono,monospace;font-size:9px;font-weight:700;color:' + provider.color + ';background:' + provider.color + '22;border:1px solid ' + provider.color + '44;padding:3px 7px;border-radius:4px;letter-spacing:0.05em;text-transform:uppercase;flex-shrink:0;">' + provider.short + '</div>';
       // Name + masked key
       html += '<div style="flex:1;min-width:0;">';
       html += '<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:700;color:' + (isActive ? 'var(--gold)' : 'var(--text)') + ';">' + (k.name || 'Unnamed') + (isActive ? ' · ACTIVE' : '') + '</div>';
@@ -6185,7 +6222,6 @@ function renderSettings() {
     });
     html += '</div>';
 
-    // Clear active selection (fall back to env var)
     if (apiState.active >= 0) {
       html += '<button type="button" onclick="clearActiveApiKey()" style="font-family:DM Mono,monospace;font-size:10px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:5px;padding:6px 12px;cursor:pointer;margin-bottom:14px;">Clear active · use Vercel env var instead</button>';
     }
@@ -6194,9 +6230,14 @@ function renderSettings() {
   // Add new key form
   html += '<div style="border-top:1px solid var(--border);padding-top:14px;">';
   html += '<div style="font-family:Fragment Mono,monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">+ Add a new key</div>';
-  html += '<div style="display:grid;grid-template-columns:1fr 2fr auto;gap:8px;align-items:stretch;">';
+  html += '<div style="display:grid;grid-template-columns:140px 1fr 2fr auto;gap:8px;align-items:stretch;">';
+  html += '<select class="fi" id="newApiKeyProvider" style="font-family:DM Mono,monospace;font-size:11px;cursor:pointer;">';
+  Object.keys(PROVIDERS).forEach(function(p) {
+    html += '<option value="' + p + '">' + PROVIDERS[p].label + '</option>';
+  });
+  html += '</select>';
   html += '<input type="text" class="fi" id="newApiKeyName" placeholder="Name (e.g. Main, Backup)" style="font-family:Syne,sans-serif;font-size:13px;">';
-  html += '<input type="password" class="fi" id="newApiKeyValue" placeholder="sk-ant-api03-..." style="font-family:DM Mono,monospace;font-size:11px;letter-spacing:0.05em;">';
+  html += '<input type="password" class="fi" id="newApiKeyValue" placeholder="Paste key here..." style="font-family:DM Mono,monospace;font-size:11px;letter-spacing:0.05em;">';
   html += '<button type="button" class="save-btn" onclick="addApiKey()" style="width:auto;flex-shrink:0;padding:0 18px;font-size:11px;">+ Save</button>';
   html += '</div>';
   html += '</div>';
