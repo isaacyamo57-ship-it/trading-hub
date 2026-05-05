@@ -3,7 +3,7 @@
 // based on user-supplied x-user-api-key + x-user-provider headers.
 
 const https = require('https');
-const { callAI, resolveProvider } = require('./_lib/aiProvider');
+const { callAI, resolveProvider } = require('../lib/aiProvider');
 
 function fetchUrl(url) {
   return new Promise((resolve) => {
