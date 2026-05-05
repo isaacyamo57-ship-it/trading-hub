@@ -4,7 +4,7 @@
 // Reads x-user-api-key + x-user-provider headers from the journal Settings.
 // Falls back to ANTHROPIC_API_KEY env var if no user key is sent.
 
-const { callAI, resolveProvider } = require('./_lib/aiProvider');
+const { callAI, resolveProvider } = require('../lib/aiProvider');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
