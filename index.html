@@ -582,7 +582,12 @@ function updateKeyChip() {
   if (s.keys.length === 0) { chip.style.display = 'none'; return; }
   chip.style.display = 'inline-flex';
   if (s.active < 0 || !s.keys[s.active]) { name.textContent = 'env (default)'; chip.style.opacity = '0.6'; }
-  else { name.textContent = 'KEY · ' + s.keys[s.active].name; chip.style.opacity = '1'; }
+  else {
+    var k = s.keys[s.active];
+    var providerShort = ({anthropic:'Claude',deepseek:'DeepSeek',openai:'GPT',groq:'Groq',gemini:'Gemini'})[k.provider || 'anthropic'] || 'Claude';
+    name.textContent = providerShort + ' · ' + k.name;
+    chip.style.opacity = '1';
+  }
 }
 window.addEventListener('storage', function(e) { if (e.key === 'nq_api_keys') updateKeyChip(); });
 updateKeyChip();
