@@ -949,11 +949,6 @@
           <div class="section-head">
             <span class="section-title">Performance</span>
             <div class="section-controls">
-              <select class="sort-select" id="perf-source">
-                <option value="all">📊 All testing</option>
-                <option value="back">📊 Backtesting</option>
-                <option value="live">📊 Live trades</option>
-              </select>
               <select class="sort-select" id="perf-range">
                 <option value="lifetime">🗓 Lifetime</option>
                 <option value="30">🗓 Last 30 days</option>
@@ -1148,10 +1143,8 @@ const SESSIONS_KEY = 'nq_backtest_sessions';
 // ── STATE ──
 let sb = null;
 try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON); } catch (e) { console.warn('Supabase init failed', e); }
-let allTrades = [];      // From Supabase: backtest trades
-let liveTrades = [];     // From Supabase: live journal trades
+let allTrades = [];      // From Supabase: backtest trades only
 let sessions = [];       // From localStorage: session metadata
-let perfSource = 'all';
 let perfRange = 'lifetime';
 
 // ── UTILS ──
@@ -1235,18 +1228,15 @@ async function loadTrades() {
     const { data: bData } = await sb.from('backtests').select('*').order('id', { ascending: false });
     if (Array.isArray(bData)) allTrades = bData.map(r => r.data).filter(Boolean);
   } catch (e) { console.warn('Backtests load failed', e); }
-  try {
-    const { data: tData } = await sb.from('trades').select('*').order('id', { ascending: false });
-    if (Array.isArray(tData)) liveTrades = tData.map(r => r.data).filter(Boolean);
-  } catch (e) { console.warn('Trades load failed', e); }
 }
 
 // ── STREAK ──
 // Counts consecutive calendar days (most recent first) that have at least one
-// logged trade, backtest, or session activity.
+// logged backtest trade or session activity. (Live journal trades are tracked
+// separately in the journal — this dashboard is backtesting-only.)
 function computeStreak() {
   const dates = new Set();
-  allTrades.concat(liveTrades).forEach(t => { if (t && t.date) dates.add(t.date); });
+  allTrades.forEach(t => { if (t && t.date) dates.add(t.date); });
   sessions.forEach(s => {
     if (s.lastOpenedAt) dates.add(new Date(s.lastOpenedAt).toISOString().slice(0, 10));
     if (s.createdAt) dates.add(new Date(s.createdAt).toISOString().slice(0, 10));
@@ -1270,17 +1260,13 @@ function computeStreak() {
 }
 
 // ── PERFORMANCE METRICS ──
-// Filter trades according to the dropdown (perfSource + perfRange).
+// Filter backtest trades by the date-range dropdown.
 function getFilteredTrades() {
-  let pool;
-  if (perfSource === 'back') pool = allTrades;
-  else if (perfSource === 'live') pool = liveTrades;
-  else pool = allTrades.concat(liveTrades);
-  if (perfRange === 'lifetime') return pool;
+  if (perfRange === 'lifetime') return allTrades;
   const days = parseInt(perfRange, 10);
-  if (!days) return pool;
+  if (!days) return allTrades;
   const cutoff = Date.now() - days * 86400000;
-  return pool.filter(t => t && t.date && new Date(t.date).getTime() >= cutoff);
+  return allTrades.filter(t => t && t.date && new Date(t.date).getTime() >= cutoff);
 }
 // Roll up the four headline numbers shown in the stat tiles.
 function computeStats() {
@@ -1295,10 +1281,9 @@ function computeStats() {
     if (r === 'win') wins++; else if (r === 'loss') losses++;
   });
   const wr = (wins + losses) > 0 ? (wins / (wins + losses) * 100) : null;
-  const pool = (perfSource === 'live') ? [] : sessions;
-  const totalTimeMs = pool.reduce((sum, s) => sum + (s.totalTimeMs || 0), 0);
+  const totalTimeMs = sessions.reduce((sum, s) => sum + (s.totalTimeMs || 0), 0);
   let replayedDays = 0;
-  pool.forEach(s => { replayedDays += getSessionDays(s).replayed; });
+  sessions.forEach(s => { replayedDays += getSessionDays(s).replayed; });
   return {
     totalTrades, buys, sells, wins, losses, wr,
     totalTimeMs, replayedMs: replayedDays * 86400000,
@@ -1813,8 +1798,7 @@ async function init() {
   $('session-sort').addEventListener('change', renderSessions);
   $('all-session-search').addEventListener('input', renderAllSessions);
   $('all-session-sort').addEventListener('change', renderAllSessions);
-  // Performance dropdowns
-  $('perf-source').addEventListener('change', e => { perfSource = e.target.value; renderStats(); renderCharts(); });
+  // Performance dropdown
   $('perf-range').addEventListener('change', e => { perfRange = e.target.value; renderStats(); renderCharts(); });
 
   // First paint with sessions only (Supabase load is async)
@@ -1838,8 +1822,8 @@ window.__bt = {
   loadSessions, saveSessions, createSession, deleteSession,
   computeStreak, computeStats, getFilteredTrades, getSessionDays,
   renderAll, switchTab, openSessionModal, closeSessionModal, submitModal,
-  state: { get sessions() { return sessions; }, get allTrades() { return allTrades; }, get liveTrades() { return liveTrades; },
-    setAllTrades(v) { allTrades = v; }, setLiveTrades(v) { liveTrades = v; }, setSessions(v) { sessions = v; } },
+  state: { get sessions() { return sessions; }, get allTrades() { return allTrades; },
+    setAllTrades(v) { allTrades = v; }, setSessions(v) { sessions = v; } },
 };
 </script>
 </body>
