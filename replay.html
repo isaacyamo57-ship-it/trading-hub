@@ -660,32 +660,98 @@
       display:none;
       align-items:center; justify-content:center;
       animation:fadein .18s ease;
+      padding:20px;
     }
     .modal-bg.show { display:flex; }
     @keyframes fadein { from{opacity:0;} to{opacity:1;} }
     .modal {
-      width:min(480px, 92vw);
+      width:min(540px, 100%);
+      max-height:calc(100vh - 40px);
+      overflow-y:auto;
       background:linear-gradient(180deg, #161a26 0%, #11141d 100%);
       border:1px solid var(--card-border-strong);
       border-radius:16px;
-      padding:24px 26px 22px;
+      padding:22px 24px 20px;
       box-shadow:0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.02) inset;
+    }
+    .modal-head {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:18px; gap:12px;
     }
     .modal-title {
       font-size:18px; font-weight:700; letter-spacing:-0.01em;
-      margin-bottom:4px;
+      flex:1; min-width:0;
     }
-    .modal-sub { font-size:13px; color:var(--text-3); margin-bottom:22px; }
-    .modal-field { margin-bottom:14px; }
-    .modal-label {
-      display:block;
-      font-family:var(--font-mono);
-      font-size:10px;
+    .modal-head-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+    .modal-close {
+      width:28px; height:28px;
+      display:flex; align-items:center; justify-content:center;
+      background:transparent;
+      border:none;
       color:var(--text-3);
-      letter-spacing:0.16em;
-      text-transform:uppercase;
-      margin-bottom:6px;
+      cursor:pointer;
+      border-radius:6px;
+      transition:all .12s;
     }
+    .modal-close:hover { background:rgba(255,255,255,0.06); color:var(--text); }
+
+    /* Segmented kind tabs */
+    .kind-tabs {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      background:rgba(255,255,255,0.03);
+      border:1px solid var(--card-border);
+      border-radius:10px;
+      padding:3px;
+      margin-bottom:18px;
+      gap:2px;
+    }
+    .kind-tab {
+      position:relative;
+      padding:9px 12px;
+      background:transparent;
+      border:none;
+      border-radius:8px;
+      color:var(--text-3);
+      font-family:inherit;
+      font-size:13px;
+      font-weight:500;
+      cursor:pointer;
+      transition:all .15s;
+      display:flex; align-items:center; justify-content:center; gap:6px;
+    }
+    .kind-tab:hover { color:var(--text-2); }
+    .kind-tab.on { background:rgba(255,255,255,0.06); color:var(--text); font-weight:600; box-shadow:0 1px 0 rgba(255,255,255,0.04) inset; }
+    .new-badge {
+      display:inline-flex; align-items:center; gap:3px;
+      padding:1.5px 6px;
+      background:linear-gradient(120deg, rgba(58,138,255,0.20), rgba(94,161,255,0.10));
+      border:1px solid var(--blue-border);
+      color:var(--blue-2);
+      border-radius:6px;
+      font-size:9.5px;
+      font-weight:600;
+      letter-spacing:0.04em;
+    }
+    .new-badge svg { width:9px; height:9px; }
+
+    .modal-field { margin-bottom:14px; }
+    .modal-field-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; gap:8px; }
+    .modal-label {
+      display:flex; align-items:center; gap:4px;
+      font-size:12.5px;
+      color:var(--text);
+      font-weight:500;
+    }
+    .modal-label .req { color:var(--loss); margin-left:1px; }
+    .modal-label-link {
+      font-size:11px;
+      color:var(--text-3);
+      text-decoration:none;
+      transition:color .12s;
+    }
+    .modal-label-link:hover { color:var(--blue-2); }
+    .modal-input-wrap { position:relative; }
     .modal-input {
       width:100%;
       background:rgba(255,255,255,0.03);
@@ -699,10 +765,220 @@
     }
     .modal-input:focus { outline:none; border-color:var(--blue-border); background:rgba(255,255,255,0.05); }
     .modal-input.mono { font-family:var(--font-mono); }
+    .modal-input.error { border-color:rgba(248,113,113,0.5); background:rgba(248,113,113,0.04); }
+    .modal-input.with-prefix { padding-left:34px; }
+    .input-prefix {
+      position:absolute;
+      left:12px; top:50%; transform:translateY(-50%);
+      color:var(--text-3);
+      pointer-events:none;
+      display:flex; align-items:center;
+    }
+    .input-prefix svg { width:14px; height:14px; }
+    .modal-error {
+      display:none;
+      margin-top:5px;
+      font-size:11.5px;
+      color:var(--loss);
+    }
+    .modal-error.show { display:block; }
     .modal-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:22px; }
+
+    /* Asset chip picker */
+    .asset-input {
+      position:relative;
+      min-height:42px;
+      background:rgba(255,255,255,0.03);
+      border:1px solid var(--card-border);
+      border-radius:9px;
+      padding:6px 36px 6px 8px;
+      display:flex; flex-wrap:wrap; align-items:center; gap:5px;
+      cursor:text;
+      transition:all .12s;
+    }
+    .asset-input:hover, .asset-input.open { border-color:var(--card-border-strong); }
+    .asset-input.open { background:rgba(255,255,255,0.05); }
+    .asset-chip {
+      display:inline-flex; align-items:center; gap:5px;
+      background:rgba(255,255,255,0.06);
+      border:1px solid var(--card-border-strong);
+      border-radius:18px;
+      padding:3px 4px 3px 9px;
+      font-size:12.5px;
+      font-weight:500;
+      color:var(--text);
+    }
+    .asset-chip-flag { font-size:13px; line-height:1; }
+    .asset-chip-x {
+      width:16px; height:16px;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(255,255,255,0.10);
+      border-radius:50%;
+      color:var(--text-2);
+      cursor:pointer;
+      border:none;
+      font-size:10px;
+      transition:all .12s;
+    }
+    .asset-chip-x:hover { background:rgba(248,113,113,0.25); color:var(--loss); }
+    .asset-search {
+      flex:1; min-width:80px;
+      background:transparent;
+      border:none;
+      outline:none;
+      padding:4px;
+      color:var(--text);
+      font-family:inherit;
+      font-size:13px;
+    }
+    .asset-search::placeholder { color:var(--text-3); }
+    .asset-input-caret {
+      position:absolute;
+      right:10px; top:50%; transform:translateY(-50%);
+      color:var(--text-3);
+      pointer-events:none;
+    }
+    .asset-dropdown {
+      position:absolute;
+      top:calc(100% + 4px); left:0; right:0;
+      background:#141826;
+      border:1px solid var(--card-border-strong);
+      border-radius:10px;
+      box-shadow:0 18px 50px rgba(0,0,0,0.5);
+      max-height:280px;
+      overflow:hidden;
+      display:none;
+      z-index:10;
+    }
+    .asset-input-wrap { position:relative; }
+    .asset-input-wrap.open .asset-dropdown { display:flex; flex-direction:column; }
+    .asset-cat-row {
+      display:flex; flex-wrap:wrap; gap:6px;
+      padding:10px 12px 8px;
+      border-bottom:1px solid var(--card-border);
+    }
+    .asset-cat {
+      padding:4px 10px;
+      background:rgba(255,255,255,0.04);
+      border:1px solid var(--card-border);
+      border-radius:14px;
+      font-size:11px;
+      color:var(--text-2);
+      cursor:pointer;
+      transition:all .12s;
+      font-family:inherit;
+    }
+    .asset-cat:hover { background:rgba(255,255,255,0.08); color:var(--text); }
+    .asset-cat.on { background:rgba(255,255,255,0.10); color:var(--text); border-color:var(--card-border-strong); }
+    .asset-list {
+      flex:1;
+      overflow-y:auto;
+      padding:6px 0;
+    }
+    .asset-list-section-label {
+      padding:8px 14px 4px;
+      font-size:11px;
+      font-weight:600;
+      color:var(--text-2);
+    }
+    .asset-row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:7px 14px;
+      cursor:pointer;
+      transition:background .1s;
+    }
+    .asset-row:hover { background:rgba(255,255,255,0.04); }
+    .asset-row.selected { background:rgba(58,138,255,0.06); }
+    .asset-row-left { display:flex; align-items:center; gap:9px; min-width:0; }
+    .asset-row-sym { font-weight:600; font-size:13px; color:var(--text); }
+    .asset-row-name { font-size:11.5px; color:var(--text-3); }
+    .asset-row-region { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text-3); }
+    .asset-list-empty { padding:18px 14px; text-align:center; color:var(--text-3); font-size:12px; }
+
+    /* Date shortcuts */
+    .date-shortcuts { display:flex; gap:5px; }
+    .date-shortcut {
+      padding:2px 8px;
+      background:rgba(255,255,255,0.04);
+      border:1px solid var(--card-border);
+      border-radius:6px;
+      font-family:var(--font-mono);
+      font-size:10px;
+      letter-spacing:0.04em;
+      color:var(--text-2);
+      cursor:pointer;
+      transition:all .12s;
+    }
+    .date-shortcut:hover { background:rgba(58,138,255,0.10); border-color:var(--blue-border); color:var(--blue-2); }
+    .date-hint { margin-top:5px; font-size:10.5px; color:var(--text-3); font-family:var(--font-mono); }
+
+    /* Native date picker — restyle for dark theme */
+    input[type="date"].modal-input { color-scheme:dark; }
+    input[type="date"].modal-input::-webkit-calendar-picker-indicator { filter:invert(0.55); cursor:pointer; }
+
+    /* Random checkbox */
+    .random-check { display:inline-flex; align-items:center; gap:6px; cursor:pointer; user-select:none; }
+    .random-check input { display:none; }
+    .random-check-box {
+      width:16px; height:16px;
+      border:1.5px solid var(--card-border-strong);
+      border-radius:4px;
+      background:rgba(255,255,255,0.03);
+      display:flex; align-items:center; justify-content:center;
+      transition:all .12s;
+    }
+    .random-check input:checked + .random-check-box {
+      background:var(--blue);
+      border-color:var(--blue);
+    }
+    .random-check input:checked + .random-check-box::after {
+      content:''; width:9px; height:5px;
+      border-left:2px solid white; border-bottom:2px solid white;
+      transform:rotate(-45deg) translate(1px, -1px);
+    }
+    .random-check-label { font-size:12px; color:var(--text-2); }
+
+    /* Toggle switch */
+    .modal-toggle-row {
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px;
+      background:rgba(255,255,255,0.02);
+      border:1px solid var(--card-border);
+      border-radius:9px;
+      margin-bottom:14px;
+    }
+    .toggle {
+      position:relative;
+      width:34px; height:20px;
+      background:rgba(255,255,255,0.10);
+      border-radius:10px;
+      cursor:pointer;
+      transition:background .15s;
+      flex-shrink:0;
+    }
+    .toggle::after {
+      content:''; position:absolute; top:2px; left:2px;
+      width:16px; height:16px; border-radius:50%;
+      background:white;
+      transition:left .15s;
+    }
+    .toggle.on { background:var(--blue); }
+    .toggle.on::after { left:16px; }
+    .toggle-label { font-size:13px; color:var(--text-2); display:flex; align-items:center; gap:5px; flex:1; }
+    .toggle-label-info {
+      width:13px; height:13px;
+      display:inline-flex; align-items:center; justify-content:center;
+      border-radius:50%;
+      background:rgba(255,255,255,0.06);
+      color:var(--text-3);
+      font-size:8px;
+      font-weight:700;
+      cursor:help;
+    }
+
+    .modal-actions { display:flex; justify-content:flex-end; align-items:center; gap:10px; margin-top:6px; }
     .btn {
-      padding:9px 16px;
+      padding:9px 18px;
       border-radius:8px;
       border:none;
       font-family:inherit;
@@ -711,11 +987,11 @@
       cursor:pointer;
       transition:all .12s;
     }
-    .btn-secondary { background:transparent; color:var(--text-2); border:1px solid var(--card-border); }
-    .btn-secondary:hover { background:rgba(255,255,255,0.04); color:var(--text); }
+    .btn-secondary { background:transparent; color:var(--text-2); border:none; padding:9px 14px; }
+    .btn-secondary:hover { color:var(--text); }
     .btn-primary { background:var(--blue); color:white; }
-    .btn-primary:hover { background:var(--blue-2); }
-    .btn-primary:disabled { opacity:0.5; cursor:not-allowed; }
+    .btn-primary:hover:not(:disabled) { background:var(--blue-2); }
+    .btn-primary:disabled { background:rgba(255,255,255,0.06); color:var(--text-3); cursor:not-allowed; }
 
     /* ── TAB CONTENT (for Sessions/Trades/Analytics) ── */
     .tab-pane { display:none; }
@@ -1093,36 +1369,144 @@
 
 <!-- ── MODAL: NEW SESSION ── -->
 <div class="modal-bg" id="modal-bg">
-  <div class="modal" role="dialog" aria-labelledby="modal-title">
-    <div class="modal-title" id="modal-title">New backtesting session</div>
-    <div class="modal-sub" id="modal-sub">Set up your replay window and capital. Edit anytime.</div>
+  <div class="modal" role="dialog" aria-labelledby="modal-title" id="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modal-title">Create a session</div>
+      <div class="modal-head-right">
+        <button class="modal-close" id="modal-close" type="button" aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Backtesting / Prop Firm tabs -->
+    <div class="kind-tabs" role="tablist">
+      <button class="kind-tab on" id="kind-bt" data-kind="backtest" type="button" role="tab">Backtesting Session</button>
+      <button class="kind-tab" id="kind-pf" data-kind="prop" type="button" role="tab">
+        Prop Firm Session
+        <span class="new-badge">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4.09 12.97a1 1 0 0 0 .77 1.65H11l-1 7.38a.5.5 0 0 0 .9.3l8.91-10.97a1 1 0 0 0-.77-1.65H13l1-7.38a.5.5 0 0 0-.9-.3z"/></svg>
+          New
+        </span>
+      </button>
+    </div>
+
+    <!-- Name -->
     <div class="modal-field">
-      <label class="modal-label" for="ns-name">Session name</label>
-      <input class="modal-input" id="ns-name" placeholder="e.g. NYAM ICT March">
+      <div class="modal-field-row">
+        <label class="modal-label" for="ns-name">Name <span class="req">*</span></label>
+      </div>
+      <input class="modal-input" id="ns-name" placeholder="Name your session" autocomplete="off">
+      <div class="modal-error" id="ns-name-err">This field is required.</div>
     </div>
+
+    <!-- Account Balance -->
+    <div class="modal-field">
+      <div class="modal-field-row">
+        <label class="modal-label" for="ns-capital">Account Balance <span class="req">*</span></label>
+      </div>
+      <div class="modal-input-wrap">
+        <span class="input-prefix">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 6v12M9.5 9.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4.5"/></svg>
+        </span>
+        <input class="modal-input mono with-prefix" id="ns-capital" type="number" min="0" step="100" value="100000">
+      </div>
+    </div>
+
+    <!-- Assets -->
+    <div class="modal-field">
+      <div class="modal-field-row">
+        <label class="modal-label">Assets <span class="req">*</span></label>
+        <a class="modal-label-link" href="javascript:void(0)" id="req-asset">Request asset</a>
+      </div>
+      <div class="asset-input-wrap" id="asset-wrap">
+        <div class="asset-input" id="asset-input" tabindex="0">
+          <span class="asset-chip" id="default-chip">
+            <span class="asset-chip-flag">🇺🇸</span>
+            <span>NQ</span>
+          </span>
+          <input class="asset-search" id="asset-search" placeholder="Type to search for assets" autocomplete="off">
+          <span class="asset-input-caret">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </div>
+        <div class="asset-dropdown" id="asset-dropdown">
+          <div class="asset-cat-row" id="asset-cats">
+            <button class="asset-cat on" data-cat="all" type="button">All</button>
+            <button class="asset-cat" data-cat="futures" type="button">Futures</button>
+            <button class="asset-cat" data-cat="indices" type="button">Indices</button>
+            <button class="asset-cat" data-cat="forex" type="button">Forex</button>
+            <button class="asset-cat" data-cat="crypto" type="button">Crypto</button>
+            <button class="asset-cat" data-cat="metals" type="button">Metals</button>
+          </div>
+          <div class="asset-list" id="asset-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart Layout (optional) -->
+    <div class="modal-field">
+      <div class="modal-field-row">
+        <label class="modal-label" for="ns-layout">
+          Select Chart Layout (Optional)
+          <span class="toggle-label-info" title="Choose a saved chart layout from the journal. Leave blank to use the default.">i</span>
+        </label>
+      </div>
+      <select class="modal-input" id="ns-layout">
+        <option value="">— None —</option>
+        <option value="ny-am-cascade">NY AM Cascade (4H → 1H → 15M)</option>
+        <option value="london-am">London AM</option>
+        <option value="ny-pm">NY PM</option>
+      </select>
+    </div>
+
+    <!-- Date range -->
     <div class="modal-row">
       <div class="modal-field">
-        <label class="modal-label" for="ns-from">From</label>
+        <div class="modal-field-row">
+          <label class="modal-label" for="ns-from">Initial Date <span class="req">*</span></label>
+          <div class="date-shortcuts">
+            <button class="date-shortcut" data-shortcut="from-1d" type="button">+1D</button>
+            <button class="date-shortcut" data-shortcut="from-1w" type="button">+1W</button>
+            <button class="date-shortcut" data-shortcut="from-1m" type="button">+1M</button>
+          </div>
+        </div>
         <input class="modal-input mono" id="ns-from" type="date">
+        <div class="date-hint" id="ns-from-hint">Min: Jan 1, 2020</div>
       </div>
       <div class="modal-field">
-        <label class="modal-label" for="ns-to">To</label>
+        <div class="modal-field-row">
+          <label class="modal-label" for="ns-to">End Date <span class="req">*</span></label>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="date-shortcuts">
+              <button class="date-shortcut" data-shortcut="to-1d" type="button">+1D</button>
+              <button class="date-shortcut" data-shortcut="to-1w" type="button">+1W</button>
+              <button class="date-shortcut" data-shortcut="to-1m" type="button">+1M</button>
+            </div>
+            <label class="random-check">
+              <input type="checkbox" id="ns-random">
+              <span class="random-check-box"></span>
+              <span class="random-check-label">Random</span>
+            </label>
+          </div>
+        </div>
         <input class="modal-input mono" id="ns-to" type="date">
+        <div class="date-hint" id="ns-to-hint">Max: today</div>
       </div>
     </div>
-    <div class="modal-row">
-      <div class="modal-field">
-        <label class="modal-label" for="ns-capital">Starting capital</label>
-        <input class="modal-input mono" id="ns-capital" type="number" placeholder="50000">
-      </div>
-      <div class="modal-field">
-        <label class="modal-label" for="ns-symbol">Symbol</label>
-        <input class="modal-input mono" id="ns-symbol" value="CME_MINI:NQ1" readonly>
+
+    <!-- Auto-update toggle -->
+    <div class="modal-toggle-row">
+      <div class="toggle" id="ns-autoupdate"></div>
+      <div class="toggle-label">
+        Auto-update end date
+        <span class="toggle-label-info" title="When enabled, the end date will follow your replay cursor as you scrub forward.">i</span>
       </div>
     </div>
+
     <div class="modal-actions">
-      <button class="btn btn-secondary" id="modal-cancel">Cancel</button>
-      <button class="btn btn-primary" id="modal-create">Start session</button>
+      <button class="btn btn-secondary" id="modal-cancel" type="button">Cancel</button>
+      <button class="btn btn-primary" id="modal-create" type="button" disabled>Create session</button>
     </div>
   </div>
 </div>
@@ -1683,48 +2067,249 @@ function renderAnalyticsCharts() {
 }
 
 // ── MODAL ──
+// Asset registry (NQ-only for now; design supports more, scope is honest).
+const ASSETS = [
+  { sym: 'NQ',  name: 'E-Mini NASDAQ-100 Futures', cat: 'futures', region: '🇺🇸', regionLabel: 'US Futures', supported: true,  full: 'CME_MINI:NQ1' },
+  // Visual breadcrumbs for future expansion. Marked unsupported so picker disables them.
+  { sym: 'ES',  name: 'E-Mini S&P 500 Futures',     cat: 'futures', region: '🇺🇸', regionLabel: 'US Futures', supported: false, full: 'CME_MINI:ES1' },
+  { sym: 'YM',  name: 'E-Mini Dow Futures',         cat: 'futures', region: '🇺🇸', regionLabel: 'US Futures', supported: false, full: 'CBOT_MINI:YM1' },
+  { sym: 'RTY', name: 'E-Mini Russell 2000 Futures',cat: 'futures', region: '🇺🇸', regionLabel: 'US Futures', supported: false, full: 'CME_MINI:RTY1' },
+];
+
+let modalState = {
+  kind: 'backtest',    // 'backtest' | 'prop'
+  selectedAssets: ['NQ'],
+  assetCat: 'all',
+  assetSearch: '',
+  random: false,
+  autoUpdate: false,
+  editingId: null,
+};
+
 function openSessionModal(challenge, editing) {
-  $('modal-title').textContent = editing ? 'Edit session' : (challenge ? 'New prop firm session' : 'New backtesting session');
-  $('modal-sub').textContent = challenge ? 'Apex-style rules will track DD and profit target.' : 'Set up your replay window and capital. Edit anytime.';
+  modalState.kind = challenge ? 'prop' : 'backtest';
+  modalState.editingId = editing ? editing.id : null;
+  modalState.selectedAssets = editing ? [(editing.symbol || 'NQ').replace(/.*:/, '').replace(/1$/, '') || 'NQ'] : ['NQ'];
+  modalState.assetCat = 'all';
+  modalState.assetSearch = '';
+  modalState.random = false;
+  modalState.autoUpdate = !!(editing && editing.autoUpdateEnd);
+
+  // Reset name + balance + dates
   $('ns-name').value = editing ? editing.name : '';
-  const today = new Date(); const monthAgo = new Date(Date.now() - 30 * 86400000);
+  $('ns-capital').value = editing ? editing.capital : 100000;
+  const today = new Date();
+  const monthAgo = new Date(Date.now() - 30 * 86400000);
   const iso = d => d.toISOString().slice(0, 10);
-  $('ns-from').value = editing ? (editing.fromDate || '') : iso(monthAgo);
-  $('ns-to').value = editing ? (editing.toDate || '') : iso(today);
-  $('ns-capital').value = editing ? editing.capital : (challenge ? 50000 : 50000);
-  $('ns-symbol').value = editing ? (editing.symbol || 'CME_MINI:NQ1') : 'CME_MINI:NQ1';
+  $('ns-from').value = editing && editing.fromDate ? editing.fromDate : iso(monthAgo);
+  $('ns-to').value = editing && editing.toDate ? editing.toDate : iso(today);
+  $('ns-to-hint').textContent = 'Max: ' + today.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  $('ns-layout').value = '';
+
+  // Clear name error
+  $('ns-name').classList.remove('error');
+  $('ns-name-err').classList.remove('show');
+
+  applyModalState();
   $('modal-bg').classList.add('show');
-  $('modal-bg').dataset.editing = editing ? editing.id : '';
-  $('modal-bg').dataset.challenge = challenge ? '1' : '';
-  setTimeout(() => $('ns-name').focus(), 50);
+  setTimeout(() => $('ns-name').focus(), 60);
 }
-function closeSessionModal() { $('modal-bg').classList.remove('show'); }
+
+function closeSessionModal() {
+  $('modal-bg').classList.remove('show');
+  // Close asset dropdown if open
+  $('asset-wrap').classList.remove('open');
+  $('asset-input').classList.remove('open');
+}
+
+// Mirror modalState onto the DOM. Single source of truth.
+function applyModalState() {
+  // Title
+  $('modal-title').textContent = modalState.editingId ? 'Edit session' : 'Create a session';
+
+  // Kind tabs
+  $('kind-bt').classList.toggle('on', modalState.kind === 'backtest');
+  $('kind-pf').classList.toggle('on', modalState.kind === 'prop');
+
+  // Asset chips — re-render the chip area
+  renderAssetChips();
+  renderAssetList();
+
+  // Auto-update toggle visual
+  $('ns-autoupdate').classList.toggle('on', modalState.autoUpdate);
+  // Random checkbox visual
+  $('ns-random').checked = modalState.random;
+
+  validateModal();
+}
+
+function renderAssetChips() {
+  const input = $('asset-input');
+  // Remove only chips, keep the search field + caret
+  Array.from(input.querySelectorAll('.asset-chip')).forEach(c => c.remove());
+  const search = $('asset-search');
+  modalState.selectedAssets.forEach(sym => {
+    const a = ASSETS.find(x => x.sym === sym) || { sym, region: '🇺🇸' };
+    const chip = document.createElement('span');
+    chip.className = 'asset-chip';
+    chip.innerHTML = `<span class="asset-chip-flag">${a.region || '🇺🇸'}</span><span>${escapeHtml(sym)}</span>${
+      modalState.selectedAssets.length > 1 ? `<button class="asset-chip-x" data-sym="${escapeHtml(sym)}" type="button" aria-label="Remove ${escapeHtml(sym)}">✕</button>` : ''
+    }`;
+    input.insertBefore(chip, search);
+  });
+  // Wire chip removes
+  input.querySelectorAll('.asset-chip-x').forEach(b => {
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      const sym = b.dataset.sym;
+      modalState.selectedAssets = modalState.selectedAssets.filter(s => s !== sym);
+      if (!modalState.selectedAssets.length) modalState.selectedAssets = ['NQ'];
+      renderAssetChips(); renderAssetList(); validateModal();
+    });
+  });
+  // Update search placeholder based on whether anything selected
+  search.placeholder = modalState.selectedAssets.length ? '' : 'Type to search for assets';
+}
+
+function renderAssetList() {
+  const list = $('asset-list');
+  const q = modalState.assetSearch.toLowerCase();
+  const filtered = ASSETS.filter(a =>
+    (modalState.assetCat === 'all' || a.cat === modalState.assetCat) &&
+    (!q || a.sym.toLowerCase().includes(q) || a.name.toLowerCase().includes(q))
+  );
+  // Highlight category buttons
+  document.querySelectorAll('.asset-cat').forEach(b => b.classList.toggle('on', b.dataset.cat === modalState.assetCat));
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="asset-list-empty">No assets match.</div>`;
+    return;
+  }
+
+  // Recently Used = supported assets first
+  const supported = filtered.filter(a => a.supported);
+  const others = filtered.filter(a => !a.supported);
+  let html = '';
+  if (supported.length) {
+    html += `<div class="asset-list-section-label">Recently Used</div>`;
+    html += supported.map(a => assetRowHTML(a)).join('');
+  }
+  if (others.length) {
+    html += `<div class="asset-list-section-label" style="margin-top:4px;">Coming soon</div>`;
+    html += others.map(a => assetRowHTML(a, true)).join('');
+  }
+  list.innerHTML = html;
+
+  // Wire row clicks
+  list.querySelectorAll('.asset-row').forEach(row => {
+    if (row.dataset.disabled === '1') return;
+    row.addEventListener('click', () => {
+      const sym = row.dataset.sym;
+      if (modalState.selectedAssets.includes(sym)) {
+        modalState.selectedAssets = modalState.selectedAssets.filter(s => s !== sym);
+      } else {
+        modalState.selectedAssets.push(sym);
+      }
+      if (!modalState.selectedAssets.length) modalState.selectedAssets = ['NQ'];
+      renderAssetChips(); renderAssetList(); validateModal();
+    });
+  });
+}
+
+function assetRowHTML(a, disabled) {
+  const isSelected = modalState.selectedAssets.includes(a.sym);
+  return `<div class="asset-row${isSelected ? ' selected' : ''}" data-sym="${escapeHtml(a.sym)}" data-disabled="${disabled ? 1 : 0}" style="${disabled ? 'opacity:0.45;cursor:not-allowed;' : ''}">
+    <div class="asset-row-left">
+      <span class="asset-row-sym">${escapeHtml(a.sym)}</span>
+      <span class="asset-row-name">(${escapeHtml(a.name)})</span>
+    </div>
+    <span class="asset-row-region">${a.region || ''} <span>${escapeHtml(a.regionLabel || '')}</span></span>
+  </div>`;
+}
+
+function validateModal() {
+  const nameOk = $('ns-name').value.trim().length > 0;
+  const assetsOk = modalState.selectedAssets.length > 0;
+  $('modal-create').disabled = !(nameOk && assetsOk);
+  return nameOk && assetsOk;
+}
+
 function submitModal() {
   const name = $('ns-name').value.trim();
-  if (!name) { $('ns-name').focus(); return; }
+  if (!name) {
+    $('ns-name').classList.add('error');
+    $('ns-name-err').classList.add('show');
+    $('ns-name').focus();
+    return;
+  }
+  if (!modalState.selectedAssets.length) {
+    toast('Pick at least one asset.');
+    return;
+  }
+
+  // Resolve symbol — use NQ regardless if it's selected (system is NQ-only); else first supported
+  let symbol = 'CME_MINI:NQ1';
+  const supportedSel = modalState.selectedAssets.find(s => {
+    const a = ASSETS.find(x => x.sym === s);
+    return a && a.supported;
+  });
+  if (supportedSel) {
+    const a = ASSETS.find(x => x.sym === supportedSel);
+    symbol = a.full;
+  }
+
   const opts = {
     name,
+    capital: parseFloat($('ns-capital').value) || 100000,
+    symbol,
+    challenge: modalState.kind === 'prop',
+    layout: $('ns-layout').value || null,
     fromDate: $('ns-from').value || null,
     toDate: $('ns-to').value || null,
-    capital: parseFloat($('ns-capital').value) || 50000,
-    symbol: $('ns-symbol').value || 'CME_MINI:NQ1',
-    challenge: $('modal-bg').dataset.challenge === '1',
+    autoUpdateEnd: modalState.autoUpdate,
   };
-  const editingId = $('modal-bg').dataset.editing;
-  let session;
-  if (editingId) {
-    session = sessions.find(s => String(s.id) === String(editingId));
+
+  if (modalState.editingId) {
+    const session = sessions.find(s => String(s.id) === String(modalState.editingId));
     if (session) Object.assign(session, opts);
     saveSessions();
     toast('Session updated');
     renderAll();
     closeSessionModal();
   } else {
-    session = createSession(opts);
+    const session = createSession(opts);
     closeSessionModal();
     openSession(session.id); // jump straight into replay
   }
 }
+
+// Date shortcut handlers — +1D / +1W / +1M apply relative to today (Initial)
+// or relative to the Initial Date (End).
+function applyDateShortcut(target) {
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const fromVal = $('ns-from').value;
+  const fromDate = fromVal ? new Date(fromVal + 'T00:00:00') : now;
+  let d;
+  if (target === 'from-1d') { d = new Date(now); d.setDate(d.getDate() - 1); $('ns-from').value = d.toISOString().slice(0, 10); }
+  else if (target === 'from-1w') { d = new Date(now); d.setDate(d.getDate() - 7); $('ns-from').value = d.toISOString().slice(0, 10); }
+  else if (target === 'from-1m') { d = new Date(now); d.setMonth(d.getMonth() - 1); $('ns-from').value = d.toISOString().slice(0, 10); }
+  else if (target === 'to-1d')   { d = new Date(fromDate); d.setDate(d.getDate() + 1); $('ns-to').value = d.toISOString().slice(0, 10); }
+  else if (target === 'to-1w')   { d = new Date(fromDate); d.setDate(d.getDate() + 7); $('ns-to').value = d.toISOString().slice(0, 10); }
+  else if (target === 'to-1m')   { d = new Date(fromDate); d.setMonth(d.getMonth() + 1); $('ns-to').value = d.toISOString().slice(0, 10); }
+}
+
+// Random date — picks a random business day between Jan 1 2020 and today
+// for the start, then sets end = start + 30 days (clamped).
+function pickRandomDates() {
+  const min = new Date('2020-01-01').getTime();
+  const max = Date.now() - 30 * 86400000; // leave room for 30 days forward
+  const start = new Date(min + Math.random() * (max - min));
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start.getTime() + 30 * 86400000);
+  $('ns-from').value = start.toISOString().slice(0, 10);
+  $('ns-to').value = end.toISOString().slice(0, 10);
+}
+
 function openSettings() {
   // Placeholder — settings page not yet built. Open journal settings as fallback.
   window.location.href = 'journal.html#settings';
@@ -1785,13 +2370,75 @@ async function init() {
   $('cta-backtest').addEventListener('click', () => openSessionModal(false));
   $('cta-prop').addEventListener('click', () => openSessionModal(true));
   $('cta-tutorials').addEventListener('click', () => window.open('https://www.youtube.com/results?search_query=ICT+2022+model+NQ+futures', '_blank', 'noopener'));
-  // Modal wiring
+  // Modal wiring — basic
   $('modal-cancel').addEventListener('click', closeSessionModal);
+  $('modal-close').addEventListener('click', closeSessionModal);
   $('modal-create').addEventListener('click', submitModal);
   $('modal-bg').addEventListener('click', e => { if (e.target.id === 'modal-bg') closeSessionModal(); });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && $('modal-bg').classList.contains('show')) closeSessionModal();
-    if (e.key === 'Enter' && $('modal-bg').classList.contains('show') && document.activeElement !== $('modal-cancel')) submitModal();
+    if (e.key === 'Enter' && $('modal-bg').classList.contains('show') &&
+        document.activeElement !== $('modal-cancel') &&
+        document.activeElement !== $('asset-search') &&
+        document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault(); submitModal();
+    }
+  });
+  // Kind tabs
+  $('kind-bt').addEventListener('click', () => { modalState.kind = 'backtest'; applyModalState(); });
+  $('kind-pf').addEventListener('click', () => { modalState.kind = 'prop'; applyModalState(); });
+  // Name validation — clear error on input
+  $('ns-name').addEventListener('input', () => {
+    if ($('ns-name').value.trim()) {
+      $('ns-name').classList.remove('error');
+      $('ns-name-err').classList.remove('show');
+    }
+    validateModal();
+  });
+  // Request asset link
+  $('req-asset').addEventListener('click', () => toast("More assets coming soon — currently NQ-only.", 3500));
+  // Asset picker open/close
+  const assetWrap = $('asset-wrap');
+  $('asset-input').addEventListener('click', e => {
+    if (e.target.classList.contains('asset-chip-x')) return; // chip removal handled separately
+    assetWrap.classList.add('open');
+    $('asset-input').classList.add('open');
+    setTimeout(() => $('asset-search').focus(), 30);
+  });
+  document.addEventListener('click', e => {
+    if (!assetWrap.contains(e.target)) {
+      assetWrap.classList.remove('open');
+      $('asset-input').classList.remove('open');
+    }
+  });
+  $('asset-search').addEventListener('input', e => {
+    modalState.assetSearch = e.target.value;
+    renderAssetList();
+  });
+  $('asset-search').addEventListener('focus', () => {
+    assetWrap.classList.add('open');
+    $('asset-input').classList.add('open');
+  });
+  // Category pills
+  document.querySelectorAll('.asset-cat').forEach(b => {
+    b.addEventListener('click', () => {
+      modalState.assetCat = b.dataset.cat;
+      renderAssetList();
+    });
+  });
+  // Date shortcuts
+  document.querySelectorAll('.date-shortcut').forEach(b => {
+    b.addEventListener('click', () => applyDateShortcut(b.dataset.shortcut));
+  });
+  // Random checkbox
+  $('ns-random').addEventListener('change', e => {
+    modalState.random = e.target.checked;
+    if (modalState.random) pickRandomDates();
+  });
+  // Auto-update toggle
+  $('ns-autoupdate').addEventListener('click', () => {
+    modalState.autoUpdate = !modalState.autoUpdate;
+    $('ns-autoupdate').classList.toggle('on', modalState.autoUpdate);
   });
   // Filter wiring
   $('session-search').addEventListener('input', renderSessions);
@@ -1822,6 +2469,8 @@ window.__bt = {
   loadSessions, saveSessions, createSession, deleteSession,
   computeStreak, computeStats, getFilteredTrades, getSessionDays,
   renderAll, switchTab, openSessionModal, closeSessionModal, submitModal,
+  applyModalState, applyDateShortcut, pickRandomDates, validateModal,
+  get modalState() { return modalState; },
   state: { get sessions() { return sessions; }, get allTrades() { return allTrades; },
     setAllTrades(v) { allTrades = v; }, setSessions(v) { sessions = v; } },
 };
