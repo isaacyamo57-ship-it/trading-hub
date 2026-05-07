@@ -1,0 +1,1804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iI2M5YTg0YyIvPjx0ZXh0IHg9IjE2IiB5PSIyMiIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZvbnQtd2VpZ2h0PSI5MDAiIGZpbGw9IiMwODA2MDEiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSItMSI+SUE8L3RleHQ+PC9zdmc+">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Replay — Trading Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --bg:#000000;
+      --bg-1:#0a0b0f;
+      --bg-2:#13141a;
+      --panel:#0f1015;
+      --panel-2:#1a1c24;
+      --line:rgba(255,255,255,0.07);
+      --line-2:rgba(255,255,255,0.12);
+      --text:#ffffff;
+      --text-2:#9ba1ad;
+      --text-3:#646973;
+      --gold:#c9a84c;
+      --gold-2:#e8c97a;
+      --blue:#3a8aff;
+      --blue-2:#5ea1ff;
+      --green:#26a69a;
+      --green-2:#4ade80;
+      --red:#ef5350;
+      --red-2:#f87171;
+      --buy:#089981;
+      --sell:#f23645;
+      --tf-active:rgba(255,255,255,0.10);
+      --font-ui:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+      --font-mono:'DM Mono','SF Mono',Consolas,monospace;
+      --top-h:42px;
+      --bot-h:56px;
+      --rail-w:48px;
+    }
+    html,body {
+      height:100%;
+      width:100%;
+      overflow:hidden;
+      background:var(--bg);
+      color:var(--text);
+      font-family:var(--font-ui);
+      font-size:13px;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    /* ──────────────────────── TOP TOOLBAR ──────────────────────── */
+    .top {
+      position:fixed; top:0; left:0; right:0;
+      height:var(--top-h);
+      display:flex; align-items:center;
+      padding:0 10px;
+      background:var(--bg-1);
+      border-bottom:1px solid var(--line);
+      z-index:50; gap:6px;
+    }
+    .icon-btn {
+      width:30px; height:30px;
+      display:flex; align-items:center; justify-content:center;
+      background:transparent;
+      border:none;
+      border-radius:6px;
+      color:var(--text-2);
+      cursor:pointer;
+      transition:background .12s, color .12s;
+      text-decoration:none;
+    }
+    .icon-btn:hover { background:rgba(255,255,255,0.06); color:var(--text); }
+    .icon-btn:disabled { opacity:0.35; cursor:not-allowed; }
+    .icon-btn svg { width:16px; height:16px; }
+    .top-bolt {
+      width:26px; height:26px;
+      display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(135deg, var(--gold), #8a6d2a);
+      border-radius:6px;
+      color:#0d0a04;
+      flex-shrink:0;
+    }
+    .top-bolt svg { width:14px; height:14px; }
+    .sym-pill {
+      display:flex; align-items:center; gap:6px;
+      padding:5px 12px 5px 9px;
+      background:var(--bg-2);
+      border:1px solid var(--line);
+      border-radius:6px;
+      font-size:12.5px;
+      font-weight:600;
+      color:var(--text);
+      cursor:pointer;
+      transition:all .12s;
+      font-family:inherit;
+    }
+    .sym-pill:hover { background:var(--panel-2); border-color:var(--line-2); }
+    .sym-pill svg { width:12px; height:12px; color:var(--text-3); }
+    .top-sep { width:1px; height:18px; background:var(--line); margin:0 4px; }
+
+    .tf-pills { display:flex; align-items:center; gap:1px; }
+    .tf-pill {
+      padding:5px 10px;
+      background:transparent;
+      border:none;
+      color:var(--text-3);
+      font-family:inherit;
+      font-size:12px;
+      font-weight:500;
+      cursor:pointer;
+      border-radius:5px;
+      transition:all .12s;
+      min-width:30px;
+    }
+    .tf-pill:hover { background:rgba(255,255,255,0.04); color:var(--text-2); }
+    .tf-pill.active { background:var(--tf-active); color:var(--text); font-weight:600; }
+    .tf-dropdown {
+      padding:5px 4px;
+      background:transparent;
+      border:none;
+      color:var(--text-3);
+      cursor:pointer;
+      border-radius:5px;
+    }
+    .tf-dropdown:hover { background:rgba(255,255,255,0.04); }
+    .top-spacer { flex:1; }
+    .top-btn {
+      display:flex; align-items:center; gap:6px;
+      padding:5px 11px;
+      background:transparent;
+      border:none;
+      color:var(--text-2);
+      font-family:inherit;
+      font-size:12px;
+      font-weight:500;
+      cursor:pointer;
+      border-radius:5px;
+      transition:all .12s;
+    }
+    .top-btn:hover { background:rgba(255,255,255,0.06); color:var(--text); }
+    .top-btn svg { width:13px; height:13px; }
+    .top-btn .gold-bolt { color:var(--gold); }
+    .profile-tt {
+      width:28px; height:28px;
+      display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(135deg, var(--gold), #8a6d2a);
+      color:#0d0a04;
+      border-radius:50%;
+      font-weight:700;
+      font-size:11px;
+      cursor:pointer;
+    }
+    .profile-pill {
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:5px 14px;
+      background:rgba(255,255,255,0.06);
+      color:var(--text);
+      font-family:var(--font-mono);
+      font-size:11px;
+      font-weight:500;
+      border-radius:5px;
+      cursor:pointer;
+      transition:background .12s;
+      border:none;
+    }
+    .profile-pill:hover { background:rgba(255,255,255,0.10); }
+    .eth-dd {
+      display:flex; align-items:center; gap:5px;
+      padding:5px 10px;
+      background:transparent;
+      border:none;
+      color:var(--text);
+      font-family:inherit;
+      font-size:12px;
+      font-weight:600;
+      cursor:pointer;
+      border-radius:5px;
+      transition:background .12s;
+    }
+    .eth-dd:hover { background:rgba(255,255,255,0.06); }
+    .eth-dd svg { color:var(--text-3); }
+    .session-pill {
+      display:flex; align-items:center; gap:5px;
+      padding:5px 11px 5px 9px;
+      background:rgba(74,222,128,0.10);
+      border:1px solid rgba(74,222,128,0.28);
+      border-radius:6px;
+      font-family:var(--font-mono);
+      font-size:11px;
+      color:var(--green-2);
+      cursor:pointer;
+    }
+
+    /* ──────────────────────── LEFT TOOL RAIL ──────────────────────── */
+    .left-rail {
+      position:fixed;
+      top:var(--top-h); bottom:var(--bot-h); left:0;
+      width:var(--rail-w);
+      background:var(--bg-1);
+      border-right:1px solid var(--line);
+      display:flex; flex-direction:column; align-items:center;
+      padding:6px 0;
+      gap:1px;
+      z-index:40;
+      overflow-y:auto;
+    }
+    .left-rail::-webkit-scrollbar { width:0; }
+    .tool-btn {
+      width:36px; height:34px;
+      display:flex; align-items:center; justify-content:center;
+      background:transparent;
+      border:none;
+      color:var(--text-2);
+      cursor:pointer;
+      border-radius:6px;
+      transition:all .12s;
+      position:relative;
+      flex-shrink:0;
+    }
+    .tool-btn:hover { background:rgba(255,255,255,0.05); color:var(--text); }
+    .tool-btn.active { background:var(--tf-active); color:var(--blue-2); }
+    .tool-btn svg { width:18px; height:18px; }
+    .tool-sep { width:24px; height:1px; background:var(--line); margin:5px 0; flex-shrink:0; }
+    .tool-btn[data-tip]:hover::after {
+      content:attr(data-tip);
+      position:absolute; left:calc(100% + 8px); top:50%; transform:translateY(-50%);
+      background:#1a1c24; color:var(--text); font-size:11px;
+      padding:4px 8px; border-radius:5px; white-space:nowrap;
+      pointer-events:none; z-index:200;
+      border:1px solid var(--line-2);
+    }
+
+    /* ──────────────────────── RIGHT ACTION RAIL ──────────────────────── */
+    .right-rail {
+      position:fixed;
+      top:var(--top-h); bottom:var(--bot-h); right:0;
+      width:var(--rail-w);
+      background:var(--bg-1);
+      border-left:1px solid var(--line);
+      display:flex; flex-direction:column; align-items:center;
+      padding:8px 0;
+      z-index:40;
+    }
+    .rail-btn {
+      width:42px; height:50px;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+      background:transparent;
+      border:none;
+      color:var(--text-3);
+      cursor:pointer;
+      border-radius:6px;
+      transition:all .12s;
+      font-family:inherit;
+      font-size:9.5px;
+      font-weight:500;
+    }
+    .rail-btn:hover { background:rgba(255,255,255,0.04); color:var(--text-2); }
+    .rail-btn.active { color:var(--text); background:rgba(58,138,255,0.10); }
+    .rail-btn svg { width:16px; height:16px; }
+    .rail-icon {
+      width:42px; height:36px;
+      display:flex; align-items:center; justify-content:center;
+      background:transparent;
+      border:none;
+      color:var(--text-3);
+      cursor:pointer;
+      border-radius:6px;
+      transition:all .12s;
+    }
+    .rail-icon:hover { background:rgba(255,255,255,0.04); color:var(--text-2); }
+    .rail-icon svg { width:16px; height:16px; }
+    .rail-spacer { height:6px; }
+    .rail-fill { flex:1; }
+
+    /* ──────────────────────── MAIN CHART ──────────────────────── */
+    .main {
+      position:fixed;
+      top:var(--top-h); bottom:var(--bot-h);
+      left:var(--rail-w); right:var(--rail-w);
+      background:var(--bg);
+      transition:right .25s ease;
+    }
+    .main.panel-open { right:calc(var(--rail-w) + 320px); }
+
+    .ohlc-bar {
+      position:absolute;
+      top:8px; left:14px; right:60px;
+      z-index:5;
+      display:flex; align-items:center; gap:14px;
+      pointer-events:none;
+      font-size:11.5px;
+      font-family:var(--font-mono);
+    }
+    .ohlc-sym { color:var(--text); font-weight:600; font-family:var(--font-ui); font-size:12.5px; }
+    .ohlc-tf { color:var(--text-3); }
+    .ohlc-dot { width:6px; height:6px; background:var(--green); border-radius:50%; }
+    .ohlc-vals { display:flex; gap:10px; color:var(--text-3); }
+    .ohlc-vals span b { color:var(--text); font-weight:500; margin-right:4px; }
+    .ohlc-chg.up { color:var(--green-2); }
+    .ohlc-chg.down { color:var(--red-2); }
+
+    #chart-container {
+      position:absolute;
+      inset:0;
+      width:100%; height:100%;
+    }
+
+    .draw-tools {
+      position:absolute;
+      top:36px; left:8px;
+      display:flex; align-items:center; gap:1px;
+      padding:3px;
+      background:rgba(15,16,21,0.92);
+      border:1px solid var(--line);
+      border-radius:7px;
+      backdrop-filter:blur(6px);
+      -webkit-backdrop-filter:blur(6px);
+      z-index:6;
+    }
+    .draw-tools .icon-btn { width:26px; height:26px; }
+    .draw-tools .icon-btn svg { width:13px; height:13px; }
+    .draw-sep { width:1px; height:14px; background:var(--line); margin:0 1px; }
+
+    .chart-empty {
+      position:absolute;
+      inset:0;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+      color:var(--text-3);
+      font-size:12.5px;
+      pointer-events:none;
+    }
+    .chart-empty svg { color:rgba(255,255,255,0.15); }
+
+    .chart-status {
+      position:absolute;
+      bottom:8px; left:12px;
+      font-family:var(--font-mono);
+      font-size:10.5px;
+      color:var(--text-3);
+      z-index:5;
+      pointer-events:none;
+    }
+    .chart-status.ok { color:var(--green-2); }
+    .chart-status.err { color:var(--red-2); }
+
+    .trade-box {
+      position:absolute;
+      pointer-events:none;
+      border-radius:1px;
+      z-index:4;
+      transition:opacity .15s;
+    }
+    .trade-box.sl { background:rgba(239,83,80,0.18); border-top:1px dashed rgba(239,83,80,0.6); border-bottom:1px dashed rgba(239,83,80,0.6); }
+    .trade-box.tp { background:rgba(38,166,154,0.18); border-top:1px dashed rgba(38,166,154,0.6); border-bottom:1px dashed rgba(38,166,154,0.6); }
+
+    /* ──────────────────────── REPLAY OVERLAY ──────────────────────── */
+    .replay-overlay {
+      position:absolute;
+      bottom:30px; left:50%; transform:translateX(-50%);
+      display:flex; align-items:center; gap:4px;
+      padding:6px 10px 6px 4px;
+      background:rgba(20,22,28,0.96);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:10px;
+      backdrop-filter:blur(8px);
+      -webkit-backdrop-filter:blur(8px);
+      box-shadow:0 6px 24px rgba(0,0,0,0.5);
+      z-index:8;
+      max-width:calc(100% - 32px);
+    }
+    .ro-drag {
+      width:18px; height:24px;
+      display:flex; align-items:center; justify-content:center;
+      color:var(--text-3); cursor:grab;
+      flex-shrink:0;
+    }
+    .ro-drag:active { cursor:grabbing; }
+    .ro-drag svg { width:12px; height:12px; }
+    .ro-btn {
+      width:28px; height:28px;
+      display:flex; align-items:center; justify-content:center;
+      background:transparent;
+      border:none;
+      border-radius:5px;
+      color:var(--text-2);
+      cursor:pointer;
+      transition:all .12s;
+      flex-shrink:0;
+    }
+    .ro-btn:hover:not(:disabled) { background:rgba(255,255,255,0.08); color:var(--text); }
+    .ro-btn:disabled { opacity:0.3; cursor:not-allowed; }
+    .ro-btn svg { width:14px; height:14px; }
+    .ro-track {
+      position:relative;
+      width:200px; height:18px;
+      flex-shrink:0;
+      cursor:pointer;
+      display:flex; align-items:center;
+    }
+    .ro-track-bg {
+      position:absolute; left:0; right:0;
+      height:3px;
+      background:rgba(255,255,255,0.10);
+      border-radius:2px;
+    }
+    .ro-track-fill {
+      position:absolute; left:0;
+      height:3px;
+      background:var(--text);
+      border-radius:2px;
+      width:0%;
+    }
+    .ro-thumb {
+      position:absolute;
+      width:14px; height:14px;
+      border-radius:50%;
+      background:white;
+      box-shadow:0 1px 4px rgba(0,0,0,0.4);
+      transform:translate(-50%, 0);
+      left:0%;
+      top:50%; margin-top:-7px;
+      cursor:grab;
+    }
+    .ro-thumb:active { cursor:grabbing; }
+    .ro-tf-sel {
+      padding:4px 8px;
+      background:rgba(255,255,255,0.04);
+      border:none;
+      color:var(--text);
+      font-family:var(--font-mono);
+      font-size:11px;
+      border-radius:5px;
+      cursor:pointer;
+      flex-shrink:0;
+    }
+    .ro-tf-sel:hover { background:rgba(255,255,255,0.08); }
+    .ro-autoplay {
+      position:relative;
+      width:38px; height:22px;
+      background:rgba(255,255,255,0.08);
+      border-radius:11px;
+      cursor:pointer;
+      transition:background .15s;
+      flex-shrink:0;
+      border:none;
+    }
+    .ro-autoplay::after {
+      content:''; position:absolute; left:2px; top:2px;
+      width:18px; height:18px; border-radius:50%;
+      background:white;
+      transition:left .15s;
+    }
+    .ro-autoplay.on { background:var(--green); }
+    .ro-autoplay.on::after { left:18px; }
+
+    /* ──────────────────────── BOTTOM ACTION BAR ──────────────────────── */
+    .bot {
+      position:fixed;
+      bottom:0; left:0; right:0;
+      height:var(--bot-h);
+      display:flex; align-items:center;
+      padding:0 12px;
+      background:var(--bg-1);
+      border-top:1px solid var(--line);
+      z-index:50;
+      gap:10px;
+    }
+    /* Rounded pill Buy / Sell */
+    .buy-btn-pill, .sell-btn-pill {
+      padding:8px 26px;
+      border-radius:24px;
+      border:none;
+      font-family:inherit;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:all .12s;
+      letter-spacing:0.01em;
+      color:white;
+      min-width:74px;
+    }
+    .buy-btn-pill { background:var(--buy); }
+    .buy-btn-pill:hover { background:#0aa68b; }
+    .buy-btn-pill.armed { box-shadow:0 0 0 3px rgba(8,153,129,0.40); }
+    .sell-btn-pill { background:var(--sell); }
+    .sell-btn-pill:hover { background:#ff4555; }
+    .sell-btn-pill.armed { box-shadow:0 0 0 3px rgba(242,54,69,0.40); }
+
+    .qty-input {
+      width:160px;
+      background:var(--bg-2);
+      border:1px solid var(--line);
+      border-radius:6px;
+      padding:8px 12px;
+      color:var(--text);
+      font-family:inherit;
+      font-size:13px;
+      transition:border-color .12s;
+    }
+    .qty-input:focus { outline:none; border-color:var(--line-2); }
+    .qty-input::placeholder { color:var(--text-3); }
+
+    .bot-drag {
+      width:18px; height:24px;
+      display:flex; align-items:center; justify-content:center;
+      color:var(--text-3); cursor:grab;
+      flex-shrink:0;
+      opacity:0.5;
+    }
+    .bot-drag:active { cursor:grabbing; }
+    .bot-drag svg { width:12px; height:12px; }
+
+    .bot-analytics {
+      display:flex; align-items:center; gap:7px;
+      padding:7px 16px;
+      background:transparent;
+      border:1px solid var(--line);
+      border-radius:18px;
+      color:var(--text-2);
+      font-family:inherit;
+      font-size:12.5px;
+      font-weight:500;
+      cursor:pointer;
+      transition:all .12s;
+    }
+    .bot-analytics:hover { background:rgba(255,255,255,0.04); color:var(--text); }
+    .bot-analytics svg { width:13px; height:13px; }
+    .bot-analytics svg:last-child { color:var(--text-3); }
+
+    .bot-stats {
+      flex:1;
+      display:flex; align-items:center; justify-content:flex-end;
+      gap:24px;
+      padding:0 14px;
+      flex-wrap:wrap;
+    }
+    .bot-pnl {
+      display:flex; align-items:baseline; gap:6px;
+      font-size:12.5px;
+      white-space:nowrap;
+    }
+    .bot-pnl-k { color:var(--text-2); font-weight:500; }
+    .bot-pnl-v { color:var(--text-2); font-family:var(--font-mono); }
+    .bot-pnl-v.win { color:var(--green-2); }
+    .bot-pnl-v.loss { color:var(--red-2); }
+
+    .range-row {
+      position:absolute;
+      bottom:4px; left:14px; right:14px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:8px;
+      z-index:5;
+    }
+    .range-left { display:flex; align-items:center; gap:8px; }
+    .range-right { display:flex; align-items:center; gap:6px; }
+    .range-presets { display:flex; gap:1px; }
+    .range-preset {
+      padding:3px 9px;
+      background:transparent;
+      border:none;
+      color:var(--text-3);
+      font-family:var(--font-mono);
+      font-size:11px;
+      cursor:pointer;
+      border-radius:4px;
+      transition:all .12s;
+    }
+    .range-preset:hover { background:rgba(255,255,255,0.05); color:var(--text-2); }
+    .range-preset.active { color:var(--text); font-weight:600; }
+    .range-time {
+      font-family:var(--font-mono);
+      font-size:11px;
+      color:var(--text-2);
+    }
+    .range-extras { display:flex; align-items:center; gap:1px; }
+    .range-mini {
+      padding:3px 8px;
+      background:transparent;
+      border:none;
+      color:var(--text-3);
+      font-family:var(--font-mono);
+      font-size:11px;
+      cursor:pointer;
+      border-radius:4px;
+    }
+    .range-mini:hover { background:rgba(255,255,255,0.05); color:var(--text-2); }
+    .range-mini.active { background:rgba(255,255,255,0.06); color:var(--text); }
+    .range-mini-icon {
+      width:24px; height:22px;
+      display:flex; align-items:center; justify-content:center;
+      color:var(--text-3);
+      cursor:pointer;
+      background:transparent;
+      border:none;
+      border-radius:4px;
+    }
+    .range-mini-icon:hover { background:rgba(255,255,255,0.05); color:var(--text-2); }
+    .range-mini-icon svg { width:12px; height:12px; }
+
+    /* ──────────────────────── RIGHT SLIDE PANEL ──────────────────────── */
+    .panel {
+      position:fixed;
+      top:var(--top-h); bottom:var(--bot-h); right:var(--rail-w);
+      width:320px;
+      background:var(--bg-1);
+      border-left:1px solid var(--line);
+      transform:translateX(100%);
+      transition:transform .25s ease;
+      z-index:35;
+      display:flex; flex-direction:column;
+      overflow:hidden;
+    }
+    .panel.open { transform:translateX(0); }
+    .panel-head {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 16px;
+      border-bottom:1px solid var(--line);
+      flex-shrink:0;
+    }
+    .panel-title { font-size:13px; font-weight:600; }
+    .panel-body {
+      flex:1;
+      overflow-y:auto;
+      padding:14px 16px;
+    }
+
+    .ord-section { margin-bottom:18px; }
+    .ord-lbl {
+      display:block;
+      font-family:var(--font-mono);
+      font-size:9.5px;
+      color:var(--text-3);
+      letter-spacing:0.14em;
+      text-transform:uppercase;
+      margin-bottom:7px;
+    }
+    .ord-dir-row { display:flex; gap:6px; }
+    .ord-dir-btn {
+      flex:1;
+      padding:9px;
+      background:rgba(255,255,255,0.03);
+      border:1px solid var(--line);
+      border-radius:7px;
+      color:var(--text-2);
+      font-family:inherit;
+      font-size:13px;
+      font-weight:600;
+      cursor:pointer;
+      transition:all .12s;
+      letter-spacing:0.02em;
+    }
+    .ord-dir-btn:hover { background:rgba(255,255,255,0.06); color:var(--text); }
+    .ord-dir-btn.long.on { background:rgba(8,153,129,0.18); border-color:rgba(8,153,129,0.5); color:var(--green-2); }
+    .ord-dir-btn.short.on { background:rgba(242,54,69,0.16); border-color:rgba(242,54,69,0.5); color:var(--red-2); }
+    .ord-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .ord-field-wrap { display:flex; flex-direction:column; gap:4px; }
+    .ord-field {
+      width:100%;
+      background:rgba(255,255,255,0.03);
+      border:1px solid var(--line);
+      border-radius:6px;
+      padding:8px 10px;
+      color:var(--text);
+      font-family:var(--font-mono);
+      font-size:12.5px;
+      transition:border-color .12s;
+    }
+    .ord-field:focus { outline:none; border-color:var(--line-2); }
+    .ord-field[readonly] { color:var(--text-2); background:rgba(255,255,255,0.02); }
+    .ord-field.gold { color:var(--gold); }
+
+    .poi-grid { display:flex; flex-wrap:wrap; gap:5px; }
+    .poi-chip {
+      padding:5px 10px;
+      background:rgba(255,255,255,0.03);
+      border:1px solid var(--line);
+      border-radius:14px;
+      font-size:11px;
+      font-family:var(--font-mono);
+      color:var(--text-2);
+      cursor:pointer;
+      transition:all .12s;
+      user-select:none;
+    }
+    .poi-chip:hover { background:rgba(255,255,255,0.06); color:var(--text); }
+    .poi-chip.on { background:rgba(58,138,255,0.14); border-color:rgba(58,138,255,0.4); color:var(--blue-2); }
+
+    .grade-row { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; }
+    .grade-btn {
+      padding:8px 0;
+      background:rgba(255,255,255,0.03);
+      border:1px solid var(--line);
+      border-radius:6px;
+      color:var(--text-2);
+      font-family:var(--font-mono);
+      font-size:12px;
+      font-weight:600;
+      cursor:pointer;
+      transition:all .12s;
+    }
+    .grade-btn:hover { background:rgba(255,255,255,0.06); color:var(--text); }
+    .grade-btn.on { background:rgba(201,168,76,0.18); border-color:rgba(201,168,76,0.5); color:var(--gold); }
+
+    .log-btn {
+      width:100%;
+      padding:11px;
+      background:var(--blue);
+      border:none;
+      border-radius:7px;
+      color:white;
+      font-family:inherit;
+      font-size:13px;
+      font-weight:700;
+      cursor:pointer;
+      transition:all .12s;
+      letter-spacing:0.04em;
+    }
+    .log-btn:hover { background:var(--blue-2); }
+    .log-btn:disabled { opacity:0.45; cursor:not-allowed; }
+
+    .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:18px; }
+    .stat-card {
+      padding:10px 12px;
+      background:var(--bg-2);
+      border:1px solid var(--line);
+      border-radius:7px;
+    }
+    .stat-card-lbl { font-size:10px; color:var(--text-3); margin-bottom:3px; letter-spacing:0.06em; text-transform:uppercase; }
+    .stat-card-val { font-family:var(--font-mono); font-size:18px; font-weight:600; color:var(--text); }
+    .stat-card-val.gold { color:var(--gold); }
+    .stat-card-val.win { color:var(--green-2); }
+    .stat-card-val.loss { color:var(--red-2); }
+    .stat-card-val.r { color:var(--red-2); }
+    .stat-card-val.g { color:var(--green-2); }
+
+    .trade-entry {
+      padding:10px 12px;
+      background:rgba(255,255,255,0.02);
+      border:1px solid var(--line);
+      border-radius:7px;
+      margin-bottom:7px;
+    }
+    .te-top { display:flex; align-items:center; gap:7px; margin-bottom:6px; }
+    .td-dir {
+      width:18px; height:18px;
+      display:flex; align-items:center; justify-content:center;
+      border-radius:4px;
+      font-family:var(--font-mono); font-size:10px; font-weight:700;
+    }
+    .td-dir.l { background:rgba(8,153,129,0.18); color:var(--green-2); }
+    .td-dir.s { background:rgba(242,54,69,0.18); color:var(--red-2); }
+    .td-meta { font-family:var(--font-mono); font-size:10.5px; color:var(--text-3); flex:1; }
+    .td-res { padding:2px 7px; border-radius:4px; font-family:var(--font-mono); font-size:10.5px; font-weight:600; }
+    .td-res.w { background:rgba(8,153,129,0.18); color:var(--green-2); }
+    .td-res.l { background:rgba(242,54,69,0.18); color:var(--red-2); }
+    .td-res.b { background:rgba(255,255,255,0.06); color:var(--text-2); }
+    .outcome-row { display:flex; gap:5px; margin-top:5px; }
+    .out-btn {
+      flex:1; padding:5px;
+      background:rgba(255,255,255,0.03);
+      border:1px solid var(--line);
+      border-radius:5px;
+      color:var(--text-2);
+      font-family:var(--font-mono); font-size:11px; font-weight:600;
+      cursor:pointer; transition:all .12s;
+    }
+    .out-btn:hover { background:rgba(255,255,255,0.06); color:var(--text); }
+    .out-btn.w.on { background:rgba(8,153,129,0.2); border-color:var(--green); color:var(--green-2); }
+    .out-btn.l.on { background:rgba(242,54,69,0.2); border-color:var(--red); color:var(--red-2); }
+    .out-btn.b.on { background:rgba(255,255,255,0.10); color:var(--text); }
+    .r-row { display:flex; gap:5px; margin-top:5px; }
+    .r-inp {
+      flex:1;
+      background:rgba(255,255,255,0.03);
+      border:1px solid var(--line);
+      border-radius:5px;
+      padding:5px 8px;
+      color:var(--text);
+      font-family:var(--font-mono); font-size:11.5px;
+    }
+    .r-inp:focus { outline:none; border-color:var(--line-2); }
+    .r-save-btn {
+      padding:5px 12px; background:var(--gold); border:none; border-radius:5px;
+      color:#0d0a04; font-family:inherit; font-size:11px; font-weight:700; cursor:pointer;
+    }
+    .r-save-btn:hover { background:var(--gold-2); }
+
+    .news-placeholder {
+      padding:30px 16px;
+      text-align:center;
+      color:var(--text-3);
+      font-size:12.5px;
+    }
+    .goto-section { margin-bottom:14px; }
+
+    [hidden] { display:none !important; }
+
+    @media (max-width: 760px) {
+      :root { --rail-w:0px; }
+      .left-rail, .right-rail { display:none; }
+      .main { left:0; right:0; }
+      .main.panel-open { right:0; }
+      .panel { right:0; width:100%; }
+      .top { padding:0 6px; gap:3px; }
+      .top-spacer { display:none; }
+      .ohlc-vals { display:none; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="top">
+  <a href="backtest.html" class="icon-btn" title="Back to dashboard">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+  </a>
+  <div class="top-bolt" title="Trading Hub">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4.09 12.97a1 1 0 0 0 .77 1.65H11l-1 7.38a.5.5 0 0 0 .9.3l8.91-10.97a1 1 0 0 0-.77-1.65H13l1-7.38a.5.5 0 0 0-.9-.3z"/></svg>
+  </div>
+  <button class="sym-pill" id="sym-pill" title="Search symbol">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <span id="sym-pill-txt">NQ1</span>
+  </button>
+  <button class="icon-btn" title="Add symbol">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+
+  <div class="tf-pills" id="tf-pills">
+    <button class="tf-pill" data-iv="30s">30s</button>
+    <button class="tf-pill active" data-iv="1min">1m</button>
+    <button class="tf-pill" data-iv="2min">2m</button>
+    <button class="tf-pill" data-iv="3min">3m</button>
+    <button class="tf-pill" data-iv="5min">5m</button>
+    <button class="tf-pill" data-iv="15min">15m</button>
+    <button class="tf-pill" data-iv="1h">1h</button>
+    <button class="tf-pill" data-iv="4h">4h</button>
+    <button class="tf-pill" data-iv="D">D</button>
+    <button class="tf-pill" data-iv="5s">5s</button>
+    <button class="tf-dropdown" title="More timeframes">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  </div>
+
+  <button class="icon-btn" title="Bar style">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><rect x="6" y="7" width="6" height="9" rx="1"/><rect x="12" y="10" width="6" height="6" rx="1"/></svg>
+  </button>
+
+  <button class="top-btn" title="Save layout">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    New Layout
+  </button>
+  <button class="top-btn" title="Indicators">
+    <svg class="gold-bolt" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4.09 12.97a1 1 0 0 0 .77 1.65H11l-1 7.38a.5.5 0 0 0 .9.3l8.91-10.97a1 1 0 0 0-.77-1.65H13l1-7.38a.5.5 0 0 0-.9-.3z"/></svg>
+    Indicators
+  </button>
+
+  <div class="top-spacer"></div>
+
+  <button class="icon-btn" id="btn-undo" title="Undo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>
+  </button>
+  <button class="icon-btn" id="btn-redo" title="Redo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 15-6.7L21 13"/></svg>
+  </button>
+  <span class="profile-pill" id="session-tag" title="Account / session">tt</span>
+  <button class="eth-dd" title="Theme">
+    <span>ETH</span>
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  <button class="icon-btn" title="Layout">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18"/><rect x="13" y="3" width="8" height="9"/><rect x="13" y="14" width="8" height="7"/></svg>
+  </button>
+</header>
+
+<aside class="left-rail">
+  <button class="tool-btn" data-tip="Crosshair" data-tool="crosshair">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+  </button>
+  <button class="tool-btn" data-tip="Trend line" data-tool="line">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="4" y1="20" x2="20" y2="4"/></svg>
+  </button>
+  <button class="tool-btn" data-tip="Horizontal lines" data-tool="hline">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+  </button>
+  <button class="tool-btn" data-tip="Fib" data-tool="fib">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="3" y1="5" x2="21" y2="5"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="3" y1="19" x2="21" y2="19"/></svg>
+  </button>
+  <button class="tool-btn" data-tip="Pitchfork" data-tool="pitchfork">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="11" x2="21" y2="11"/><line x1="3" y1="16" x2="21" y2="16"/><circle cx="6" cy="6" r="1.4" fill="currentColor"/><circle cx="14" cy="11" r="1.4" fill="currentColor"/><circle cx="18" cy="16" r="1.4" fill="currentColor"/></svg>
+  </button>
+  <button class="tool-btn" data-tip="Brush" data-tool="brush">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M9.06 11.9l8.07-8.07a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/></svg>
+  </button>
+  <button class="tool-btn" data-tip="Text" data-tool="text">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+  </button>
+  <button class="tool-btn" data-tip="Emoji" data-tool="emoji">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="10" x2="9.01" y2="10"/><line x1="15" y1="10" x2="15.01" y2="10"/></svg>
+  </button>
+  <button class="tool-btn" data-tip="Ruler" data-tool="ruler">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M21.3 15.3L8.7 2.7a1 1 0 0 0-1.4 0L2.7 7.3a1 1 0 0 0 0 1.4l12.6 12.6a1 1 0 0 0 1.4 0l4.6-4.6a1 1 0 0 0 0-1.4z"/><line x1="6" y1="11" x2="8" y2="13"/><line x1="9" y1="8" x2="11" y2="10"/><line x1="13" y1="11" x2="14" y2="12"/></svg>
+  </button>
+  <button class="tool-btn" data-tip="Zoom" data-tool="zoom">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+  </button>
+  <button class="tool-btn" data-tip="Magnet" data-tool="magnet">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 15a6 6 0 0 0 12 0V3h-4v10a2 2 0 1 1-4 0V3H6z"/></svg>
+  </button>
+  <button class="tool-btn" data-tip="Pen" data-tool="pen">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+  </button>
+  <button class="tool-btn" data-tip="Lock" data-tool="lock">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+  </button>
+  <button class="tool-btn" data-tip="Hide" data-tool="hide">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+  </button>
+  <button class="tool-btn active" data-tip="Sync drawings" data-tool="link">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07L11.75 5.16"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+  </button>
+  <button class="tool-btn" data-tip="Trash" data-tool="trash">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+  </button>
+</aside>
+
+<aside class="right-rail">
+  <button class="rail-icon" title="Favorites">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+  </button>
+  <div class="rail-spacer"></div>
+  <button class="rail-btn" data-panel="order" id="rail-order">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    <span>Order</span>
+  </button>
+  <button class="rail-btn" data-panel="goto" id="rail-goto">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    <span>Go to</span>
+  </button>
+  <button class="rail-btn" data-panel="news" id="rail-news">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span>News</span>
+  </button>
+  <button class="rail-btn" data-panel="journal" id="rail-journal">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    <span>Journal</span>
+  </button>
+  <div class="rail-fill"></div>
+  <button class="rail-icon" title="Settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+</aside>
+
+<main class="main" id="main">
+  <div class="ohlc-bar">
+    <span class="ohlc-sym" id="ohlc-sym">E-MINI NASDAQ-100 FUTURES</span>
+    <span class="ohlc-tf" id="ohlc-tf">1</span>
+    <span class="ohlc-tf">CME on FXReplay</span>
+    <span class="ohlc-dot" id="ohlc-dot"></span>
+    <div class="ohlc-vals" id="ohlc-vals">
+      <span><b>O</b><span id="ohlc-o">—</span></span>
+      <span><b>H</b><span id="ohlc-h">—</span></span>
+      <span><b>L</b><span id="ohlc-l">—</span></span>
+      <span><b>C</b><span id="ohlc-c">—</span></span>
+      <span class="ohlc-chg" id="ohlc-chg"></span>
+    </div>
+  </div>
+
+  <div class="draw-tools">
+    <button class="icon-btn" title="Select"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 3l7 17 2-7 7-2z"/></svg></button>
+    <button class="icon-btn" title="Trend line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><line x1="4" y1="20" x2="20" y2="4"/></svg></button>
+    <div class="draw-sep"></div>
+    <button class="icon-btn" title="Channel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><line x1="3" y1="8" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="16"/></svg></button>
+    <button class="icon-btn" title="Pitchfork"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 12l8-8 4 4-8 8z"/><line x1="14" y1="8" x2="22" y2="16"/></svg></button>
+    <div class="draw-sep"></div>
+    <button class="icon-btn" title="Rectangle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="6" width="16" height="12"/></svg></button>
+    <button class="icon-btn" title="Position"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><circle cx="12" cy="12" r="2"/></svg></button>
+    <div class="draw-sep"></div>
+    <button class="icon-btn" title="More"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/></svg></button>
+  </div>
+
+  <div id="chart-container"></div>
+
+  <div class="trade-box sl" id="tbox-sl" style="display:none;"></div>
+  <div class="trade-box tp" id="tbox-tp" style="display:none;"></div>
+
+  <div class="chart-empty" id="chart-empty">
+    <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+      <rect x="2" y="26" width="8" height="14" rx="1" fill="currentColor"/>
+      <rect x="14" y="18" width="8" height="22" rx="1" fill="currentColor"/>
+      <rect x="26" y="10" width="8" height="30" rx="1" fill="currentColor"/>
+      <rect x="38" y="16" width="4" height="24" rx="1" fill="currentColor"/>
+    </svg>
+    Pick a date to start replay
+  </div>
+
+  <div class="chart-status" id="bar-status">Pick a date to start</div>
+
+  <div class="replay-overlay" id="replay-overlay">
+    <span class="ro-drag" title="Drag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg></span>
+    <button class="ro-btn" id="btn-jump-start" disabled title="Jump to start">
+      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><rect x="4" y="4" width="2" height="16"/></svg>
+    </button>
+    <div class="ro-track" id="progress-track">
+      <div class="ro-track-bg"></div>
+      <div class="ro-track-fill" id="progress-fill"></div>
+      <div class="ro-thumb" id="progress-thumb"></div>
+    </div>
+    <button class="ro-btn" id="btn-back" disabled title="Back 1 bar">
+      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="11 19 2 12 11 5 11 19"/></svg>
+    </button>
+    <button class="ro-btn" id="btn-play" disabled title="Play / Pause">
+      <svg viewBox="0 0 24 24" fill="currentColor" id="play-icon"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    </button>
+    <select class="ro-tf-sel" id="ro-tf">
+      <option value="1min" selected>1m</option>
+      <option value="5min">5m</option>
+      <option value="15min">15m</option>
+      <option value="1h">1h</option>
+    </select>
+    <button class="ro-btn" id="btn-fwd" disabled title="Forward 1 bar">
+      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="13 5 22 12 13 19 13 5"/></svg>
+    </button>
+    <button class="ro-autoplay on" id="btn-autoplay" title="Auto-play"></button>
+  </div>
+
+  <div class="range-row">
+    <div class="range-left">
+      <div class="range-presets">
+        <button class="range-preset" data-rng="5y">5y</button>
+        <button class="range-preset" data-rng="1y">1y</button>
+        <button class="range-preset" data-rng="6m">6m</button>
+        <button class="range-preset" data-rng="3m">3m</button>
+        <button class="range-preset active" data-rng="1m">1m</button>
+        <button class="range-preset" data-rng="5d">5d</button>
+        <button class="range-preset" data-rng="1d">1d</button>
+      </div>
+    </div>
+    <div class="range-right">
+      <span class="range-time" id="range-time">— UTC</span>
+      <button class="range-mini" id="rng-pct">%</button>
+      <button class="range-mini active" id="rng-log">log</button>
+      <button class="range-mini" id="rng-auto">auto</button>
+      <button class="range-mini-icon" title="Maximize chart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      </button>
+    </div>
+  </div>
+</main>
+
+<footer class="bot">
+  <button class="buy-btn-pill" id="bot-buy">Buy</button>
+  <button class="sell-btn-pill" id="bot-sell">Sell</button>
+  <input class="qty-input" id="bot-qty" type="number" min="1" step="1" placeholder="Quantity" value="">
+  <button class="icon-btn" id="bot-bell" title="Alert">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+  </button>
+  <span class="bot-drag" title="Drag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg></span>
+  <button class="bot-analytics" id="bot-analytics" title="Analytics">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span>Analytics</span>
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+
+  <div class="bot-stats">
+    <span class="bot-pnl"><span class="bot-pnl-k">Account Balance:</span> <span class="bot-pnl-v" id="bot-balance">--</span></span>
+    <span class="bot-pnl"><span class="bot-pnl-k">Realized PnL:</span> <span class="bot-pnl-v" id="bot-realized">----</span></span>
+    <span class="bot-pnl"><span class="bot-pnl-k">Unrealized PnL:</span> <span class="bot-pnl-v" id="bot-unrealized">------</span></span>
+  </div>
+
+  <button class="icon-btn" title="Show/hide">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+  </button>
+  <button class="icon-btn" title="Collapse">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+  <button class="icon-btn" title="Expand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+  </button>
+</footer>
+
+<aside class="panel" id="panel">
+  <div class="panel-head">
+    <span class="panel-title" id="panel-title">Order</span>
+    <button class="icon-btn" id="panel-close" title="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+    </button>
+  </div>
+  <div class="panel-body">
+
+    <div class="panel-pane" data-pane="order">
+      <div class="ord-section">
+        <span class="ord-lbl">Direction</span>
+        <div class="ord-dir-row">
+          <button class="ord-dir-btn long" id="btn-long" onclick="setDir('long')">▲ LONG</button>
+          <button class="ord-dir-btn short" id="btn-short" onclick="setDir('short')">▼ SHORT</button>
+        </div>
+      </div>
+      <div class="ord-section">
+        <span class="ord-lbl">Levels</span>
+        <div class="ord-grid">
+          <div class="ord-field-wrap"><label class="ord-lbl" style="margin-bottom:0;">Entry</label><input class="ord-field gold" id="f-entry" readonly placeholder="—"></div>
+          <div class="ord-field-wrap"><label class="ord-lbl" style="margin-bottom:0;">R:R</label><input class="ord-field" id="f-rr" readonly placeholder="—"></div>
+          <div class="ord-field-wrap"><label class="ord-lbl" style="margin-bottom:0;">SL (pts)</label><input class="ord-field" id="f-sl" type="number" min="0" placeholder="40" oninput="onFieldChange()"></div>
+          <div class="ord-field-wrap"><label class="ord-lbl" style="margin-bottom:0;">TP (pts)</label><input class="ord-field" id="f-tp" type="number" min="0" placeholder="120" oninput="onFieldChange()"></div>
+        </div>
+      </div>
+      <div class="ord-section">
+        <span class="ord-lbl">Point of Interest</span>
+        <div class="poi-grid">
+          <div class="poi-chip" onclick="togglePoi(this)">FVG</div>
+          <div class="poi-chip" onclick="togglePoi(this)">IFVG</div>
+          <div class="poi-chip" onclick="togglePoi(this)">EQH</div>
+          <div class="poi-chip" onclick="togglePoi(this)">EQL</div>
+          <div class="poi-chip" onclick="togglePoi(this)">MSS</div>
+          <div class="poi-chip" onclick="togglePoi(this)">CISD</div>
+          <div class="poi-chip" onclick="togglePoi(this)">Liq Sweep</div>
+          <div class="poi-chip" onclick="togglePoi(this)">OB</div>
+          <div class="poi-chip" onclick="togglePoi(this)">OTE</div>
+        </div>
+      </div>
+      <div class="ord-section">
+        <span class="ord-lbl">Setup Grade</span>
+        <div class="grade-row">
+          <button class="grade-btn" onclick="setGrade('A+',this)">A+</button>
+          <button class="grade-btn" onclick="setGrade('A',this)">A</button>
+          <button class="grade-btn" onclick="setGrade('B',this)">B</button>
+          <button class="grade-btn" onclick="setGrade('C',this)">C</button>
+        </div>
+      </div>
+      <button class="log-btn" onclick="logTrade()">LOG TRADE</button>
+    </div>
+
+    <div class="panel-pane" data-pane="goto" hidden>
+      <div class="goto-section">
+        <span class="ord-lbl">Date</span>
+        <input type="date" class="ord-field" id="date-pick">
+      </div>
+      <div class="goto-section">
+        <span class="ord-lbl">Quick presets</span>
+        <div class="poi-grid">
+          <div class="poi-chip" onclick="gotoPreset(0)">Today</div>
+          <div class="poi-chip" onclick="gotoPreset(-1)">Yesterday</div>
+          <div class="poi-chip" onclick="gotoPreset(-7)">7 days ago</div>
+          <div class="poi-chip" onclick="gotoPreset(-30)">30 days ago</div>
+        </div>
+      </div>
+      <div class="goto-section">
+        <button class="log-btn" onclick="loadData()">LOAD DATA</button>
+      </div>
+    </div>
+
+    <div class="panel-pane" data-pane="news" hidden>
+      <div class="news-placeholder">News for replayed dates is coming soon. For live news, check the Bias Engine.</div>
+    </div>
+
+    <div class="panel-pane" data-pane="journal" hidden>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-card-lbl">Trades</div><div class="stat-card-val" id="s-trades">0</div></div>
+        <div class="stat-card"><div class="stat-card-lbl">Win Rate</div><div class="stat-card-val" id="s-wr">—</div></div>
+        <div class="stat-card"><div class="stat-card-lbl">Total R</div><div class="stat-card-val gold" id="s-r">—</div></div>
+        <div class="stat-card"><div class="stat-card-lbl">Avg R</div><div class="stat-card-val" id="s-avgr">—</div></div>
+      </div>
+      <span class="ord-lbl">Session log</span>
+      <div id="session-log">
+        <div style="font-size:11.5px;color:var(--text-3);text-align:center;padding:14px 0;">No trades yet</div>
+      </div>
+    </div>
+
+  </div>
+</aside>
+
+<script>
+// Load Lightweight Charts with fallback. unpkg sometimes 503s; jsdelivr is
+// generally more reliable. If both fail we still want the page to render so
+// the user can see the UI and we can show a clear error.
+(function() {
+  var sources = [
+    'https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js',
+    'https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js',
+  ];
+  function tryNext(i) {
+    if (i >= sources.length) {
+      window.__lwcLoadFailed = true;
+      console.error('Lightweight Charts failed to load from all CDNs');
+      return;
+    }
+    var s = document.createElement('script');
+    s.src = sources[i];
+    s.async = false;
+    s.onerror = function() { tryNext(i + 1); };
+    document.head.appendChild(s);
+  }
+  tryNext(0);
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+'use strict';
+
+// ── SUPABASE ──
+const SB_URL  = 'https://lzvkfrqwupgnvhmphzem.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6dmtmcnF3dXBnbnZobXBoemVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI5MDMsImV4cCI6MjA5MDYyODkwM30.YpzJ-616pSbImH9e2f3vRXGzwXjCzTvHV-hgPQais3Q';
+let sb = null;
+try { sb = supabase.createClient(SB_URL, SB_ANON); } catch(e) { console.warn('Supabase init failed', e); }
+
+// ── STATE ──
+var chartObj = null;
+var candleSeries = null;
+var allCandles = [];
+var displayBar = 0;
+var dayStartBar = 0;
+var playing = false;
+var playTimer = null;
+var playSpeed = 800;
+var currentInterval = '1min';
+var sessionTrades = [];
+var selDir = null;
+var selGrade = null;
+var tLines = { entry: null, sl: null, tp: null };
+var dragging = false;
+
+// ── CHART INIT ──
+function initChart() {
+  var container = document.getElementById('chart-container');
+  // Defensive guard — if the chart library failed to load from all CDNs,
+  // surface a clear error instead of a blank page.
+  if (typeof LightweightCharts === 'undefined') {
+    var emptyEl = document.getElementById('chart-empty');
+    if (emptyEl) {
+      emptyEl.innerHTML = '<div style="color:var(--red-2);font-weight:600;">Chart library failed to load</div>' +
+        '<div style="font-size:11px;margin-top:6px;">Check your network or refresh. CDNs tried: jsdelivr, unpkg.</div>';
+      emptyEl.style.display = 'flex';
+    }
+    setStatus('Chart library unavailable', 'err');
+    return;
+  }
+  chartObj = LightweightCharts.createChart(container, {
+    width: container.clientWidth,
+    height: container.clientHeight,
+    layout: {
+      background: { type: 'solid', color: '#000000' },
+      textColor: 'rgba(255,255,255,0.5)',
+      fontFamily: "'DM Mono', monospace",
+      fontSize: 10,
+    },
+    grid: {
+      vertLines: { color: 'rgba(255,255,255,0.04)' },
+      horzLines: { color: 'rgba(255,255,255,0.04)' },
+    },
+    crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+    timeScale: {
+      timeVisible: true, secondsVisible: false,
+      borderColor: 'rgba(255,255,255,0.07)',
+      rightBarStaysOnScroll: true,
+    },
+    rightPriceScale: { borderColor: 'rgba(255,255,255,0.07)' },
+    handleScroll: true, handleScale: true,
+  });
+  candleSeries = chartObj.addCandlestickSeries({
+    upColor: '#26a69a', downColor: '#ef5350',
+    borderUpColor: '#26a69a', borderDownColor: '#ef5350',
+    wickUpColor: '#26a69a', wickDownColor: '#ef5350',
+  });
+  // Hover OHLC subscription
+  chartObj.subscribeCrosshairMove(function(p) {
+    if (!p || !p.seriesData) return;
+    var bar = p.seriesData.get(candleSeries);
+    if (!bar) return;
+    document.getElementById('ohlc-o').textContent = bar.open.toFixed(2);
+    document.getElementById('ohlc-h').textContent = bar.high.toFixed(2);
+    document.getElementById('ohlc-l').textContent = bar.low.toFixed(2);
+    document.getElementById('ohlc-c').textContent = bar.close.toFixed(2);
+    var ch = bar.close - bar.open;
+    var chPct = (ch / bar.open) * 100;
+    var chgEl = document.getElementById('ohlc-chg');
+    chgEl.textContent = (ch >= 0 ? '+' : '') + ch.toFixed(2) + ' (' + (chPct >= 0 ? '+' : '') + chPct.toFixed(2) + '%)';
+    chgEl.className = 'ohlc-chg ' + (ch >= 0 ? 'up' : 'down');
+  });
+  window.addEventListener('resize', function() {
+    chartObj.resize(container.clientWidth, container.clientHeight);
+  });
+}
+
+// ── REPLAY HEAD MOVEMENT ──
+async function jumpToStart() {
+  if (!allCandles.length) return;
+  var start = dayStartBar > 0 ? dayStartBar : Math.min(50, allCandles.length);
+  displayBar = start;
+  candleSeries.setData(allCandles.slice(0, start));
+  syncCurrentBar();
+  updateProgressBar();
+}
+function jumpToEnd() {
+  if (!allCandles.length) return;
+  displayBar = allCandles.length;
+  candleSeries.setData(allCandles);
+  syncCurrentBar();
+  updateProgressBar();
+}
+function pctFromEvent(e) {
+  var track = document.getElementById('progress-track');
+  var rect = track.getBoundingClientRect();
+  var x = (e.clientX || (e.touches && e.touches[0].clientX) || 0) - rect.left;
+  return Math.max(0, Math.min(100, (x / rect.width) * 100));
+}
+function setProgressPct(pct) {
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-thumb').style.left = pct + '%';
+}
+function seekChartToPct(pct) {
+  if (!allCandles.length) return;
+  var target = Math.round((pct / 100) * (allCandles.length - 1)) + 1;
+  target = Math.max(1, Math.min(target, allCandles.length));
+  displayBar = target;
+  candleSeries.setData(allCandles.slice(0, displayBar));
+  syncCurrentBar();
+}
+function onProgressDown(e) { if (!allCandles.length) return; dragging = true; e.preventDefault(); var p = pctFromEvent(e); setProgressPct(p); seekChartToPct(p); }
+function onProgressMove(e) { if (!dragging) return; e.preventDefault(); var p = pctFromEvent(e); setProgressPct(p); seekChartToPct(p); }
+function onProgressUp() { dragging = false; updateProgressBar(); }
+function updateProgressBar() {
+  if (!allCandles.length) { setProgressPct(0); document.getElementById('range-time').textContent = '— UTC'; return; }
+  var pct = ((displayBar - 1) / (allCandles.length - 1)) * 100;
+  if (allCandles.length === 1) pct = 0;
+  setProgressPct(pct);
+  // Update bottom-right time stamp
+  var cur = allCandles[displayBar - 1];
+  if (cur) {
+    var d = new Date(cur.time * 1000);
+    var p = function(n) { return String(n).padStart(2, '0'); };
+    document.getElementById('range-time').textContent = p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()) + ':' + p(d.getUTCSeconds()) + ' UTC';
+  }
+}
+
+// ── LOAD DATA ──
+async function loadData() {
+  var date = document.getElementById('date-pick').value;
+  if (!date) { setStatus('Pick a date first', 'err'); return; }
+  setStatus('Loading…');
+  allCandles = []; displayBar = 0;
+  try {
+    var url = '/api/backtest-data?date=' + encodeURIComponent(date) + '&interval=' + encodeURIComponent(currentInterval);
+    var r = await fetch(url);
+    if (!r.ok) {
+      var err = await r.json().catch(function() { return {}; });
+      setStatus(err.error || ('HTTP ' + r.status), 'err');
+      return;
+    }
+    var json = await r.json();
+    if (!json.candles || !json.candles.length) { setStatus('No data', 'err'); return; }
+    allCandles = json.candles;
+    document.getElementById('chart-empty').style.display = 'none';
+    var requestedDayStart = new Date(date + 'T00:00:00Z').getTime() / 1000;
+    var firstDayBarIdx = allCandles.findIndex(function(b) { return b.time >= requestedDayStart; });
+    var start = firstDayBarIdx > 0 ? firstDayBarIdx : Math.min(50, allCandles.length);
+    dayStartBar = start;
+    displayBar = start;
+    candleSeries.setData(allCandles.slice(0, start));
+    chartObj.timeScale().fitContent();
+    setRBtns(true);
+    syncCurrentBar();
+    updateProgressBar();
+    var statusTxt = allCandles.length + ' bars';
+    if (json.contextCount) statusTxt += ' · ' + json.contextCount + ' context';
+    if (json.dayCount) statusTxt += ' · ' + json.dayCount + ' day';
+    setStatus(statusTxt, 'ok');
+  } catch(e) {
+    setStatus('Network error', 'err');
+    console.error(e);
+  }
+}
+
+// ── PLAYBACK ──
+async function play() {
+  if (playing) return;
+  playing = true;
+  document.getElementById('play-icon').innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+  while (playing) {
+    if (displayBar >= allCandles.length) { pause(); break; }
+    candleSeries.update(allCandles[displayBar]);
+    displayBar++;
+    syncCurrentBar();
+    updateProgressBar();
+    await new Promise(function(r) { setTimeout(r, playSpeed); });
+  }
+}
+function pause() {
+  playing = false;
+  document.getElementById('play-icon').innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+}
+function togglePlay() { playing ? pause() : play(); }
+function stepFwd(n) {
+  if (!allCandles.length || displayBar >= allCandles.length) return;
+  for (var i = 0; i < (n || 1); i++) {
+    if (displayBar >= allCandles.length) break;
+    candleSeries.update(allCandles[displayBar]);
+    displayBar++;
+  }
+  syncCurrentBar(); updateProgressBar();
+}
+function stepBack(n) {
+  if (!allCandles.length) return;
+  displayBar = Math.max(1, displayBar - (n || 1));
+  candleSeries.setData(allCandles.slice(0, displayBar));
+  syncCurrentBar(); updateProgressBar();
+}
+function syncCurrentBar() {
+  if (!allCandles.length) return;
+  var cur = allCandles[displayBar - 1];
+  if (cur) {
+    document.getElementById('f-entry').value = cur.close.toFixed(2);
+    redrawLines();
+  }
+}
+
+// ── INTERVAL ──
+function setInterval2(iv) {
+  currentInterval = iv;
+  document.querySelectorAll('.tf-pill').forEach(function(b) { b.classList.toggle('active', b.dataset.iv === iv); });
+  var ro = document.getElementById('ro-tf');
+  if (ro) {
+    var hasOpt = Array.from(ro.options).some(function(o) { return o.value === iv; });
+    if (hasOpt) ro.value = iv;
+  }
+  document.getElementById('ohlc-tf').textContent = (iv === '1h' ? '1H' : iv === '4h' ? '4H' : iv === 'D' ? 'D' : iv === '5s' ? '5s' : iv === '30s' ? '30s' : iv.replace('min', ''));
+  if (allCandles.length) loadData();
+}
+
+// ── DIRECTION / GRADE / POI / FIELDS ──
+function setDir(d) {
+  selDir = d;
+  document.getElementById('btn-long').classList.toggle('on', d === 'long');
+  document.getElementById('btn-short').classList.toggle('on', d === 'short');
+  // Mirror to bottom Buy/Sell armed-state
+  document.getElementById('bot-buy').classList.toggle('armed', d === 'long');
+  document.getElementById('bot-sell').classList.toggle('armed', d === 'short');
+  redrawLines();
+}
+function setGrade(g, el) {
+  selGrade = g;
+  document.querySelectorAll('.grade-btn').forEach(function(b) { b.classList.remove('on'); });
+  if (el) el.classList.add('on');
+}
+function togglePoi(el) { el.classList.toggle('on'); }
+function onFieldChange() { updateRR(); redrawLines(); }
+function updateRR() {
+  var sl = parseFloat(document.getElementById('f-sl').value) || 0;
+  var tp = parseFloat(document.getElementById('f-tp').value) || 0;
+  var rrEl = document.getElementById('f-rr');
+  if (sl > 0 && tp > 0) {
+    var rr = tp / sl;
+    rrEl.value = rr.toFixed(2) + ':1';
+    rrEl.style.color = rr >= 2 ? 'var(--gold)' : rr >= 1 ? 'var(--text)' : 'var(--red-2)';
+  } else {
+    rrEl.value = ''; rrEl.style.color = '';
+  }
+}
+function redrawLines() {
+  if (!candleSeries || !allCandles.length) return;
+  var entry = parseFloat(document.getElementById('f-entry').value);
+  var slPts = parseFloat(document.getElementById('f-sl').value) || 0;
+  var tpPts = parseFloat(document.getElementById('f-tp').value) || 0;
+  removeAllLines();
+  if (!entry) return;
+  tLines.entry = candleSeries.createPriceLine({
+    price: entry, color: '#c9a84c', lineWidth: 1,
+    lineStyle: LightweightCharts.LineStyle.Dashed,
+    axisLabelVisible: true, title: 'Entry',
+  });
+  if (selDir && slPts > 0) {
+    var slPrice = selDir === 'long' ? entry - slPts : entry + slPts;
+    tLines.sl = candleSeries.createPriceLine({
+      price: slPrice, color: '#ef5350', lineWidth: 1,
+      lineStyle: LightweightCharts.LineStyle.Dashed,
+      axisLabelVisible: true, title: 'SL',
+    });
+  }
+  if (selDir && tpPts > 0) {
+    var tpPrice = selDir === 'long' ? entry + tpPts : entry - tpPts;
+    tLines.tp = candleSeries.createPriceLine({
+      price: tpPrice, color: '#26a69a', lineWidth: 1,
+      lineStyle: LightweightCharts.LineStyle.Dashed,
+      axisLabelVisible: true, title: 'TP',
+    });
+  }
+}
+function removeAllLines() {
+  if (!candleSeries) return;
+  ['entry','sl','tp'].forEach(function(k) {
+    if (tLines[k]) { try { candleSeries.removePriceLine(tLines[k]); } catch(e) {} tLines[k] = null; }
+  });
+}
+
+// ── LOG TRADE ──
+function logTrade() {
+  if (!selDir) { alert('Select Long or Short first.'); return; }
+  var entry = parseFloat(document.getElementById('f-entry').value);
+  if (!entry) { alert('Load a chart first.'); return; }
+  var slPts = parseFloat(document.getElementById('f-sl').value) || 0;
+  var tpPts = parseFloat(document.getElementById('f-tp').value) || 0;
+  var rr = slPts > 0 ? parseFloat((tpPts / slPts).toFixed(2)) : 0;
+  var cur = allCandles[displayBar - 1];
+  var timeStr = cur ? new Date(cur.time * 1000).toISOString().substring(11, 16) : '';
+  var poi = Array.from(document.querySelectorAll('.poi-chip.on')).map(function(c) { return c.textContent; });
+  var trade = {
+    id: Date.now(),
+    idx: sessionTrades.length,
+    sessionId: window._currentSessionId || null,
+    date: document.getElementById('date-pick').value,
+    time: timeStr, dir: selDir, entry: entry,
+    slPts: slPts, tpPts: tpPts, rr: rr,
+    poi: poi, grade: selGrade,
+    outcome: null, rm: null,
+  };
+  sessionTrades.push(trade);
+  renderLog();
+  // Reset form
+  document.getElementById('f-sl').value = '';
+  document.getElementById('f-tp').value = '';
+  document.getElementById('f-rr').value = '';
+  document.querySelectorAll('.poi-chip.on').forEach(function(c) { c.classList.remove('on'); });
+  document.querySelectorAll('.grade-btn.on').forEach(function(b) { b.classList.remove('on'); });
+  setDir(null);
+  selGrade = null;
+  removeAllLines();
+  // Auto-switch panel to Journal so Garry sees the new trade
+  switchPanel('journal');
+}
+
+function setOutcome(idx, outcome) {
+  sessionTrades[idx].outcome = outcome;
+  document.querySelectorAll('.out-' + idx).forEach(function(b) { b.classList.remove('on'); });
+  var el = document.querySelector('.out-' + idx + '.' + outcome);
+  if (el) el.classList.add('on');
+  // Auto-fill R for BE
+  if (outcome === 'b') saveOutcome(idx);
+}
+function saveOutcome(idx) {
+  var t = sessionTrades[idx];
+  if (!t.outcome) { alert('Pick W, L, or BE first.'); return; }
+  var rInp = document.getElementById('ri-' + idx);
+  var rmVal = rInp ? parseFloat(rInp.value) : 0;
+  if (t.outcome === 'w') t.rm = rmVal > 0 ? rmVal : t.rr;
+  else if (t.outcome === 'l') t.rm = -(rmVal > 0 ? rmVal : 1);
+  else t.rm = 0;
+  renderLog();
+  saveToSupabase(t);
+}
+
+// ── RENDER LOG / STATS ──
+function renderLog() {
+  var el = document.getElementById('session-log');
+  if (!sessionTrades.length) {
+    el.innerHTML = '<div style="font-size:11.5px;color:var(--text-3);text-align:center;padding:14px 0;">No trades yet</div>';
+    updateStats(); return;
+  }
+  el.innerHTML = sessionTrades.slice().reverse().map(function(t) {
+    var resHtml;
+    if (t.outcome && t.rm !== null) {
+      var cls = t.outcome === 'w' ? 'w' : t.outcome === 'l' ? 'l' : 'b';
+      var label = t.outcome === 'w' ? '+' + Math.abs(t.rm).toFixed(1) + 'R'
+                : t.outcome === 'l' ? '-' + Math.abs(t.rm).toFixed(1) + 'R' : 'BE';
+      resHtml = '<div style="display:flex;justify-content:flex-end;"><span class="td-res ' + cls + '">' + label + '</span></div>';
+    } else {
+      resHtml = '<div class="outcome-row">' +
+        '<button class="out-btn w out-' + t.idx + '" onclick="setOutcome(' + t.idx + ',\'w\')">W</button>' +
+        '<button class="out-btn l out-' + t.idx + '" onclick="setOutcome(' + t.idx + ',\'l\')">L</button>' +
+        '<button class="out-btn b out-' + t.idx + '" onclick="setOutcome(' + t.idx + ',\'b\')">BE</button>' +
+        '</div>' +
+        '<div class="r-row">' +
+        '<input class="r-inp" id="ri-' + t.idx + '" type="number" step="0.1" min="0" placeholder="R achieved">' +
+        '<button class="r-save-btn" onclick="saveOutcome(' + t.idx + ')">Save</button>' +
+        '</div>';
+    }
+    var poiStr = t.poi.length ? t.poi.join(', ') : '—';
+    return '<div class="trade-entry">' +
+      '<div class="te-top">' +
+      '<span class="td-dir ' + (t.dir === 'long' ? 'l' : 's') + '">' + (t.dir === 'long' ? 'L' : 'S') + '</span>' +
+      '<span class="td-meta">' + t.time + ' · ' + (t.grade || '—') + ' · ' + poiStr + '</span>' +
+      '</div>' + resHtml + '</div>';
+  }).join('');
+  updateStats();
+}
+function updateStats() {
+  var done = sessionTrades.filter(function(t) { return t.outcome && t.rm !== null; });
+  var wins = done.filter(function(t) { return t.outcome === 'w'; }).length;
+  var totalR = done.reduce(function(s, t) { return s + t.rm; }, 0);
+  var wr = done.length ? Math.round(wins / done.length * 100) : null;
+  document.getElementById('s-trades').textContent = sessionTrades.length;
+  var wrEl = document.getElementById('s-wr');
+  wrEl.textContent = wr !== null ? wr + '%' : '—';
+  wrEl.className = 'stat-card-val' + (wr !== null ? (wr >= 50 ? ' g' : ' r') : '');
+  var rEl = document.getElementById('s-r');
+  rEl.textContent = done.length ? (totalR >= 0 ? '+' : '') + totalR.toFixed(1) + 'R' : '—';
+  rEl.className = 'stat-card-val ' + (totalR > 0 ? 'gold' : totalR < 0 ? 'r' : 'gold');
+  var avgR = done.length ? totalR / done.length : null;
+  document.getElementById('s-avgr').textContent = avgR !== null ? avgR.toFixed(2) + 'R' : '—';
+}
+
+// ── SUPABASE SAVE ──
+async function saveToSupabase(t) {
+  if (!sb) return;
+  var payload = {
+    id: t.id, date: t.date, session: 'NYAM',
+    dir: t.dir === 'long' ? 'Long' : 'Short',
+    result: t.outcome === 'w' ? 'Win' : t.outcome === 'l' ? 'Loss' : 'Break Even',
+    biasTrend: '', poi: t.poi, grade: t.grade,
+    rm: t.rm || 0, pts: 0,
+    entry: t.entry, slPts: t.slPts, tpPts: t.tpPts, rr: t.rr,
+    notes: '', sessionId: t.sessionId || null,
+  };
+  try { await sb.from('backtests').upsert({ id: payload.id, data: payload }, { onConflict: 'id' }); }
+  catch(e) { console.warn('Supabase save failed', e); }
+}
+
+// ── HELPERS ──
+function setStatus(msg, type) {
+  var el = document.getElementById('bar-status');
+  el.textContent = msg;
+  el.className = 'chart-status ' + (type || '');
+}
+function setRBtns(on) {
+  ['btn-jump-start','btn-back','btn-play','btn-fwd'].forEach(function(id) {
+    document.getElementById(id).disabled = !on;
+  });
+}
+
+// ── PANEL TOGGLES ──
+function switchPanel(name) {
+  var panel = document.getElementById('panel');
+  var main = document.getElementById('main');
+  document.querySelectorAll('.rail-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.panel === name); });
+  document.querySelectorAll('.panel-pane').forEach(function(p) { p.hidden = (p.dataset.pane !== name); });
+  document.getElementById('panel-title').textContent = name.charAt(0).toUpperCase() + name.slice(1);
+  panel.classList.add('open');
+  main.classList.add('panel-open');
+  if (chartObj) setTimeout(function() { var c = document.getElementById('chart-container'); chartObj.resize(c.clientWidth, c.clientHeight); }, 260);
+}
+function closePanel() {
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('main').classList.remove('panel-open');
+  document.querySelectorAll('.rail-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (chartObj) setTimeout(function() { var c = document.getElementById('chart-container'); chartObj.resize(c.clientWidth, c.clientHeight); }, 260);
+}
+
+function gotoPreset(daysOffset) {
+  var d = new Date(); d.setDate(d.getDate() + daysOffset);
+  var p = function(n) { return String(n).padStart(2, '0'); };
+  document.getElementById('date-pick').value = d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+
+// ── Expose for inline onclick handlers and tests ──
+window.loadData = loadData;
+window.logTrade = logTrade;
+window.setOutcome = setOutcome;
+window.saveOutcome = saveOutcome;
+window.setDir = setDir;
+window.setGrade = setGrade;
+window.togglePoi = togglePoi;
+window.onFieldChange = onFieldChange;
+window.gotoPreset = gotoPreset;
+window.switchPanel = switchPanel;
+window.closePanel = closePanel;
+window.togglePlay = togglePlay;
+window.stepFwd = stepFwd;
+window.stepBack = stepBack;
+window.jumpToStart = jumpToStart;
+window.jumpToEnd = jumpToEnd;
+window.setInterval2 = setInterval2;
+// Expose state vars for tests via a __state proxy (safer than redefining
+// window props — top-level `var` already binds these on window in browsers).
+window.__state = {
+  get sessionTrades() { return sessionTrades; },
+  get displayBar()    { return displayBar; },
+  get allCandles()    { return allCandles; },
+  get dayStartBar()   { return dayStartBar; },
+};
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', function() {
+  // ── SESSION LOADING (from dashboard) ──
+  var url = new URL(window.location.href);
+  var sid = url.searchParams.get('session');
+  window._currentSessionId = null;
+  window._sessionStartMs = Date.now();
+  if (sid) {
+    try {
+      var arr = JSON.parse(localStorage.getItem('nq_backtest_sessions') || '[]');
+      var s = arr.find(function(x) { return String(x.id) === String(sid); });
+      if (s) {
+        window._currentSessionId = s.id;
+        var tag = document.getElementById('session-tag');
+        if (tag) tag.lastChild.textContent = ' ' + (s.name || 'session').toUpperCase();
+        if (s.currentDate) document.getElementById('date-pick').value = s.currentDate;
+        if (s.capital) document.getElementById('bot-balance').textContent = '$' + Number(s.capital).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        s.lastOpenedAt = Date.now();
+        localStorage.setItem('nq_backtest_sessions', JSON.stringify(arr));
+      }
+    } catch(e) {}
+  }
+  // Persist on unload
+  window.addEventListener('beforeunload', function() {
+    if (!window._currentSessionId) return;
+    try {
+      var arr = JSON.parse(localStorage.getItem('nq_backtest_sessions') || '[]');
+      var idx = arr.findIndex(function(x) { return String(x.id) === String(window._currentSessionId); });
+      if (idx >= 0) {
+        arr[idx].totalTimeMs = (arr[idx].totalTimeMs || 0) + (Date.now() - window._sessionStartMs);
+        arr[idx].currentDate = document.getElementById('date-pick').value || arr[idx].currentDate;
+        arr[idx].tradeCount = sessionTrades.length;
+        localStorage.setItem('nq_backtest_sessions', JSON.stringify(arr));
+      }
+    } catch(e) {}
+  });
+
+  // Default date
+  var now = new Date();
+  var p = function(n) { return String(n).padStart(2, '0'); };
+  if (!document.getElementById('date-pick').value) {
+    document.getElementById('date-pick').value = now.getFullYear() + '-' + p(now.getMonth()+1) + '-' + p(now.getDate());
+  }
+
+  // Wait for Lightweight Charts to finish loading (async-loaded with CDN fallback).
+  // Poll up to 5s, then init regardless — initChart has a guard for missing lib.
+  var waitedMs = 0;
+  function waitForChartLib() {
+    if (typeof LightweightCharts !== 'undefined' || window.__lwcLoadFailed || waitedMs >= 5000) {
+      initChart();
+      onChartReady();
+      return;
+    }
+    waitedMs += 50;
+    setTimeout(waitForChartLib, 50);
+  }
+  waitForChartLib();
+});
+
+function onChartReady() {
+  // Wire TF pills (top)
+  document.querySelectorAll('#tf-pills .tf-pill').forEach(function(b) {
+    b.addEventListener('click', function() { setInterval2(b.dataset.iv); });
+  });
+  // RO TF select
+  document.getElementById('ro-tf').addEventListener('change', function(e) { setInterval2(e.target.value); });
+  // Range presets — visual only for now (real window-zoom is a future step)
+  document.querySelectorAll('.range-preset').forEach(function(b) {
+    b.addEventListener('click', function() {
+      document.querySelectorAll('.range-preset').forEach(function(x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      if (chartObj) chartObj.timeScale().fitContent();
+    });
+  });
+  // Replay buttons
+  document.getElementById('btn-jump-start').addEventListener('click', jumpToStart);
+  document.getElementById('btn-back').addEventListener('click', function() { stepBack(1); });
+  document.getElementById('btn-play').addEventListener('click', togglePlay);
+  document.getElementById('btn-fwd').addEventListener('click', function() { stepFwd(1); });
+  document.getElementById('btn-autoplay').addEventListener('click', function() {
+    var on = this.classList.toggle('on');
+    if (on && !playing) play();
+    else if (!on && playing) pause();
+  });
+  // Progress bar drag
+  var track = document.getElementById('progress-track');
+  track.addEventListener('mousedown', onProgressDown);
+  track.addEventListener('touchstart', onProgressDown, { passive: false });
+  document.addEventListener('mousemove', onProgressMove);
+  document.addEventListener('touchmove', onProgressMove, { passive: false });
+  document.addEventListener('mouseup', onProgressUp);
+  document.addEventListener('touchend', onProgressUp);
+  // Date input change → reload
+  document.getElementById('date-pick').addEventListener('change', loadData);
+  // Right-rail panels
+  document.querySelectorAll('.rail-btn').forEach(function(b) {
+    b.addEventListener('click', function() {
+      var name = b.dataset.panel;
+      var alreadyOpen = b.classList.contains('active');
+      if (alreadyOpen) closePanel();
+      else switchPanel(name);
+    });
+  });
+  document.getElementById('panel-close').addEventListener('click', closePanel);
+  // Tool rail — visual only (active toggle)
+  document.querySelectorAll('.tool-btn').forEach(function(b) {
+    b.addEventListener('click', function() {
+      document.querySelectorAll('.tool-btn').forEach(function(x) { x.classList.remove('active'); });
+      b.classList.add('active');
+    });
+  });
+  // Bottom Buy/Sell — open Order panel pre-armed
+  document.getElementById('bot-buy').addEventListener('click', function() {
+    switchPanel('order'); setDir('long');
+  });
+  document.getElementById('bot-sell').addEventListener('click', function() {
+    switchPanel('order'); setDir('short');
+  });
+  // Open Order panel by default
+  switchPanel('order');
+
+  // Auto-load if a date is set
+  if (document.getElementById('date-pick').value) loadData();
+}
+</script>
+</body>
+</html>
