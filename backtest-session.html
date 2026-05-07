@@ -1688,8 +1688,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var s = arr.find(function(x) { return String(x.id) === String(sid); });
       if (s) {
         window._currentSessionId = s.id;
-        var tag = document.getElementById('session-tag');
-        if (tag) tag.lastChild.textContent = ' ' + (s.name || 'session').toUpperCase();
+        // (Session name is shown in the dashboard, not the profile pill.)
         if (s.currentDate) document.getElementById('date-pick').value = s.currentDate;
         if (s.capital) document.getElementById('bot-balance').textContent = '$' + Number(s.capital).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         s.lastOpenedAt = Date.now();
