@@ -826,10 +826,10 @@
 
   <div class="tf-pills" id="tf-pills">
     <button class="tf-pill" data-iv="30s">30s</button>
-    <button class="tf-pill active" data-iv="1min">1m</button>
+    <button class="tf-pill" data-iv="1min">1m</button>
     <button class="tf-pill" data-iv="2min">2m</button>
     <button class="tf-pill" data-iv="3min">3m</button>
-    <button class="tf-pill" data-iv="5min">5m</button>
+    <button class="tf-pill active" data-iv="5min">5m</button>
     <button class="tf-pill" data-iv="15min">15m</button>
     <button class="tf-pill" data-iv="1h">1h</button>
     <button class="tf-pill" data-iv="4h">4h</button>
@@ -952,7 +952,7 @@
 <main class="main" id="main">
   <div class="ohlc-bar">
     <span class="ohlc-sym" id="ohlc-sym">E-MINI NASDAQ-100 FUTURES</span>
-    <span class="ohlc-tf" id="ohlc-tf">1</span>
+    <span class="ohlc-tf" id="ohlc-tf">5</span>
     <span class="ohlc-tf">CME on FXReplay</span>
     <span class="ohlc-dot" id="ohlc-dot"></span>
     <div class="ohlc-vals" id="ohlc-vals">
@@ -1011,8 +1011,8 @@
       <svg viewBox="0 0 24 24" fill="currentColor" id="play-icon"><polygon points="5 3 19 12 5 21 5 3"/></svg>
     </button>
     <select class="ro-tf-sel" id="ro-tf">
-      <option value="1min" selected>1m</option>
-      <option value="5min">5m</option>
+      <option value="1min">1m</option>
+      <option value="5min" selected>5m</option>
       <option value="15min">15m</option>
       <option value="1h">1h</option>
     </select>
@@ -1236,7 +1236,7 @@ var dayStartBar = 0;
 var playing = false;
 var playTimer = null;
 var playSpeed = 800;
-var currentInterval = '1min';
+var currentInterval = '5min';
 var sessionTrades = [];
 var selDir = null;
 var selGrade = null;
@@ -1369,7 +1369,13 @@ async function loadData() {
     var r = await fetch(url);
     if (!r.ok) {
       var err = await r.json().catch(function() { return {}; });
-      setStatus(err.error || ('HTTP ' + r.status), 'err');
+      var hint = '';
+      if (r.status === 404 && currentInterval === '1min') {
+        hint = ' — 1m data only goes back ~7 days. Try 5m or coarser.';
+      } else if (r.status === 404) {
+        hint = ' — no data (weekend/holiday/future date?).';
+      }
+      setStatus((err.error || ('HTTP ' + r.status)) + hint, 'err');
       return;
     }
     var json = await r.json();
@@ -1441,6 +1447,12 @@ function syncCurrentBar() {
 
 // ── INTERVAL ──
 function setInterval2(iv) {
+  // Yahoo's free endpoint doesn't serve sub-minute data. Fall back to 1m and
+  // let the user know rather than 400ing the API.
+  if (iv === '30s' || iv === '5s') {
+    setStatus(iv + ' not available — falling back to 1m', 'err');
+    iv = '1min';
+  }
   currentInterval = iv;
   document.querySelectorAll('.tf-pill').forEach(function(b) { b.classList.toggle('active', b.dataset.iv === iv); });
   var ro = document.getElementById('ro-tf');
