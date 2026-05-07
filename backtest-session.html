@@ -1196,6 +1196,31 @@
 <script>
 'use strict';
 
+// ── ERROR VISIBILITY ──
+// Hard fail with details visible in the page so we don't waste time chasing
+// truncated console screenshots. Captures runtime errors AND unhandled
+// promise rejections.
+(function() {
+  function showErr(msg, src, line, col, stack) {
+    var el = document.getElementById('__err_box');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = '__err_box';
+      el.style.cssText = 'position:fixed;bottom:60px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a0a0a;color:#ff8a8a;border:1px solid #5a2222;padding:10px 14px;border-radius:8px;font-family:monospace;font-size:11px;max-width:80vw;white-space:pre-wrap;line-height:1.4;';
+      (document.body || document.documentElement).appendChild(el);
+    }
+    var hint = (src || '') + (line ? ':' + line : '') + (col ? ':' + col : '');
+    el.textContent = '⚠ ' + msg + (hint ? '  @ ' + hint : '') + (stack ? '\n' + String(stack).split('\n').slice(0,4).join('\n') : '');
+  }
+  window.addEventListener('error', function(e) {
+    showErr(e.message || 'unknown error', e.filename, e.lineno, e.colno, e.error && e.error.stack);
+  });
+  window.addEventListener('unhandledrejection', function(e) {
+    var r = e.reason || {};
+    showErr('[promise] ' + (r.message || r), '', '', '', r.stack);
+  });
+})();
+
 // ── SUPABASE ──
 const SB_URL  = 'https://lzvkfrqwupgnvhmphzem.supabase.co';
 const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6dmtmcnF3dXBnbnZobXBoemVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI5MDMsImV4cCI6MjA5MDYyODkwM30.YpzJ-616pSbImH9e2f3vRXGzwXjCzTvHV-hgPQais3Q';
@@ -1333,7 +1358,9 @@ function updateProgressBar() {
 
 // ── LOAD DATA ──
 async function loadData() {
-  var date = document.getElementById('date-pick').value;
+  if (!candleSeries) { setStatus('Chart not ready yet', 'err'); return; }
+  var datePickEl = document.getElementById('date-pick');
+  var date = datePickEl ? datePickEl.value : '';
   if (!date) { setStatus('Pick a date first', 'err'); return; }
   setStatus('Loading…');
   allCandles = []; displayBar = 0;
