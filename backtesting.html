@@ -2366,6 +2366,12 @@ async function init() {
   loadSessions();
   // Wire tabs
   document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+  // If the URL has #analytics / #sessions / #trades / #dashboard, open that tab
+  // (used by the session studio's Analytics button: backtest.html#analytics)
+  const hash = (window.location.hash || '').replace('#', '');
+  if (['dashboard', 'sessions', 'trades', 'analytics'].includes(hash)) {
+    switchTab(hash);
+  }
   // Wire CTAs
   $('cta-backtest').addEventListener('click', () => openSessionModal(false));
   $('cta-prop').addEventListener('click', () => openSessionModal(true));
