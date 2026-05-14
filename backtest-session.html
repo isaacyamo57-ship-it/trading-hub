@@ -1831,6 +1831,10 @@ function onChartReady() {
   document.getElementById('bot-sell').addEventListener('click', function() {
     switchPanel('order'); setDir('short');
   });
+  // Analytics button — jump to dashboard's Analytics tab
+  document.getElementById('bot-analytics').addEventListener('click', function() {
+    window.location.href = 'backtest.html#analytics';
+  });
   // Open Order panel by default
   switchPanel('order');
 
