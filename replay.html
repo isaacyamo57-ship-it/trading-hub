@@ -2321,9 +2321,13 @@ window.openSettings = openSettings;
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + name));
-  if (name === 'sessions') renderAllSessions();
-  else if (name === 'trades') renderTradesTable();
-  else if (name === 'analytics') renderAnalyticsCharts();
+  try {
+    if (name === 'sessions') renderAllSessions();
+    else if (name === 'trades') renderTradesTable();
+    else if (name === 'analytics') renderAnalyticsCharts();
+  } catch (e) {
+    console.error('switchTab(' + name + ') render failed:', e);
+  }
 }
 
 // ── NQ LIVE PRICE (top bar) ──
@@ -2366,12 +2370,6 @@ async function init() {
   loadSessions();
   // Wire tabs
   document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
-  // If the URL has #analytics / #sessions / #trades / #dashboard, open that tab
-  // (used by the session studio's Analytics button: backtest.html#analytics)
-  const hash = (window.location.hash || '').replace('#', '');
-  if (['dashboard', 'sessions', 'trades', 'analytics'].includes(hash)) {
-    switchTab(hash);
-  }
   // Wire CTAs
   $('cta-backtest').addEventListener('click', () => openSessionModal(false));
   $('cta-prop').addEventListener('click', () => openSessionModal(true));
@@ -2466,6 +2464,13 @@ async function init() {
 
   // NQ live price
   startNQ();
+
+  // If the URL has #analytics / #sessions / #trades / #dashboard, open that
+  // tab. Done last so all data and chart machinery is ready.
+  const hash = (window.location.hash || '').replace('#', '');
+  if (['dashboard', 'sessions', 'trades', 'analytics'].includes(hash)) {
+    switchTab(hash);
+  }
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
