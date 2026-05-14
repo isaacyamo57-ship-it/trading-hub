@@ -367,7 +367,11 @@
       box-shadow:0 6px 24px rgba(0,0,0,0.5);
       z-index:8;
       max-width:calc(100% - 32px);
+      user-select:none;
     }
+    /* Once the user drags the overlay, we set explicit left/top in pixels and
+       drop the centering transform. */
+    .replay-overlay.positioned { transform:none; bottom:auto; }
     .ro-drag {
       width:18px; height:24px;
       display:flex; align-items:center; justify-content:center;
@@ -1805,6 +1809,83 @@ function onChartReady() {
   document.addEventListener('touchmove', onProgressMove, { passive: false });
   document.addEventListener('mouseup', onProgressUp);
   document.addEventListener('touchend', onProgressUp);
+
+  // ── Drag the replay overlay around the chart ──
+  // The 6-dot handle on the left moves the whole overlay. Position is stored
+  // in localStorage so it persists between sessions on this device.
+  (function() {
+    var overlay = document.getElementById('replay-overlay');
+    var handle  = overlay && overlay.querySelector('.ro-drag');
+    var main    = document.getElementById('main');
+    if (!overlay || !handle || !main) return;
+
+    // Restore saved position if any
+    try {
+      var saved = JSON.parse(localStorage.getItem('nq_replay_overlay_pos') || 'null');
+      if (saved && typeof saved.left === 'number' && typeof saved.top === 'number') {
+        overlay.classList.add('positioned');
+        overlay.style.left = saved.left + 'px';
+        overlay.style.top  = saved.top + 'px';
+      }
+    } catch (e) {}
+
+    var dragOff = null; // { dx, dy } pointer offset within overlay at mousedown
+    function pt(e) { return (e.touches && e.touches[0]) || e; }
+
+    function onDown(e) {
+      e.preventDefault();
+      var p = pt(e);
+      var rect = overlay.getBoundingClientRect();
+      dragOff = { dx: p.clientX - rect.left, dy: p.clientY - rect.top };
+      handle.style.cursor = 'grabbing';
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('mouseup', onUp);
+      document.addEventListener('touchend', onUp);
+    }
+    function onMove(e) {
+      if (!dragOff) return;
+      e.preventDefault();
+      var p = pt(e);
+      var parentRect = main.getBoundingClientRect();
+      var w = overlay.offsetWidth;
+      var h = overlay.offsetHeight;
+      // Clamp inside the chart area (with a small margin)
+      var pad = 4;
+      var left = Math.max(pad, Math.min(parentRect.width - w - pad, p.clientX - parentRect.left - dragOff.dx));
+      var top  = Math.max(pad, Math.min(parentRect.height - h - pad, p.clientY - parentRect.top  - dragOff.dy));
+      overlay.classList.add('positioned');
+      overlay.style.left = left + 'px';
+      overlay.style.top  = top  + 'px';
+    }
+    function onUp() {
+      if (!dragOff) return;
+      dragOff = null;
+      handle.style.cursor = '';
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchend', onUp);
+      // Persist
+      try {
+        localStorage.setItem('nq_replay_overlay_pos', JSON.stringify({
+          left: parseFloat(overlay.style.left) || 0,
+          top:  parseFloat(overlay.style.top)  || 0,
+        }));
+      } catch (e) {}
+    }
+
+    handle.addEventListener('mousedown', onDown);
+    handle.addEventListener('touchstart', onDown, { passive: false });
+
+    // Double-click the handle = reset to default centered position
+    handle.addEventListener('dblclick', function() {
+      overlay.classList.remove('positioned');
+      overlay.style.left = '';
+      overlay.style.top  = '';
+      try { localStorage.removeItem('nq_replay_overlay_pos'); } catch (e) {}
+    });
+  })();
   // Date input change → reload
   document.getElementById('date-pick').addEventListener('change', loadData);
   // Right-rail panels
