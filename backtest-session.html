@@ -2317,17 +2317,31 @@ var TOOL_CATALOG = {
     ]}],
   },
   line: {
-    groups: [{ label: 'Lines', items: [
-      { name: 'Trend line',      tool: 'line',  hotkey: 'Alt + T', icon: svgIco('trendline') },
-      { name: 'Ray',             soon: true,   icon: svgIco('ray') },
-      { name: 'Info line',       soon: true,   icon: svgIco('trendline') },
-      { name: 'Extended line',   soon: true,   icon: svgIco('extline') },
-      { name: 'Trend angle',     soon: true,   icon: svgIco('angle') },
-      { name: 'Horizontal line', tool: 'hline', hotkey: 'Alt + H', icon: svgIco('hline') },
-      { name: 'Horizontal ray',  soon: true,   icon: svgIco('hray') },
-      { name: 'Vertical line',   soon: true, hotkey: 'Alt + V', icon: svgIco('vline') },
-      { name: 'Cross line',      soon: true, hotkey: 'Alt + C', icon: svgIco('crossline') },
-    ]}],
+    groups: [
+      { label: 'Lines', items: [
+        { name: 'Trend line',      tool: 'line',  hotkey: 'Alt + T', icon: svgIco('trendline') },
+        { name: 'Ray',             soon: true,    icon: svgIco('ray') },
+        { name: 'Info line',       soon: true,    icon: svgIco('trendline') },
+        { name: 'Extended line',   soon: true,    icon: svgIco('extline') },
+        { name: 'Trend angle',     soon: true,    icon: svgIco('angle') },
+        { name: 'Horizontal line', tool: 'hline', hotkey: 'Alt + H', icon: svgIco('hline') },
+        { name: 'Horizontal ray',  soon: true, hotkey: 'Alt + J', icon: svgIco('hray') },
+        { name: 'Vertical line',   soon: true, hotkey: 'Alt + V', icon: svgIco('vline') },
+        { name: 'Cross line',      soon: true, hotkey: 'Alt + C', icon: svgIco('crossline') },
+      ]},
+      { label: 'Channels', items: [
+        { name: 'Parallel channel', tool: 'channel', icon: svgIco('channel') },
+        { name: 'Regression trend', soon: true, icon: svgIco('regr') },
+        { name: 'Flat top/bottom',  soon: true, icon: svgIco('flat') },
+        { name: 'Disjoint channel', soon: true, icon: svgIco('disjoint') },
+      ]},
+      { label: 'Pitchforks', items: [
+        { name: 'Pitchfork',          soon: true, icon: svgIco('fork') },
+        { name: 'Schiff pitchfork',   soon: true, icon: svgIco('fork') },
+        { name: 'Modified Schiff pitchfork', soon: true, icon: svgIco('fork') },
+        { name: 'Inside pitchfork',   soon: true, icon: svgIco('fork') },
+      ]},
+    ],
   },
   hline: {
     groups: [{ label: 'Horizontal', items: [
