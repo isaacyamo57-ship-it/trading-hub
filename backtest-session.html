@@ -417,6 +417,53 @@
       margin-left:4px;
     }
 
+    /* ── Emoji / stickers / icons picker (special flyout) ── */
+    .tool-flyout.picker { min-width:340px; max-width:340px; padding:0; }
+    .tf-pick-tabs {
+      display:flex; align-items:center; justify-content:space-around;
+      padding:6px 4px 0;
+      gap:2px;
+    }
+    .tf-pick-tab {
+      width:36px; height:34px;
+      display:flex; align-items:center; justify-content:center;
+      background:transparent; border:none;
+      color:#787b86; cursor:pointer; border-radius:4px;
+      position:relative;
+    }
+    .tf-pick-tab:hover { color:#d1d4dc; background:rgba(255,255,255,0.06); }
+    .tf-pick-tab.active { color:#2962ff; }
+    .tf-pick-tab.active::after {
+      content:''; position:absolute; left:6px; right:6px; bottom:-1px; height:2px;
+      background:#2962ff; border-radius:2px;
+    }
+    .tf-pick-divider { height:1px; background:rgba(255,255,255,0.06); margin:0; }
+    .tf-pick-section-label {
+      font-size:10.5px; letter-spacing:0.06em; color:#787b86;
+      padding:10px 14px 6px; text-transform:uppercase;
+    }
+    .tf-emoji-grid {
+      display:grid; grid-template-columns:repeat(9, 1fr);
+      gap:2px; padding:0 8px 12px;
+      max-height:340px; overflow-y:auto;
+    }
+    .tf-emoji-grid::-webkit-scrollbar { width:6px; }
+    .tf-emoji-grid::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.15); border-radius:3px; }
+    .tf-emoji-btn {
+      width:32px; height:32px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:20px; line-height:1;
+      background:transparent; border:none;
+      cursor:pointer; border-radius:4px;
+      transition:background .1s;
+    }
+    .tf-emoji-btn:hover { background:rgba(255,255,255,0.1); }
+    .tf-pick-soon-row {
+      display:flex; align-items:center; gap:10px;
+      padding:8px 14px; color:#d1d4dc; font-size:12.5px;
+    }
+    .tf-pick-soon-row .tf-soon-icon { font-size:18px; }
+
     .draw-tools {
       position:absolute;
       top:36px; left:8px;
@@ -2360,61 +2407,146 @@ var TOOL_CATALOG = {
     ]}],
   },
   fib: {
-    groups: [{ label: 'Fib tools', items: [
-      { name: 'Fib retracement', tool: 'fib', hotkey: 'Alt + F', icon: svgIco('fib') },
-      { name: 'Trend-based fib', soon: true, icon: svgIco('fib') },
-      { name: 'Fib extension',   soon: true, icon: svgIco('fib') },
-      { name: 'Fib channel',     soon: true, icon: svgIco('fib') },
-      { name: 'Fib time zone',   soon: true, icon: svgIco('fib') },
-      { name: 'Fib speed/resistance fan', soon: true, icon: svgIco('fib') },
-    ]}],
+    groups: [
+      { label: 'Fibonacci', items: [
+        { name: 'Fib retracement',          tool: 'fib', hotkey: 'Alt + F', icon: svgIco('fib') },
+        { name: 'Trend-based fib extension', soon: true, icon: svgIco('fib') },
+        { name: 'Fib channel',              soon: true, icon: svgIco('fib') },
+        { name: 'Fib time zone',            soon: true, icon: svgIco('fib') },
+        { name: 'Fib speed resistance fan', soon: true, icon: svgIco('fib') },
+        { name: 'Trend-based fib time',     soon: true, icon: svgIco('fib') },
+        { name: 'Fib circles',              soon: true, icon: svgIco('fibCircle') },
+        { name: 'Fib spiral',               soon: true, icon: svgIco('fibSpiral') },
+        { name: 'Fib speed resistance arcs', soon: true, icon: svgIco('fibArcs') },
+        { name: 'Fib wedge',                soon: true, icon: svgIco('fibWedge') },
+        { name: 'Pitchfan',                 soon: true, icon: svgIco('pitchfan') },
+      ]},
+      { label: 'Gann', items: [
+        { name: 'Gann box',          soon: true, icon: svgIco('gannBox') },
+        { name: 'Gann square fixed', soon: true, icon: svgIco('gannSqFix') },
+        { name: 'Gann square',       soon: true, icon: svgIco('gannSq') },
+        { name: 'Gann fan',          soon: true, icon: svgIco('gannFan') },
+      ]},
+    ],
   },
   pitchfork: {
     groups: [{ label: 'Pitchforks', items: [
       { name: 'Pitchfork',          soon: true, icon: svgIco('fork') },
       { name: 'Schiff pitchfork',   soon: true, icon: svgIco('fork') },
-      { name: 'Modified Schiff',    soon: true, icon: svgIco('fork') },
+      { name: 'Modified Schiff pitchfork',    soon: true, icon: svgIco('fork') },
       { name: 'Inside pitchfork',   soon: true, icon: svgIco('fork') },
     ]}],
   },
   brush: {
-    groups: [{ label: 'Shapes & brushes', items: [
-      { name: 'Rectangle',  tool: 'rect',  hotkey: 'Alt + R', icon: svgIco('rect') },
-      { name: 'Ellipse',    soon: true, icon: svgIco('ellipse') },
-      { name: 'Triangle',   soon: true, icon: svgIco('tri') },
-      { name: 'Brush',      soon: true, icon: svgIco('brush') },
-      { name: 'Highlighter',soon: true, icon: svgIco('highlight') },
-      { name: 'Polyline',   soon: true, icon: svgIco('polyline') },
-      { name: 'Path',       soon: true, icon: svgIco('brush') },
-    ]}],
+    groups: [
+      { label: 'Brushes', items: [
+        { name: 'Brush',       soon: true, icon: svgIco('brush') },
+        { name: 'Highlighter', soon: true, icon: svgIco('highlight') },
+      ]},
+      { label: 'Arrows', items: [
+        { name: 'Arrow marker',     soon: true, icon: svgIco('arrowMark') },
+        { name: 'Arrow',            soon: true, icon: svgIco('arrow') },
+        { name: 'Arrow mark up',    soon: true, icon: svgIco('arrowUp') },
+        { name: 'Arrow mark down',  soon: true, icon: svgIco('arrowDown') },
+      ]},
+      { label: 'Shapes', items: [
+        { name: 'Rectangle',        tool: 'rect',  hotkey: 'Alt + Shift + R', icon: svgIco('rect') },
+        { name: 'Rotated rectangle', soon: true, icon: svgIco('rotRect') },
+        { name: 'Path',             soon: true, icon: svgIco('path') },
+        { name: 'Circle',           soon: true, icon: svgIco('circle') },
+        { name: 'Ellipse',          soon: true, icon: svgIco('ellipse') },
+        { name: 'Polyline',         soon: true, icon: svgIco('polyline') },
+        { name: 'Triangle',         soon: true, icon: svgIco('tri') },
+        { name: 'Arc',              soon: true, icon: svgIco('arc') },
+        { name: 'Curve',            soon: true, icon: svgIco('curve') },
+        { name: 'Double curve',     soon: true, icon: svgIco('dcurve') },
+      ]},
+    ],
   },
   text: {
-    groups: [{ label: 'Annotations', items: [
-      { name: 'Text',     tool: 'text', hotkey: 'Alt + W', icon: svgIco('T') },
-      { name: 'Note',     soon: true, icon: svgIco('note') },
-      { name: 'Callout',  soon: true, icon: svgIco('callout') },
-      { name: 'Anchored text', soon: true, icon: svgIco('T') },
-      { name: 'Comment',  soon: true, icon: svgIco('comment') },
-    ]}],
+    groups: [
+      { label: 'Text and notes', items: [
+        { name: 'Text',        tool: 'text', hotkey: 'Alt + W', icon: svgIco('T') },
+        { name: 'Note',        soon: true, icon: svgIco('note') },
+        { name: 'Price note',  soon: true, icon: svgIco('priceNote') },
+        { name: 'Pin',         soon: true, icon: svgIco('pin') },
+        { name: 'Table',       soon: true, icon: svgIco('table') },
+        { name: 'Callout',     soon: true, icon: svgIco('callout') },
+        { name: 'Comment',     soon: true, icon: svgIco('comment') },
+        { name: 'Price label', soon: true, icon: svgIco('plabel') },
+        { name: 'Signpost',    soon: true, icon: svgIco('signpost') },
+        { name: 'Flag mark',   soon: true, icon: svgIco('flag') },
+      ]},
+      { label: 'Content', items: [
+        { name: 'Image',  soon: true, icon: svgIco('image') },
+        { name: 'Post',   soon: true, icon: svgIco('post') },
+        { name: 'Idea',   soon: true, icon: svgIco('idea') },
+      ]},
+    ],
   },
+  // Stickers & emoji — uses a special picker UI instead of the list flyout.
+  // The 'emoji' flag is read by openFlyoutFor to render a grid + tabs.
   emoji: {
-    groups: [{ label: 'Stickers & arrows', items: [
-      { name: 'Sticker',         soon: true, icon: svgIco('emoji') },
-      { name: 'Arrow up',        soon: true, icon: svgIco('arrowUp') },
-      { name: 'Arrow down',      soon: true, icon: svgIco('arrowDown') },
-      { name: 'Arrow marker',    soon: true, icon: svgIco('arrowMark') },
-      { name: 'Long position',   soon: true, icon: svgIco('longPos') },
-      { name: 'Short position',  soon: true, icon: svgIco('shortPos') },
-    ]}],
+    pickerKind: 'emoji',
+    tabs: [
+      { id: 'emojis',   label: 'Emojis',   icon: svgIco('emoji') },
+      { id: 'stickers', label: 'Stickers', icon: svgIco('arrowUp') },
+      { id: 'icons',    label: 'Icons',    icon: svgIco('flag') },
+    ],
   },
   ruler: {
-    groups: [{ label: 'Measure', items: [
-      { name: 'Ruler',         tool: 'ruler', hotkey: 'Alt + R', icon: svgIco('ruler') },
-      { name: 'Price range',   soon: true, icon: svgIco('pRange') },
-      { name: 'Date range',    soon: true, icon: svgIco('dRange') },
-      { name: 'Date & price range', soon: true, icon: svgIco('dpRange') },
-      { name: 'Bars pattern',  soon: true, icon: svgIco('bars') },
-    ]}],
+    groups: [
+      { label: 'Forecasting', items: [
+        { name: 'Long position',   soon: true, icon: svgIco('longPos') },
+        { name: 'Short position',  soon: true, icon: svgIco('shortPos') },
+        { name: 'Position forecast', soon: true, icon: svgIco('posForecast') },
+        { name: 'Bar pattern',     soon: true, icon: svgIco('barsPattern') },
+        { name: 'Ghost feed',      soon: true, icon: svgIco('ghostFeed') },
+        { name: 'Sector',          soon: true, icon: svgIco('sector') },
+      ]},
+      { label: 'Volume-based', items: [
+        { name: 'Anchored VWAP',           soon: true, icon: svgIco('avwap') },
+        { name: 'Fixed range volume profile', soon: true, icon: svgIco('vprofile') },
+        { name: 'Anchored volume profile', soon: true, icon: svgIco('avprofile') },
+      ]},
+      { label: 'Measurers', items: [
+        { name: 'Ruler',              tool: 'ruler', hotkey: 'Alt + R', icon: svgIco('ruler') },
+        { name: 'Price range',        soon: true, icon: svgIco('pRange') },
+        { name: 'Date range',         soon: true, icon: svgIco('dRange') },
+        { name: 'Date and price range', soon: true, icon: svgIco('dpRange') },
+      ]},
+    ],
+  },
+  // Patterns — Chart patterns / Elliott / Cycles
+  pitchfork: {
+    groups: [
+      { label: 'Pitchforks', items: [
+        { name: 'Pitchfork',                  soon: true, icon: svgIco('fork') },
+        { name: 'Schiff pitchfork',           soon: true, icon: svgIco('fork') },
+        { name: 'Modified Schiff pitchfork',  soon: true, icon: svgIco('fork') },
+        { name: 'Inside pitchfork',           soon: true, icon: svgIco('fork') },
+      ]},
+      { label: 'Chart patterns', items: [
+        { name: 'XABCD pattern',         soon: true, icon: svgIco('pattern') },
+        { name: 'Cypher pattern',        soon: true, icon: svgIco('pattern') },
+        { name: 'Head and shoulders',    soon: true, icon: svgIco('pattern') },
+        { name: 'ABCD pattern',          soon: true, icon: svgIco('pattern') },
+        { name: 'Triangle pattern',      soon: true, icon: svgIco('triPat') },
+        { name: 'Three drives pattern',  soon: true, icon: svgIco('pattern') },
+      ]},
+      { label: 'Elliott waves', items: [
+        { name: 'Elliott impulse wave (1·2·3·4·5)', soon: true, icon: svgIco('elliott') },
+        { name: 'Elliott correction wave (A·B·C)',  soon: true, icon: svgIco('elliott') },
+        { name: 'Elliott triangle wave (A·B·C·D·E)', soon: true, icon: svgIco('elliott') },
+        { name: 'Elliott double combo wave (W·X·Y)', soon: true, icon: svgIco('elliott') },
+        { name: 'Elliott triple combo wave (W·X·Y·X·Z)', soon: true, icon: svgIco('elliott') },
+      ]},
+      { label: 'Cycles', items: [
+        { name: 'Cyclic lines', soon: true, icon: svgIco('cyclic') },
+        { name: 'Time cycles',  soon: true, icon: svgIco('cyclic') },
+        { name: 'Sine line',    soon: true, icon: svgIco('sine') },
+      ]},
+    ],
   },
 };
 
@@ -2463,6 +2595,47 @@ function svgIco(kind) {
     dRange:    '<line x1="4" y1="14" x2="20" y2="14"/><line x1="4" y1="11" x2="4" y2="17"/><line x1="20" y1="11" x2="20" y2="17"/>',
     dpRange:   '<rect x="5" y="6" width="14" height="12" rx="1"/>',
     bars:      '<rect x="4" y="10" width="3" height="10"/><rect x="9" y="6" width="3" height="14"/><rect x="14" y="13" width="3" height="7"/><rect x="19" y="8" width="3" height="12"/>',
+    // ── Additional icons for the expanded catalog ──
+    // Fibonacci variations
+    fibCircle:   '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="2"/>',
+    fibSpiral:   '<path d="M12 16a4 4 0 1 1 4-4 6 6 0 1 1-6 6 8 8 0 1 1 8-8"/>',
+    fibArcs:     '<path d="M3 20a9 9 0 0 1 18 0"/><path d="M6 20a6 6 0 0 1 12 0"/><path d="M9 20a3 3 0 0 1 6 0"/>',
+    fibWedge:    '<line x1="4" y1="20" x2="20" y2="4"/><line x1="4" y1="20" x2="14" y2="4"/><line x1="4" y1="20" x2="8" y2="4"/>',
+    pitchfan:    '<line x1="4" y1="20" x2="20" y2="4"/><line x1="4" y1="20" x2="20" y2="10"/><line x1="4" y1="20" x2="20" y2="16"/>',
+    gannBox:     '<rect x="4" y="4" width="16" height="16"/><line x1="4" y1="4" x2="20" y2="20"/><line x1="4" y1="20" x2="20" y2="4"/>',
+    gannSqFix:   '<rect x="4" y="4" width="16" height="16"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="12" y1="4" x2="12" y2="20"/>',
+    gannSq:      '<rect x="4" y="4" width="16" height="16"/><line x1="4" y1="4" x2="20" y2="20"/>',
+    gannFan:     '<line x1="4" y1="20" x2="20" y2="4"/><line x1="4" y1="20" x2="20" y2="10"/><line x1="4" y1="20" x2="20" y2="16"/><line x1="4" y1="20" x2="14" y2="4"/>',
+    // Shapes
+    rotRect:     '<g transform="rotate(15 12 12)"><rect x="4" y="6" width="16" height="12" rx="1"/></g>',
+    path:        '<path d="M4 18c4-2 6-10 10-10s6 8 6 8"/>',
+    circle:      '<circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1" fill="currentColor"/>',
+    arc:         '<path d="M4 20a8 8 0 0 1 16 0"/>',
+    curve:       '<path d="M4 18c3-6 13-6 16 0"/>',
+    dcurve:      '<path d="M3 18c2-6 5-6 7 0 2-6 5-6 7 0"/>',
+    // Notes / content
+    priceNote:   '<line x1="3" y1="12" x2="14" y2="12"/><rect x="14" y="7" width="7" height="10" rx="1"/><line x1="17" y1="10" x2="18" y2="10"/><line x1="17" y1="12" x2="18" y2="12"/>',
+    pin:         '<path d="M12 3v8l-3 3v3h6v-3l-3-3z"/><line x1="12" y1="14" x2="12" y2="21"/>',
+    table:       '<rect x="4" y="5" width="16" height="14" rx="1"/><line x1="4" y1="10" x2="20" y2="10"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="12" y1="5" x2="12" y2="19"/>',
+    signpost:    '<circle cx="12" cy="9" r="5"/><line x1="12" y1="14" x2="12" y2="21"/><path d="M9 8h6"/>',
+    flag:        '<line x1="5" y1="3" x2="5" y2="21"/><path d="M5 4h12l-2 4 2 4H5z"/>',
+    image:       '<rect x="4" y="4" width="16" height="16" rx="1"/><circle cx="9" cy="9" r="1.5" fill="currentColor"/><polyline points="4 17 9 13 14 16 20 11"/>',
+    post:        '<line x1="4" y1="4" x2="20" y2="20"/><line x1="20" y1="4" x2="4" y2="20"/>',
+    idea:        '<path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a5 5 0 0 0-3 9c1 1 1 2 1 3h4c0-1 0-2 1-3a5 5 0 0 0-3-9z"/>',
+    // Forecasting
+    posForecast: '<line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="8" x2="4" y2="16"/><line x1="20" y1="8" x2="20" y2="16"/><rect x="6" y="10" width="3" height="4" fill="currentColor"/><rect x="12" y="9" width="3" height="6" fill="currentColor"/>',
+    barsPattern:'<rect x="3" y="9" width="3" height="11"/><rect x="8" y="5" width="3" height="15"/><rect x="13" y="11" width="3" height="9"/><rect x="18" y="7" width="3" height="13"/>',
+    ghostFeed:   '<path d="M3 18c2-4 5-4 7 0s5 4 7 0 4-4 5 0" opacity=".5"/><path d="M3 12c2-4 5-4 7 0s5 4 7 0 4-4 5 0"/>',
+    sector:      '<path d="M4 20 L20 20 L20 4 Z"/>',
+    avwap:       '<line x1="4" y1="14" x2="20" y2="10"/><circle cx="4" cy="14" r="1.5" fill="currentColor"/>',
+    vprofile:    '<line x1="6" y1="4" x2="6" y2="20"/><rect x="6" y="6" width="8" height="2"/><rect x="6" y="10" width="12" height="2"/><rect x="6" y="14" width="6" height="2"/><rect x="6" y="18" width="4" height="2"/>',
+    avprofile:   '<line x1="20" y1="4" x2="20" y2="20"/><rect x="14" y="8" width="6" height="2"/><rect x="10" y="12" width="10" height="2"/><rect x="16" y="16" width="4" height="2"/>',
+    // Patterns
+    pattern:     '<polyline points="3 18 7 8 11 14 15 6 19 16"/>',
+    triPat:      '<path d="M4 20 L20 20 L10 6 Z"/>',
+    elliott:     '<polyline points="3 17 6 11 9 14 13 6 16 12 19 9"/>',
+    cyclic:      '<path d="M3 12c2-6 5-6 7 0s5 6 7 0 4-6 5 0"/>',
+    sine:        '<path d="M3 12c3-6 6-6 9 0s6 6 9 0"/>',
   };
   return s + (paths[kind] || paths.cross) + '</svg>';
 }
@@ -2492,6 +2665,15 @@ function openFlyoutFor(railBtn) {
   var cat = TOOL_CATALOG[key];
   if (!cat) return;
   FLYOUT_FOR = railBtn;
+
+  // Picker variant (emojis/stickers/icons) — different UI from list flyouts.
+  if (cat.pickerKind === 'emoji') {
+    var pl = renderEmojiPicker(cat);
+    document.body.appendChild(pl);
+    FLYOUT_EL = pl;
+    positionFlyout(pl, railBtn);
+    return;
+  }
 
   var fl = document.createElement('div');
   fl.className = 'tool-flyout';
@@ -2556,15 +2738,98 @@ function openFlyoutFor(railBtn) {
 
   document.body.appendChild(fl);
   FLYOUT_EL = fl;
-  // Position to the right of the rail button
+  positionFlyout(fl, railBtn);
+}
+
+// Position a flyout to the right of a rail button, clamping inside viewport.
+function positionFlyout(fl, railBtn) {
   var r = railBtn.getBoundingClientRect();
   fl.style.left = (r.right + 6) + 'px';
   fl.style.top  = r.top + 'px';
-  // If it would overflow bottom, lift it up
   var flR = fl.getBoundingClientRect();
   if (flR.bottom > window.innerHeight - 8) {
     fl.style.top = Math.max(8, window.innerHeight - flR.height - 8) + 'px';
   }
+}
+
+// Curated emoji set grouped like TradingView's picker. Selecting one will
+// (eventually) place it as a sticker; for now we just show the picker so the
+// UI matches — clicking shows "Coming soon" feedback.
+var EMOJI_GROUPS = [
+  { label: 'Smiles & people', emojis: '😀 😁 😂 🤣 😊 😇 😉 😍 🥰 😘 😋 😜 🤪 🤩 🤔 🤨 😐 😑 😶 🙄 😏 😣 😥 😮 🤐 😯 😪 😴 😌 😛 😝 🤤 😒 🙁 😞 😔 😟 😕 🙃 🤑 😲 😖 😞 😟 😤 😢 😭 😦 😧 😨 😩 🤯 😬 😰 😱 🥵 🥶 😳 🤪 😵 🥴 😠 😡 🤬 😷 🤒 🤕 🤢 🤮 😇 🥳 🥺'.split(/\s+/) },
+  { label: 'Animals & nature', emojis: '🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐻‍❄️ 🐨 🐯 🦁 🐮 🐷 🐸 🐵 🐔 🐧 🐦 🐤 🦆 🦅 🦉 🦇 🐺 🐗 🐴 🦄 🐝 🐛 🦋 🐌 🐞 🐢 🐍 🦎 🐙 🦑 🦐 🦞 🦀 🐡 🐠 🐟 🐬 🐳 🦈 🌳 🌲 🌵 🌷 🌹 🥀 🌺 🌸 🌼'.split(/\s+/) },
+  { label: 'Food & drink', emojis: '🍏 🍎 🍐 🍊 🍋 🍌 🍉 🍇 🍓 🫐 🍈 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🍆 🥑 🥦 🥬 🥒 🌶️ 🫑 🌽 🥕 🫒 🧄 🧅 🥔 🍠 🥐 🥯 🍞 🥖 🥨 🧀 🥚 🍳 🧈 🥞 🧇 🥓 🥩 🍗 🍔 🍟 🍕 🌭 🥪 🌮 🌯 🥙 🧆 🍣 🍤 🍦 🍩 🍪 🎂 🍰 🍫 🍬 🍭 🍿 ☕ 🍵 🧃 🥤 🧋 🍺 🍷 🍸 🍹 🥂'.split(/\s+/) },
+  { label: 'Symbols', emojis: '❤️ 🧡 💛 💚 💙 💜 🤎 🖤 🤍 💔 ❣️ 💕 💞 💓 💗 💖 💘 💝 ✨ 💫 ⭐ 🌟 ⚡ 🔥 💥 ☄️ 💎 ♻️ ✅ ❌ ⛔ 🚫 ❗ ❓ ⚠️ 💯 🆗 🆕 🆒 🔝 🔢 🔣'.split(/\s+/) },
+];
+
+function renderEmojiPicker(cat) {
+  var fl = document.createElement('div');
+  fl.className = 'tool-flyout picker';
+
+  // Tabs row
+  var tabs = document.createElement('div');
+  tabs.className = 'tf-pick-tabs';
+  var activeTab = 'emojis';
+
+  function renderBody() {
+    var oldBody = fl.querySelector('.tf-pick-body');
+    if (oldBody) oldBody.remove();
+    var body = document.createElement('div');
+    body.className = 'tf-pick-body';
+    if (activeTab === 'emojis') {
+      EMOJI_GROUPS.forEach(function(g) {
+        var lbl = document.createElement('div');
+        lbl.className = 'tf-pick-section-label';
+        lbl.textContent = g.label;
+        body.appendChild(lbl);
+        var grid = document.createElement('div');
+        grid.className = 'tf-emoji-grid';
+        g.emojis.forEach(function(em) {
+          if (!em) return;
+          var b = document.createElement('button');
+          b.className = 'tf-emoji-btn';
+          b.textContent = em;
+          b.title = em;
+          b.addEventListener('click', function() {
+            // Real emoji-sticker placement not built yet — show toast-like feedback
+            closeFlyout();
+            setStatus('Emoji stickers coming soon — UI ready, placement engine pending', 'err');
+          });
+          grid.appendChild(b);
+        });
+        body.appendChild(grid);
+      });
+    } else {
+      // Stickers / Icons — not built yet
+      var row = document.createElement('div');
+      row.className = 'tf-pick-soon-row';
+      row.innerHTML = '<span class="tf-soon-icon">⏳</span><span>' + (activeTab === 'stickers' ? 'Sticker' : 'Icon') + ' picker coming soon.</span>';
+      body.appendChild(row);
+    }
+    fl.appendChild(body);
+  }
+
+  cat.tabs.forEach(function(t) {
+    var tb = document.createElement('button');
+    tb.className = 'tf-pick-tab' + (t.id === activeTab ? ' active' : '');
+    tb.innerHTML = t.icon || svgIco('cross');
+    tb.title = t.label;
+    tb.addEventListener('click', function() {
+      activeTab = t.id;
+      tabs.querySelectorAll('.tf-pick-tab').forEach(function(x) { x.classList.remove('active'); });
+      tb.classList.add('active');
+      renderBody();
+    });
+    tabs.appendChild(tb);
+  });
+  fl.appendChild(tabs);
+
+  var div = document.createElement('div');
+  div.className = 'tf-pick-divider';
+  fl.appendChild(div);
+
+  renderBody();
+  return fl;
 }
 
 // Outside-click and Esc dismiss
