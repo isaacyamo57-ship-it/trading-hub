@@ -1865,6 +1865,10 @@ var DRAW_TEMP = null;
 var DRAW_SELECTED_ID = null;
 var DRAW_CANVAS = null;
 var DRAW_CTX = null;
+// When true, the active tool stays selected after each commit — like
+// TradingView's "Stay in drawing mode" button. Default off: one tool, one
+// drawing, then back to the chart.
+var STAY_IN_DRAW = false;
 
 var FIB_LEVELS = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1, 1.272, 1.618];
 var DRAW_COLORS = {
@@ -2142,7 +2146,10 @@ function onCanvasDown(e) {
       var txt = input.value.trim();
       if (txt) {
         DRAWINGS.push({ id: Date.now() + Math.random(), tool: 'text', points: [data], text: txt });
-        saveDrawings(); redrawAll();
+        saveDrawings();
+        afterCommit();
+      } else {
+        redrawAll();
       }
       if (input.parentNode) input.parentNode.removeChild(input);
     }
@@ -2156,7 +2163,8 @@ function onCanvasDown(e) {
 
   if (DRAW_TOOL === 'hline') {
     DRAWINGS.push({ id: Date.now() + Math.random(), tool: 'hline', points: [data] });
-    saveDrawings(); redrawAll();
+    saveDrawings();
+    afterCommit();
     return;
   }
 
@@ -2169,7 +2177,8 @@ function onCanvasDown(e) {
       DRAW_TEMP.points.push(data);
       DRAWINGS.push({ id: Date.now() + Math.random(), tool: 'channel', points: DRAW_TEMP.points });
       DRAW_TEMP = null; _channelStage = 0;
-      saveDrawings(); redrawAll();
+      saveDrawings();
+      afterCommit();
     }
     return;
   }
@@ -2214,7 +2223,8 @@ function onCanvasUp() {
   if (dx < 1 && dy < 0.01) { DRAW_TEMP = null; _drawStartPt = null; redrawAll(); return; }
   DRAWINGS.push({ id: Date.now() + Math.random(), tool: DRAW_TEMP.tool, points: DRAW_TEMP.points });
   DRAW_TEMP = null; _drawStartPt = null;
-  saveDrawings(); redrawAll();
+  saveDrawings();
+  afterCommit();
 }
 
 function setDrawingTool(tool) {
@@ -2236,6 +2246,16 @@ function clearAllDrawings() {
   if (!confirm('Remove all drawings on this chart?')) return;
   DRAWINGS = []; DRAW_SELECTED_ID = null;
   saveDrawings(); redrawAll();
+}
+
+// After a successful drawing commit, auto-deselect the tool unless the user
+// has turned on "Stay in drawing mode" via the rail button.
+function afterCommit() {
+  if (STAY_IN_DRAW) {
+    redrawAll();
+  } else {
+    setDrawingTool(null);
+  }
 }
 
 function initDrawingEngine() {
@@ -2772,6 +2792,10 @@ function onChartReady() {
       // Buttons without flyout — utility tools, just toggle highlight
       closeFlyout();
       b.classList.toggle('active');
+      // "Stay in drawing mode" — toggle the flag that suppresses auto-deselect
+      if (t === 'stay') {
+        STAY_IN_DRAW = b.classList.contains('active');
+      }
     });
   });
   // Bottom Buy/Sell — open Order panel pre-armed
