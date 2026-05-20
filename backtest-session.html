@@ -331,6 +331,27 @@
       inset:0;
       width:100%; height:100%;
     }
+    /* Drawing overlay on top of chart. pointer-events toggled by JS — chart
+       pan/zoom works when no tool is active. */
+    #draw-canvas {
+      position:absolute;
+      inset:0;
+      width:100%; height:100%;
+      pointer-events:none;
+      z-index:6;
+    }
+    #draw-canvas.active { pointer-events:auto; cursor:crosshair; }
+    #draw-canvas.tool-text { cursor:text; }
+    #draw-canvas.tool-select { cursor:default; }
+    .draw-text-input {
+      position:absolute; z-index:50;
+      background:transparent;
+      border:1px dashed #c9a84c;
+      color:#c9a84c;
+      font:600 13px Inter, sans-serif;
+      padding:2px 6px; min-width:80px;
+      outline:none;
+    }
 
     .draw-tools {
       position:absolute;
@@ -1052,6 +1073,7 @@
   </div>
 
   <div id="chart-container"></div>
+  <canvas id="draw-canvas"></canvas>
 
   <div class="trade-box sl" id="tbox-sl" style="display:none;"></div>
   <div class="trade-box tp" id="tbox-tp" style="display:none;"></div>
@@ -1377,6 +1399,8 @@ function initChart() {
   window.addEventListener('resize', function() {
     chartObj.resize(container.clientWidth, container.clientHeight);
   });
+  // Mount drawing engine on top of chart
+  try { initDrawingEngine(); } catch (e) { console.error('Drawing engine init failed:', e); }
 }
 
 // ── REPLAY HEAD MOVEMENT ──
@@ -1761,6 +1785,430 @@ function gotoPreset(daysOffset) {
   document.getElementById('date-pick').value = d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+//                         DRAWING ENGINE
+// ─────────────────────────────────────────────────────────────────────────
+// A canvas overlay sits above the chart and captures pointer events while a
+// drawing tool is active. Drawings are stored as time-anchored points
+// ({time, price}) so they stick to the chart through pan/zoom/replay.
+//
+// Tools: select / line / hline / channel / fib / rect / ruler / text
+// Persistence: localStorage, keyed nq_drawings_<sessionId>.
+
+var DRAWINGS = [];
+var DRAW_TOOL = null;
+var DRAW_TEMP = null;
+var DRAW_SELECTED_ID = null;
+var DRAW_CANVAS = null;
+var DRAW_CTX = null;
+
+var FIB_LEVELS = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1, 1.272, 1.618];
+var DRAW_COLORS = {
+  line:    '#c9a84c',
+  hline:   '#c9a84c',
+  channel: '#5b9bff',
+  fib:     '#c9a84c',
+  rect:    'rgba(201,168,76,0.6)',
+  ruler:   '#26a69a',
+  text:    '#c9a84c',
+};
+
+function drawingsStorageKey() {
+  var sid = window._currentSessionId || 'default';
+  return 'nq_drawings_' + sid;
+}
+function saveDrawings() {
+  try { localStorage.setItem(drawingsStorageKey(), JSON.stringify(DRAWINGS)); } catch (e) {}
+}
+function loadDrawings() {
+  try {
+    var raw = localStorage.getItem(drawingsStorageKey());
+    DRAWINGS = raw ? JSON.parse(raw) : [];
+  } catch (e) { DRAWINGS = []; }
+}
+
+function pixToData(x, y) {
+  if (!chartObj || !candleSeries) return null;
+  var time = chartObj.timeScale().coordinateToTime(x);
+  var price = candleSeries.coordinateToPrice(y);
+  if (time == null || price == null) return null;
+  return { time: time, price: price };
+}
+function dataToPix(pt) {
+  if (!chartObj || !candleSeries || !pt) return null;
+  var x = chartObj.timeScale().timeToCoordinate(pt.time);
+  var y = candleSeries.priceToCoordinate(pt.price);
+  if (x == null || y == null) return null;
+  return { x: x, y: y };
+}
+
+function resizeDrawCanvas() {
+  if (!DRAW_CANVAS || !DRAW_CTX) return;
+  var c = document.getElementById('chart-container');
+  if (!c) return;
+  var rect = c.getBoundingClientRect();
+  var dpr = window.devicePixelRatio || 1;
+  DRAW_CANVAS.width  = Math.round(rect.width * dpr);
+  DRAW_CANVAS.height = Math.round(rect.height * dpr);
+  DRAW_CANVAS.style.width  = rect.width + 'px';
+  DRAW_CANVAS.style.height = rect.height + 'px';
+  DRAW_CTX.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function redrawAll() {
+  if (!DRAW_CTX || !DRAW_CANVAS) return;
+  var w = DRAW_CANVAS.width / (window.devicePixelRatio || 1);
+  var h = DRAW_CANVAS.height / (window.devicePixelRatio || 1);
+  DRAW_CTX.clearRect(0, 0, w, h);
+  DRAWINGS.forEach(function(d) { drawOne(d, false); });
+  if (DRAW_TEMP) drawOne(DRAW_TEMP, true);
+}
+
+function drawOne(d, isTemp) {
+  var ctx = DRAW_CTX;
+  if (!ctx) return;
+  ctx.save();
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = (d.style && d.style.color) || DRAW_COLORS[d.tool] || '#c9a84c';
+  ctx.fillStyle = ctx.strokeStyle;
+  if (DRAW_SELECTED_ID === d.id && !isTemp) {
+    ctx.shadowColor = '#fff'; ctx.shadowBlur = 4;
+  }
+  if (isTemp) ctx.setLineDash([4, 3]);
+
+  var pts = (d.points || []).map(dataToPix).filter(Boolean);
+
+  switch (d.tool) {
+    case 'line': {
+      if (pts.length < 2) break;
+      ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y); ctx.lineTo(pts[1].x, pts[1].y); ctx.stroke();
+      drawHandle(pts[0]); drawHandle(pts[1]);
+      break;
+    }
+    case 'hline': {
+      if (pts.length < 1) break;
+      var w2 = DRAW_CANVAS.width / (window.devicePixelRatio || 1);
+      ctx.beginPath(); ctx.moveTo(0, pts[0].y); ctx.lineTo(w2, pts[0].y); ctx.stroke();
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText(d.points[0].price.toFixed(2), 6, pts[0].y - 4);
+      drawHandle(pts[0]);
+      break;
+    }
+    case 'channel': {
+      if (pts.length < 2) break;
+      ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y); ctx.lineTo(pts[1].x, pts[1].y); ctx.stroke();
+      drawHandle(pts[0]); drawHandle(pts[1]);
+      if (pts.length >= 3) {
+        var lineYAtX3 = pts[0].y + (pts[1].y - pts[0].y) * ((pts[2].x - pts[0].x) / (pts[1].x - pts[0].x || 1));
+        var dy = pts[2].y - lineYAtX3;
+        ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y + dy); ctx.lineTo(pts[1].x, pts[1].y + dy); ctx.stroke();
+        var prev = ctx.fillStyle;
+        ctx.fillStyle = 'rgba(91,155,255,0.08)';
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y); ctx.lineTo(pts[1].x, pts[1].y);
+        ctx.lineTo(pts[1].x, pts[1].y + dy); ctx.lineTo(pts[0].x, pts[0].y + dy);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = prev;
+        drawHandle(pts[2]);
+      }
+      break;
+    }
+    case 'fib': {
+      if (pts.length < 2) break;
+      var x1 = Math.min(pts[0].x, pts[1].x), x2 = Math.max(pts[0].x, pts[1].x);
+      var y0 = pts[0].y, y1 = pts[1].y;
+      ctx.font = '10px Inter, sans-serif';
+      FIB_LEVELS.forEach(function(lv) {
+        var y = y0 + (y1 - y0) * lv;
+        var price = d.points[0].price + (d.points[1].price - d.points[0].price) * lv;
+        ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke();
+        ctx.fillText(lv.toFixed(3) + '  ' + price.toFixed(2), x2 + 4, y + 3);
+      });
+      drawHandle(pts[0]); drawHandle(pts[1]);
+      break;
+    }
+    case 'rect': {
+      if (pts.length < 2) break;
+      var rx = Math.min(pts[0].x, pts[1].x);
+      var ry = Math.min(pts[0].y, pts[1].y);
+      var rw = Math.abs(pts[1].x - pts[0].x);
+      var rh = Math.abs(pts[1].y - pts[0].y);
+      var pf = ctx.fillStyle;
+      ctx.fillStyle = 'rgba(201,168,76,0.10)';
+      ctx.fillRect(rx, ry, rw, rh);
+      ctx.fillStyle = pf;
+      ctx.strokeRect(rx, ry, rw, rh);
+      drawHandle(pts[0]); drawHandle(pts[1]);
+      break;
+    }
+    case 'ruler': {
+      if (pts.length < 2) break;
+      var p1 = d.points[0], p2 = d.points[1];
+      var rx2 = Math.min(pts[0].x, pts[1].x);
+      var ry2 = Math.min(pts[0].y, pts[1].y);
+      var rw2 = Math.abs(pts[1].x - pts[0].x);
+      var rh2 = Math.abs(pts[1].y - pts[0].y);
+      var pf2 = ctx.fillStyle;
+      ctx.fillStyle = 'rgba(38,166,154,0.10)';
+      ctx.fillRect(rx2, ry2, rw2, rh2);
+      ctx.fillStyle = pf2;
+      ctx.setLineDash([3, 3]);
+      ctx.strokeRect(rx2, ry2, rw2, rh2);
+      ctx.setLineDash([]);
+      var dPrice = p2.price - p1.price;
+      var dPct = p1.price !== 0 ? (dPrice / p1.price) * 100 : 0;
+      ctx.font = '11px Inter, sans-serif';
+      var lbl = dPrice.toFixed(2) + ' (' + dPct.toFixed(2) + '%)';
+      var lblW = ctx.measureText(lbl).width + 12;
+      var lblX = rx2 + rw2 / 2 - lblW / 2;
+      var lblY = ry2 + rh2 + 6;
+      var pf3 = ctx.fillStyle;
+      ctx.fillStyle = '#0d1014';
+      ctx.fillRect(lblX, lblY, lblW, 18);
+      ctx.strokeRect(lblX, lblY, lblW, 18);
+      ctx.fillStyle = pf3;
+      ctx.fillText(lbl, lblX + 6, lblY + 12);
+      drawHandle(pts[0]); drawHandle(pts[1]);
+      break;
+    }
+    case 'text': {
+      if (pts.length < 1) break;
+      ctx.font = '600 13px Inter, sans-serif';
+      ctx.fillText(d.text || '', pts[0].x, pts[0].y);
+      if (DRAW_SELECTED_ID === d.id) {
+        var tw = ctx.measureText(d.text || '').width;
+        ctx.strokeRect(pts[0].x - 2, pts[0].y - 14, tw + 4, 18);
+      }
+      break;
+    }
+  }
+  ctx.restore();
+}
+
+function drawHandle(p) {
+  var ctx = DRAW_CTX;
+  if (!ctx) return;
+  ctx.save();
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+
+function findDrawingAt(x, y) {
+  for (var i = DRAWINGS.length - 1; i >= 0; i--) {
+    var d = DRAWINGS[i];
+    var pts = (d.points || []).map(dataToPix).filter(Boolean);
+    if (!pts.length) continue;
+    var hit = false;
+    if (d.tool === 'line' || d.tool === 'channel' || d.tool === 'ruler') {
+      if (pts.length >= 2) hit = pointToSegmentDist(x, y, pts[0], pts[1]) < 6;
+    } else if (d.tool === 'hline') {
+      hit = Math.abs(y - pts[0].y) < 6;
+    } else if (d.tool === 'fib') {
+      if (pts.length >= 2) {
+        var minX = Math.min(pts[0].x, pts[1].x), maxX = Math.max(pts[0].x, pts[1].x);
+        if (x >= minX - 4 && x <= maxX + 80) {
+          for (var k = 0; k < FIB_LEVELS.length; k++) {
+            var ly = pts[0].y + (pts[1].y - pts[0].y) * FIB_LEVELS[k];
+            if (Math.abs(y - ly) < 6) { hit = true; break; }
+          }
+        }
+      }
+    } else if (d.tool === 'rect') {
+      if (pts.length >= 2) {
+        var rx = Math.min(pts[0].x, pts[1].x), ry = Math.min(pts[0].y, pts[1].y);
+        var rw = Math.abs(pts[1].x - pts[0].x), rh = Math.abs(pts[1].y - pts[0].y);
+        hit = (x >= rx && x <= rx + rw && y >= ry && y <= ry + rh);
+      }
+    } else if (d.tool === 'text') {
+      DRAW_CTX.save();
+      DRAW_CTX.font = '600 13px Inter, sans-serif';
+      var tw = DRAW_CTX.measureText(d.text || '').width;
+      DRAW_CTX.restore();
+      hit = (x >= pts[0].x - 2 && x <= pts[0].x + tw + 2 && y >= pts[0].y - 14 && y <= pts[0].y + 4);
+    }
+    if (hit) return d;
+  }
+  return null;
+}
+function pointToSegmentDist(px, py, a, b) {
+  var dx = b.x - a.x, dy = b.y - a.y;
+  if (dx === 0 && dy === 0) return Math.hypot(px - a.x, py - a.y);
+  var t = ((px - a.x) * dx + (py - a.y) * dy) / (dx * dx + dy * dy);
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - (a.x + t * dx), py - (a.y + t * dy));
+}
+
+var _drawStartPt = null;
+var _channelStage = 0;
+var _draggingId = null;
+var _dragOffsets = null;
+
+function onCanvasDown(e) {
+  if (!DRAW_TOOL) return;
+  var rect = DRAW_CANVAS.getBoundingClientRect();
+  var x = e.clientX - rect.left, y = e.clientY - rect.top;
+  var data = pixToData(x, y);
+  if (!data) return;
+
+  if (DRAW_TOOL === 'select') {
+    var hit = findDrawingAt(x, y);
+    DRAW_SELECTED_ID = hit ? hit.id : null;
+    if (hit) {
+      _draggingId = hit.id;
+      _dragOffsets = hit.points.map(function(p) {
+        return { dTime: Number(p.time) - Number(data.time), dPrice: p.price - data.price };
+      });
+    }
+    redrawAll();
+    return;
+  }
+
+  if (DRAW_TOOL === 'text') {
+    var input = document.createElement('input');
+    input.className = 'draw-text-input';
+    input.style.left = x + 'px';
+    input.style.top  = (y - 14) + 'px';
+    input.placeholder = 'Type text...';
+    DRAW_CANVAS.parentNode.appendChild(input);
+    setTimeout(function() { input.focus(); }, 0);
+    function commit() {
+      var txt = input.value.trim();
+      if (txt) {
+        DRAWINGS.push({ id: Date.now() + Math.random(), tool: 'text', points: [data], text: txt });
+        saveDrawings(); redrawAll();
+      }
+      if (input.parentNode) input.parentNode.removeChild(input);
+    }
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', function(k) {
+      if (k.key === 'Enter') { k.preventDefault(); input.blur(); }
+      if (k.key === 'Escape') { input.value = ''; input.blur(); }
+    });
+    return;
+  }
+
+  if (DRAW_TOOL === 'hline') {
+    DRAWINGS.push({ id: Date.now() + Math.random(), tool: 'hline', points: [data] });
+    saveDrawings(); redrawAll();
+    return;
+  }
+
+  if (DRAW_TOOL === 'channel') {
+    if (_channelStage === 0) {
+      DRAW_TEMP = { id: '_t', tool: 'channel', points: [data, data] };
+      _drawStartPt = data; _channelStage = 1;
+      redrawAll();
+    } else {
+      DRAW_TEMP.points.push(data);
+      DRAWINGS.push({ id: Date.now() + Math.random(), tool: 'channel', points: DRAW_TEMP.points });
+      DRAW_TEMP = null; _channelStage = 0;
+      saveDrawings(); redrawAll();
+    }
+    return;
+  }
+
+  _drawStartPt = data;
+  DRAW_TEMP = { id: '_t', tool: DRAW_TOOL, points: [data, data] };
+  redrawAll();
+}
+
+function onCanvasMove(e) {
+  var rect = DRAW_CANVAS.getBoundingClientRect();
+  var x = e.clientX - rect.left, y = e.clientY - rect.top;
+  var data = pixToData(x, y);
+  if (!data) return;
+  if (DRAW_TOOL === 'select' && _draggingId != null && _dragOffsets) {
+    var d = DRAWINGS.find(function(x) { return x.id === _draggingId; });
+    if (d) {
+      d.points = _dragOffsets.map(function(off) {
+        return { time: Number(data.time) + off.dTime, price: data.price + off.dPrice };
+      });
+      redrawAll();
+    }
+    return;
+  }
+  if (!DRAW_TEMP || !_drawStartPt) {
+    if (DRAW_TOOL === 'channel' && _channelStage === 1 && DRAW_TEMP) {
+      DRAW_TEMP.points[2] = data; redrawAll();
+    }
+    return;
+  }
+  DRAW_TEMP.points[1] = data;
+  redrawAll();
+}
+
+function onCanvasUp() {
+  if (DRAW_TOOL === 'select') { _draggingId = null; _dragOffsets = null; if (DRAW_SELECTED_ID != null) saveDrawings(); return; }
+  if (!DRAW_TEMP) return;
+  if (DRAW_TOOL === 'channel') return;
+  var p0 = DRAW_TEMP.points[0], p1 = DRAW_TEMP.points[1];
+  var dx = Math.abs(Number(p1.time) - Number(p0.time));
+  var dy = Math.abs(p1.price - p0.price);
+  if (dx < 1 && dy < 0.01) { DRAW_TEMP = null; _drawStartPt = null; redrawAll(); return; }
+  DRAWINGS.push({ id: Date.now() + Math.random(), tool: DRAW_TEMP.tool, points: DRAW_TEMP.points });
+  DRAW_TEMP = null; _drawStartPt = null;
+  saveDrawings(); redrawAll();
+}
+
+function setDrawingTool(tool) {
+  DRAW_TOOL = tool;
+  DRAW_SELECTED_ID = null;
+  DRAW_TEMP = null; _drawStartPt = null; _channelStage = 0;
+  if (!DRAW_CANVAS) return;
+  DRAW_CANVAS.classList.toggle('active', !!tool);
+  DRAW_CANVAS.classList.toggle('tool-text', tool === 'text');
+  DRAW_CANVAS.classList.toggle('tool-select', tool === 'select');
+  document.querySelectorAll('.tool-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.tool === tool);
+  });
+  redrawAll();
+}
+
+function clearAllDrawings() {
+  if (!DRAWINGS.length) return;
+  if (!confirm('Remove all drawings on this chart?')) return;
+  DRAWINGS = []; DRAW_SELECTED_ID = null;
+  saveDrawings(); redrawAll();
+}
+
+function initDrawingEngine() {
+  DRAW_CANVAS = document.getElementById('draw-canvas');
+  if (!DRAW_CANVAS) return;
+  DRAW_CTX = DRAW_CANVAS.getContext && DRAW_CANVAS.getContext('2d');
+  loadDrawings();
+  if (DRAW_CTX) resizeDrawCanvas();
+  if (chartObj) {
+    try { chartObj.timeScale().subscribeVisibleTimeRangeChange(redrawAll); } catch (e) {}
+  }
+  if (window.ResizeObserver) {
+    try {
+      new ResizeObserver(function() { resizeDrawCanvas(); redrawAll(); })
+        .observe(document.getElementById('chart-container'));
+    } catch (e) {}
+  }
+  window.addEventListener('resize', function() { resizeDrawCanvas(); redrawAll(); });
+  DRAW_CANVAS.addEventListener('mousedown', onCanvasDown);
+  DRAW_CANVAS.addEventListener('mousemove', onCanvasMove);
+  DRAW_CANVAS.addEventListener('mouseup', onCanvasUp);
+  DRAW_CANVAS.addEventListener('touchstart', function(e) { if (e.touches[0]) { onCanvasDown(e.touches[0]); e.preventDefault(); } }, { passive: false });
+  DRAW_CANVAS.addEventListener('touchmove',  function(e) { if (e.touches[0]) { onCanvasMove(e.touches[0]); e.preventDefault(); } }, { passive: false });
+  DRAW_CANVAS.addEventListener('touchend',   function(e) { onCanvasUp(); e.preventDefault(); }, { passive: false });
+  document.addEventListener('keydown', function(e) {
+    if ((e.key === 'Delete' || e.key === 'Backspace') && DRAW_SELECTED_ID != null) {
+      var t = e.target.tagName;
+      if (t === 'INPUT' || t === 'TEXTAREA') return;
+      DRAWINGS = DRAWINGS.filter(function(d) { return d.id !== DRAW_SELECTED_ID; });
+      DRAW_SELECTED_ID = null; saveDrawings(); redrawAll();
+      e.preventDefault();
+    }
+    if (e.key === 'Escape') { setDrawingTool(null); }
+  });
+  redrawAll();
+}
+
 // ── Expose for inline onclick handlers and tests ──
 window.loadData = loadData;
 window.logTrade = logTrade;
@@ -1779,6 +2227,8 @@ window.stepBack = stepBack;
 window.jumpToStart = jumpToStart;
 window.jumpToEnd = jumpToEnd;
 window.setInterval2 = setInterval2;
+window.setDrawingTool = setDrawingTool;
+window.clearAllDrawings = clearAllDrawings;
 // Expose state vars for tests via a __state proxy (safer than redefining
 // window props — top-level `var` already binds these on window in browsers).
 window.__state = {
@@ -1968,11 +2418,35 @@ function onChartReady() {
     });
   });
   document.getElementById('panel-close').addEventListener('click', closePanel);
-  // Tool rail — visual only (active toggle)
+  // Tool rail — wired to drawing engine. Real tools map directly; visual-only
+  // tools (magnet/lock/hide/sync/stay/zoom/pitchfork/emoji) just toggle
+  // highlight for now. Trash clears all drawings.
+  var TOOL_MAP = {
+    cross:   'select',
+    line:    'line',
+    hline:   'hline',
+    channel: 'channel',
+    fib:     'fib',
+    brush:   'rect',  // repurpose brush → rectangle (more useful)
+    text:    'text',
+    ruler:   'ruler',
+  };
   document.querySelectorAll('.tool-btn').forEach(function(b) {
     b.addEventListener('click', function() {
-      document.querySelectorAll('.tool-btn').forEach(function(x) { x.classList.remove('active'); });
-      b.classList.add('active');
+      var t = b.dataset.tool;
+      if (t === 'trash') { clearAllDrawings(); return; }
+      if (!TOOL_MAP[t]) {
+        document.querySelectorAll('.tool-btn').forEach(function(x) {
+          if (!TOOL_MAP[x.dataset.tool] && x.dataset.tool !== 'cross') x.classList.remove('active');
+        });
+        b.classList.toggle('active');
+        return;
+      }
+      if (b.classList.contains('active') && DRAW_TOOL === TOOL_MAP[t]) {
+        setDrawingTool(null);
+      } else {
+        setDrawingTool(TOOL_MAP[t]);
+      }
     });
   });
   // Bottom Buy/Sell — open Order panel pre-armed
