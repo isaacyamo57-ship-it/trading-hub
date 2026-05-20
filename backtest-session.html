@@ -353,6 +353,70 @@
       outline:none;
     }
 
+    /* ── Tool flyout (TradingView-style sub-tool menu) ── */
+    .tool-flyout {
+      position:fixed;
+      z-index:300;
+      min-width:260px;
+      background:#1e222d;
+      border:1px solid rgba(255,255,255,0.10);
+      border-radius:6px;
+      box-shadow:0 8px 28px rgba(0,0,0,0.55);
+      padding:6px 0;
+      font-family:Inter, sans-serif;
+      color:#d1d4dc;
+      animation:tfFadeIn .12s ease-out;
+    }
+    @keyframes tfFadeIn { from { opacity:0; transform:translateX(-4px); } to { opacity:1; transform:none; } }
+    .tool-flyout-group {
+      padding:0;
+    }
+    .tool-flyout-group + .tool-flyout-group { border-top:1px solid rgba(255,255,255,0.06); margin-top:4px; padding-top:4px; }
+    .tool-flyout-label {
+      font-size:10.5px;
+      letter-spacing:0.06em;
+      color:#787b86;
+      padding:6px 14px 4px;
+      text-transform:uppercase;
+    }
+    .tool-flyout-item {
+      display:flex; align-items:center; gap:10px;
+      padding:7px 14px;
+      cursor:pointer;
+      font-size:12.5px;
+      color:#d1d4dc;
+      position:relative;
+    }
+    .tool-flyout-item:hover { background:rgba(255,255,255,0.06); }
+    .tool-flyout-item.active { background:rgba(41,98,255,0.18); color:#fff; }
+    .tool-flyout-item .tf-icon {
+      width:18px; height:18px;
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0;
+      color:#d1d4dc;
+    }
+    .tool-flyout-item .tf-icon svg { width:18px; height:18px; }
+    .tool-flyout-item .tf-name { flex:1; }
+    .tool-flyout-item .tf-hotkey {
+      font-size:11px; color:#787b86;
+      font-family:Inter, sans-serif;
+    }
+    .tool-flyout-item .tf-fav {
+      color:#787b86; cursor:pointer;
+      width:14px; height:14px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .tool-flyout-item .tf-fav:hover { color:#d1d4dc; }
+    .tool-flyout-item .tf-fav.on { color:#f7b500; }
+    .tool-flyout-item.disabled { opacity:0.45; cursor:not-allowed; }
+    .tool-flyout-item.disabled:hover { background:transparent; }
+    .tool-flyout-item .tf-soon {
+      font-size:10px; padding:1px 6px;
+      background:rgba(255,255,255,0.08);
+      border-radius:8px; color:#787b86;
+      margin-left:4px;
+    }
+
     .draw-tools {
       position:absolute;
       top:36px; left:8px;
@@ -2209,7 +2273,278 @@ function initDrawingEngine() {
   redrawAll();
 }
 
-// ── Expose for inline onclick handlers and tests ──
+// ─────────────────────────────────────────────────────────────────────────
+//                         FLYOUT SUB-TOOL MENUS
+// ─────────────────────────────────────────────────────────────────────────
+// TradingView-style flyouts: clicking a rail button opens a panel anchored
+// to the right showing related sub-tools grouped by category. Tools that
+// are fully implemented activate the drawing engine; "Coming soon" tools
+// show a badge but don't activate (so we don't lie about features).
+
+// Catalog: maps rail button data-tool → flyout content.
+// Each entry: { title?, groups: [{ label, items: [...] }] }
+// Item: { name, tool?, hotkey?, soon?, icon? }
+//   tool   → drawing-engine tool to activate (must be in TOOL_MAP)
+//   soon   → true if this is a stub; clicking does nothing but shows badge
+//   icon   → optional inline SVG markup (defaults to a small line marker)
+var TOOL_CATALOG = {
+  cross: {
+    groups: [{ label: 'Cursors', items: [
+      { name: 'Cross',     tool: 'select', hotkey: 'Alt + C', icon: svgIco('cross') },
+      { name: 'Dot',       soon: true, icon: svgIco('dot') },
+      { name: 'Arrow',     soon: true, icon: svgIco('arrow') },
+      { name: 'Eraser',    soon: true, icon: svgIco('eraser') },
+    ]}],
+  },
+  line: {
+    groups: [{ label: 'Lines', items: [
+      { name: 'Trend line',      tool: 'line',  hotkey: 'Alt + T', icon: svgIco('trendline') },
+      { name: 'Ray',             soon: true,   icon: svgIco('ray') },
+      { name: 'Info line',       soon: true,   icon: svgIco('trendline') },
+      { name: 'Extended line',   soon: true,   icon: svgIco('extline') },
+      { name: 'Trend angle',     soon: true,   icon: svgIco('angle') },
+      { name: 'Horizontal line', tool: 'hline', hotkey: 'Alt + H', icon: svgIco('hline') },
+      { name: 'Horizontal ray',  soon: true,   icon: svgIco('hray') },
+      { name: 'Vertical line',   soon: true, hotkey: 'Alt + V', icon: svgIco('vline') },
+      { name: 'Cross line',      soon: true, hotkey: 'Alt + C', icon: svgIco('crossline') },
+    ]}],
+  },
+  hline: {
+    groups: [{ label: 'Horizontal', items: [
+      { name: 'Horizontal line', tool: 'hline', hotkey: 'Alt + H', icon: svgIco('hline') },
+      { name: 'Horizontal ray',  soon: true, icon: svgIco('hray') },
+      { name: 'Price label',     soon: true, icon: svgIco('plabel') },
+      { name: 'Price note',      soon: true, icon: svgIco('pnote') },
+    ]}],
+  },
+  channel: {
+    groups: [{ label: 'Channels', items: [
+      { name: 'Parallel channel', tool: 'channel', icon: svgIco('channel') },
+      { name: 'Regression trend', soon: true, icon: svgIco('regr') },
+      { name: 'Flat top/bottom',  soon: true, icon: svgIco('flat') },
+      { name: 'Disjoint channel', soon: true, icon: svgIco('disjoint') },
+    ]}],
+  },
+  fib: {
+    groups: [{ label: 'Fib tools', items: [
+      { name: 'Fib retracement', tool: 'fib', hotkey: 'Alt + F', icon: svgIco('fib') },
+      { name: 'Trend-based fib', soon: true, icon: svgIco('fib') },
+      { name: 'Fib extension',   soon: true, icon: svgIco('fib') },
+      { name: 'Fib channel',     soon: true, icon: svgIco('fib') },
+      { name: 'Fib time zone',   soon: true, icon: svgIco('fib') },
+      { name: 'Fib speed/resistance fan', soon: true, icon: svgIco('fib') },
+    ]}],
+  },
+  pitchfork: {
+    groups: [{ label: 'Pitchforks', items: [
+      { name: 'Pitchfork',          soon: true, icon: svgIco('fork') },
+      { name: 'Schiff pitchfork',   soon: true, icon: svgIco('fork') },
+      { name: 'Modified Schiff',    soon: true, icon: svgIco('fork') },
+      { name: 'Inside pitchfork',   soon: true, icon: svgIco('fork') },
+    ]}],
+  },
+  brush: {
+    groups: [{ label: 'Shapes & brushes', items: [
+      { name: 'Rectangle',  tool: 'rect',  hotkey: 'Alt + R', icon: svgIco('rect') },
+      { name: 'Ellipse',    soon: true, icon: svgIco('ellipse') },
+      { name: 'Triangle',   soon: true, icon: svgIco('tri') },
+      { name: 'Brush',      soon: true, icon: svgIco('brush') },
+      { name: 'Highlighter',soon: true, icon: svgIco('highlight') },
+      { name: 'Polyline',   soon: true, icon: svgIco('polyline') },
+      { name: 'Path',       soon: true, icon: svgIco('brush') },
+    ]}],
+  },
+  text: {
+    groups: [{ label: 'Annotations', items: [
+      { name: 'Text',     tool: 'text', hotkey: 'Alt + W', icon: svgIco('T') },
+      { name: 'Note',     soon: true, icon: svgIco('note') },
+      { name: 'Callout',  soon: true, icon: svgIco('callout') },
+      { name: 'Anchored text', soon: true, icon: svgIco('T') },
+      { name: 'Comment',  soon: true, icon: svgIco('comment') },
+    ]}],
+  },
+  emoji: {
+    groups: [{ label: 'Stickers & arrows', items: [
+      { name: 'Sticker',         soon: true, icon: svgIco('emoji') },
+      { name: 'Arrow up',        soon: true, icon: svgIco('arrowUp') },
+      { name: 'Arrow down',      soon: true, icon: svgIco('arrowDown') },
+      { name: 'Arrow marker',    soon: true, icon: svgIco('arrowMark') },
+      { name: 'Long position',   soon: true, icon: svgIco('longPos') },
+      { name: 'Short position',  soon: true, icon: svgIco('shortPos') },
+    ]}],
+  },
+  ruler: {
+    groups: [{ label: 'Measure', items: [
+      { name: 'Ruler',         tool: 'ruler', hotkey: 'Alt + R', icon: svgIco('ruler') },
+      { name: 'Price range',   soon: true, icon: svgIco('pRange') },
+      { name: 'Date range',    soon: true, icon: svgIco('dRange') },
+      { name: 'Date & price range', soon: true, icon: svgIco('dpRange') },
+      { name: 'Bars pattern',  soon: true, icon: svgIco('bars') },
+    ]}],
+  },
+};
+
+// Tiny icon factory — minimalist line icons matching TV's flyout style.
+function svgIco(kind) {
+  var s = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">';
+  var paths = {
+    cross:     '<line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/>',
+    dot:       '<circle cx="12" cy="12" r="2" fill="currentColor"/>',
+    arrow:     '<path d="M5 3l5 15 2-6 6-2z" fill="currentColor"/>',
+    eraser:    '<path d="M20 14l-7 7H6l-3-3 14-14z"/>',
+    trendline: '<line x1="4" y1="20" x2="20" y2="4"/><circle cx="4" cy="20" r="1.5" fill="currentColor"/><circle cx="20" cy="4" r="1.5" fill="currentColor"/>',
+    ray:       '<line x1="4" y1="20" x2="22" y2="2"/><circle cx="4" cy="20" r="1.5" fill="currentColor"/>',
+    extline:   '<line x1="2" y1="20" x2="22" y2="4"/>',
+    angle:     '<path d="M4 20 L20 4 M4 20 L20 20"/>',
+    hline:     '<line x1="3" y1="12" x2="21" y2="12"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>',
+    hray:      '<line x1="3" y1="12" x2="21" y2="12"/><circle cx="3" cy="12" r="1.5" fill="currentColor"/>',
+    vline:     '<line x1="12" y1="3" x2="12" y2="21"/>',
+    crossline: '<line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="21"/>',
+    plabel:    '<line x1="3" y1="12" x2="14" y2="12"/><rect x="14" y="9" width="7" height="6" rx="1"/>',
+    pnote:     '<line x1="3" y1="12" x2="14" y2="12"/><rect x="14" y="8" width="7" height="8" rx="1"/>',
+    channel:   '<line x1="3" y1="8" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="16"/>',
+    regr:      '<line x1="3" y1="18" x2="21" y2="6"/><circle cx="6" cy="16" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="18" cy="8" r="1" fill="currentColor"/>',
+    flat:      '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="14"/>',
+    disjoint:  '<line x1="3" y1="6" x2="10" y2="8"/><line x1="14" y1="14" x2="21" y2="18"/>',
+    fib:       '<line x1="3" y1="4" x2="21" y2="4"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="3" y1="19" x2="21" y2="19"/>',
+    fork:      '<line x1="3" y1="12" x2="21" y2="12"/><line x1="6" y1="6" x2="6" y2="18"/><line x1="18" y1="6" x2="18" y2="18"/>',
+    rect:      '<rect x="4" y="6" width="16" height="12" rx="1"/>',
+    ellipse:   '<ellipse cx="12" cy="12" rx="8" ry="5"/>',
+    tri:       '<path d="M12 4 L21 20 L3 20 Z"/>',
+    brush:     '<path d="M5 21c1-2 2-4 4-5l9-9-3-3-9 9c-1 2-3 3-5 4z"/>',
+    highlight: '<path d="M4 19l3-3 8-8 3 3-8 8-3 3z" fill="currentColor" opacity=".5"/>',
+    polyline:  '<polyline points="3 18 8 8 13 14 21 4"/>',
+    T:         '<line x1="5" y1="5" x2="19" y2="5"/><line x1="12" y1="5" x2="12" y2="19"/>',
+    note:      '<rect x="4" y="4" width="16" height="16" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="14" y2="13"/>',
+    callout:   '<path d="M3 5h18v10H10l-4 4v-4H3z"/>',
+    comment:   '<path d="M3 5h18v12H7l-4 3z"/>',
+    emoji:     '<circle cx="12" cy="12" r="9"/><line x1="9" y1="10" x2="9" y2="10"/><line x1="15" y1="10" x2="15" y2="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/>',
+    arrowUp:   '<line x1="12" y1="20" x2="12" y2="4"/><polyline points="6 10 12 4 18 10"/>',
+    arrowDown: '<line x1="12" y1="4"  x2="12" y2="20"/><polyline points="6 14 12 20 18 14"/>',
+    arrowMark: '<line x1="3" y1="12" x2="20" y2="12"/><polyline points="14 6 20 12 14 18"/>',
+    longPos:   '<rect x="4" y="6" width="16" height="12" rx="1" fill="rgba(38,166,154,0.25)"/>',
+    shortPos:  '<rect x="4" y="6" width="16" height="12" rx="1" fill="rgba(239,83,80,0.25)"/>',
+    ruler:     '<rect x="4" y="9" width="16" height="6" rx="1"/><line x1="8" y1="9" x2="8" y2="12"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="16" y1="9" x2="16" y2="12"/>',
+    pRange:    '<line x1="6" y1="4" x2="6" y2="20"/><line x1="3" y1="4" x2="9" y2="4"/><line x1="3" y1="20" x2="9" y2="20"/>',
+    dRange:    '<line x1="4" y1="14" x2="20" y2="14"/><line x1="4" y1="11" x2="4" y2="17"/><line x1="20" y1="11" x2="20" y2="17"/>',
+    dpRange:   '<rect x="5" y="6" width="14" height="12" rx="1"/>',
+    bars:      '<rect x="4" y="10" width="3" height="10"/><rect x="9" y="6" width="3" height="14"/><rect x="14" y="13" width="3" height="7"/><rect x="19" y="8" width="3" height="12"/>',
+  };
+  return s + (paths[kind] || paths.cross) + '</svg>';
+}
+
+// Favorites — persisted to localStorage. Star icons in the flyout toggle this.
+var DRAW_FAVS = (function() {
+  try { return JSON.parse(localStorage.getItem('nq_draw_favs') || '[]'); } catch (e) { return []; }
+})();
+function isFav(name)  { return DRAW_FAVS.indexOf(name) !== -1; }
+function toggleFav(name) {
+  var i = DRAW_FAVS.indexOf(name);
+  if (i >= 0) DRAW_FAVS.splice(i, 1); else DRAW_FAVS.push(name);
+  try { localStorage.setItem('nq_draw_favs', JSON.stringify(DRAW_FAVS)); } catch (e) {}
+}
+
+var FLYOUT_EL = null;
+var FLYOUT_FOR = null;  // the rail button that opened the current flyout
+
+function closeFlyout() {
+  if (FLYOUT_EL && FLYOUT_EL.parentNode) FLYOUT_EL.parentNode.removeChild(FLYOUT_EL);
+  FLYOUT_EL = null; FLYOUT_FOR = null;
+}
+
+function openFlyoutFor(railBtn) {
+  closeFlyout();
+  var key = railBtn.dataset.tool;
+  var cat = TOOL_CATALOG[key];
+  if (!cat) return;
+  FLYOUT_FOR = railBtn;
+
+  var fl = document.createElement('div');
+  fl.className = 'tool-flyout';
+
+  cat.groups.forEach(function(g) {
+    var grp = document.createElement('div');
+    grp.className = 'tool-flyout-group';
+    if (g.label) {
+      var lbl = document.createElement('div');
+      lbl.className = 'tool-flyout-label';
+      lbl.textContent = g.label;
+      grp.appendChild(lbl);
+    }
+    g.items.forEach(function(it) {
+      var row = document.createElement('div');
+      row.className = 'tool-flyout-item' + (it.soon ? ' disabled' : '');
+      if (!it.soon && it.tool && DRAW_TOOL === it.tool) row.classList.add('active');
+      var ic = document.createElement('span');
+      ic.className = 'tf-icon';
+      ic.innerHTML = it.icon || svgIco('trendline');
+      var nm = document.createElement('span');
+      nm.className = 'tf-name';
+      nm.textContent = it.name;
+      row.appendChild(ic); row.appendChild(nm);
+      if (it.soon) {
+        var sn = document.createElement('span');
+        sn.className = 'tf-soon';
+        sn.textContent = 'Soon';
+        row.appendChild(sn);
+      } else if (it.hotkey) {
+        var hk = document.createElement('span');
+        hk.className = 'tf-hotkey';
+        hk.textContent = it.hotkey;
+        row.appendChild(hk);
+      }
+      // Favorite star — clicking it doesn't trigger the tool
+      var fav = document.createElement('span');
+      fav.className = 'tf-fav' + (isFav(it.name) ? ' on' : '');
+      fav.innerHTML = '<svg viewBox="0 0 24 24" fill="' + (isFav(it.name) ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9 12 2"/></svg>';
+      fav.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleFav(it.name);
+        fav.classList.toggle('on');
+        var path = fav.querySelector('svg');
+        if (path) path.setAttribute('fill', isFav(it.name) ? 'currentColor' : 'none');
+      });
+      row.appendChild(fav);
+      row.addEventListener('click', function() {
+        if (it.soon) return;
+        if (it.tool) {
+          setDrawingTool(it.tool);
+          // Reflect on the rail button — keep parent active
+          document.querySelectorAll('.tool-btn').forEach(function(b) { b.classList.remove('active'); });
+          railBtn.classList.add('active');
+        }
+        closeFlyout();
+      });
+      grp.appendChild(row);
+    });
+    fl.appendChild(grp);
+  });
+
+  document.body.appendChild(fl);
+  FLYOUT_EL = fl;
+  // Position to the right of the rail button
+  var r = railBtn.getBoundingClientRect();
+  fl.style.left = (r.right + 6) + 'px';
+  fl.style.top  = r.top + 'px';
+  // If it would overflow bottom, lift it up
+  var flR = fl.getBoundingClientRect();
+  if (flR.bottom > window.innerHeight - 8) {
+    fl.style.top = Math.max(8, window.innerHeight - flR.height - 8) + 'px';
+  }
+}
+
+// Outside-click and Esc dismiss
+document.addEventListener('click', function(e) {
+  if (!FLYOUT_EL) return;
+  if (FLYOUT_EL.contains(e.target)) return;
+  if (FLYOUT_FOR && FLYOUT_FOR.contains(e.target)) return;
+  closeFlyout();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && FLYOUT_EL) closeFlyout();
+});
+
+
 window.loadData = loadData;
 window.logTrade = logTrade;
 window.setOutcome = setOutcome;
@@ -2418,35 +2753,25 @@ function onChartReady() {
     });
   });
   document.getElementById('panel-close').addEventListener('click', closePanel);
-  // Tool rail — wired to drawing engine. Real tools map directly; visual-only
-  // tools (magnet/lock/hide/sync/stay/zoom/pitchfork/emoji) just toggle
-  // highlight for now. Trash clears all drawings.
-  var TOOL_MAP = {
-    cross:   'select',
-    line:    'line',
-    hline:   'hline',
-    channel: 'channel',
-    fib:     'fib',
-    brush:   'rect',  // repurpose brush → rectangle (more useful)
-    text:    'text',
-    ruler:   'ruler',
-  };
+  // Tool rail — clicking a button with a catalog entry opens its TradingView
+  // -style sub-tool flyout. Buttons without catalog entries still work as
+  // direct toggles (visual-only or utility tools like trash).
   document.querySelectorAll('.tool-btn').forEach(function(b) {
-    b.addEventListener('click', function() {
+    b.addEventListener('click', function(e) {
+      e.stopPropagation();
       var t = b.dataset.tool;
-      if (t === 'trash') { clearAllDrawings(); return; }
-      if (!TOOL_MAP[t]) {
-        document.querySelectorAll('.tool-btn').forEach(function(x) {
-          if (!TOOL_MAP[x.dataset.tool] && x.dataset.tool !== 'cross') x.classList.remove('active');
-        });
-        b.classList.toggle('active');
+      // Trash always clears immediately (no flyout)
+      if (t === 'trash') { closeFlyout(); clearAllDrawings(); return; }
+      // If this button has a flyout catalog, open it
+      if (TOOL_CATALOG[t]) {
+        // Re-click on the rail button while its flyout is open → close it
+        if (FLYOUT_FOR === b) { closeFlyout(); return; }
+        openFlyoutFor(b);
         return;
       }
-      if (b.classList.contains('active') && DRAW_TOOL === TOOL_MAP[t]) {
-        setDrawingTool(null);
-      } else {
-        setDrawingTool(TOOL_MAP[t]);
-      }
+      // Buttons without flyout — utility tools, just toggle highlight
+      closeFlyout();
+      b.classList.toggle('active');
     });
   });
   // Bottom Buy/Sell — open Order panel pre-armed
