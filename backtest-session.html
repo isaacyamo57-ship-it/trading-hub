@@ -464,6 +464,168 @@
     }
     .tf-pick-soon-row .tf-soon-icon { font-size:18px; }
 
+    /* ── TradingView-style modals ── */
+    .tv-modal-bg {
+      position:fixed; inset:0;
+      background:rgba(0,0,0,0.6);
+      z-index:1000;
+      display:flex; align-items:center; justify-content:center;
+      animation:tvFadeIn .15s ease-out;
+    }
+    @keyframes tvFadeIn { from { opacity:0; } to { opacity:1; } }
+    .tv-modal {
+      background:#1e222d;
+      border:1px solid rgba(255,255,255,0.10);
+      border-radius:8px;
+      box-shadow:0 16px 48px rgba(0,0,0,0.6);
+      width:680px; max-width:92vw; max-height:82vh;
+      display:flex; flex-direction:column;
+      color:#d1d4dc;
+      font-family:Inter, sans-serif;
+    }
+    .tv-modal-head {
+      display:flex; align-items:center; gap:12px;
+      padding:14px 18px;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+    }
+    .tv-modal-head h2 { font-size:16px; font-weight:600; margin:0; flex:1; color:#fff; }
+    .tv-modal-close {
+      width:30px; height:30px;
+      display:flex; align-items:center; justify-content:center;
+      background:transparent; border:none; cursor:pointer;
+      color:#787b86; border-radius:4px;
+    }
+    .tv-modal-close:hover { background:rgba(255,255,255,0.08); color:#fff; }
+    .tv-modal-search {
+      padding:12px 18px;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+    }
+    .tv-modal-search input {
+      width:100%;
+      background:#0d1014;
+      border:1px solid rgba(255,255,255,0.10);
+      border-radius:6px;
+      padding:9px 12px;
+      color:#fff;
+      font-family:Inter, sans-serif;
+      font-size:13px;
+      outline:none;
+    }
+    .tv-modal-search input:focus { border-color:#2962ff; }
+    .tv-modal-tabs {
+      display:flex;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      overflow-x:auto;
+    }
+    .tv-modal-tab {
+      padding:10px 16px;
+      background:transparent; border:none; cursor:pointer;
+      color:#787b86; font-size:12.5px; font-family:Inter, sans-serif;
+      white-space:nowrap;
+      border-bottom:2px solid transparent;
+    }
+    .tv-modal-tab:hover { color:#d1d4dc; }
+    .tv-modal-tab.active { color:#fff; border-bottom-color:#2962ff; }
+    .tv-modal-body {
+      flex:1;
+      overflow-y:auto;
+      padding:0;
+    }
+    .tv-modal-body::-webkit-scrollbar { width:8px; }
+    .tv-modal-body::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.10); border-radius:4px; }
+
+    /* Indicator/symbol rows */
+    .tv-row {
+      display:flex; align-items:center; gap:12px;
+      padding:10px 18px;
+      cursor:pointer;
+      border-bottom:1px solid rgba(255,255,255,0.04);
+    }
+    .tv-row:hover { background:rgba(255,255,255,0.04); }
+    .tv-row.disabled { opacity:0.5; cursor:not-allowed; }
+    .tv-row.disabled:hover { background:transparent; }
+    .tv-row-icon {
+      width:32px; height:32px;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(255,255,255,0.05);
+      border-radius:6px;
+      color:#d1d4dc;
+      flex-shrink:0;
+    }
+    .tv-row-icon svg { width:18px; height:18px; }
+    .tv-row-text { flex:1; min-width:0; }
+    .tv-row-name { font-size:13px; color:#d1d4dc; font-weight:500; }
+    .tv-row-desc { font-size:11px; color:#787b86; margin-top:2px; }
+    .tv-row-action { display:flex; align-items:center; gap:8px; }
+    .tv-row-fav {
+      width:22px; height:22px;
+      display:flex; align-items:center; justify-content:center;
+      color:#787b86; cursor:pointer; border-radius:4px;
+    }
+    .tv-row-fav:hover { color:#d1d4dc; }
+    .tv-row-fav.on { color:#f7b500; }
+    .tv-soon-pill {
+      font-size:10px; padding:2px 8px;
+      background:rgba(255,255,255,0.08);
+      border-radius:10px; color:#787b86;
+    }
+    .tv-row-section {
+      padding:10px 18px 6px;
+      font-size:10.5px; letter-spacing:0.06em;
+      color:#787b86; text-transform:uppercase;
+      background:#16191f;
+    }
+
+    /* Indicator chips (small list at top-left of chart) */
+    .indicator-chips {
+      position:absolute;
+      top:36px; left:14px;
+      display:flex; flex-direction:column; gap:4px;
+      z-index:7;
+      pointer-events:none;
+    }
+    .ind-chip {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:3px 8px;
+      background:rgba(20,22,28,0.88);
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius:4px;
+      font:11px/1.4 'DM Mono', monospace;
+      color:#d1d4dc;
+      pointer-events:auto;
+      max-width:fit-content;
+    }
+    .ind-chip-dot { width:8px; height:8px; border-radius:2px; flex-shrink:0; }
+    .ind-chip-name { font-weight:600; }
+    .ind-chip-val { color:#787b86; }
+    .ind-chip-close {
+      width:14px; height:14px; cursor:pointer; opacity:0.5;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .ind-chip-close:hover { opacity:1; }
+
+    /* Right-click chart context menu */
+    .ctx-menu {
+      position:fixed; z-index:900;
+      background:#1e222d;
+      border:1px solid rgba(255,255,255,0.10);
+      border-radius:6px;
+      padding:5px 0;
+      min-width:200px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.5);
+      font-family:Inter, sans-serif;
+    }
+    .ctx-menu-item {
+      padding:7px 14px;
+      font-size:12.5px;
+      color:#d1d4dc;
+      cursor:pointer;
+      display:flex; align-items:center; gap:10px;
+    }
+    .ctx-menu-item:hover { background:rgba(255,255,255,0.06); }
+    .ctx-menu-sep { height:1px; background:rgba(255,255,255,0.06); margin:4px 0; }
+    .ctx-menu-item svg { width:14px; height:14px; color:#787b86; }
+
     .draw-tools {
       position:absolute;
       top:36px; left:8px;
@@ -1007,11 +1169,11 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><rect x="6" y="7" width="6" height="9" rx="1"/><rect x="12" y="10" width="6" height="6" rx="1"/></svg>
   </button>
 
-  <button class="top-btn" title="Save layout">
+  <button class="top-btn" id="btn-new-layout" title="Save layout">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     New Layout
   </button>
-  <button class="top-btn" title="Indicators">
+  <button class="top-btn" id="btn-indicators" title="Indicators">
     <svg class="gold-bolt" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4.09 12.97a1 1 0 0 0 .77 1.65H11l-1 7.38a.5.5 0 0 0 .9.3l8.91-10.97a1 1 0 0 0-.77-1.65H13l1-7.38a.5.5 0 0 0-.9-.3z"/></svg>
     Indicators
   </button>
@@ -1182,6 +1344,7 @@
 
   <div id="chart-container"></div>
   <canvas id="draw-canvas"></canvas>
+  <div class="indicator-chips" id="indicator-chips"></div>
 
   <div class="trade-box sl" id="tbox-sl" style="display:none;"></div>
   <div class="trade-box tp" id="tbox-tp" style="display:none;"></div>
@@ -1469,25 +1632,60 @@ function initChart() {
       background: { type: 'solid', color: '#000000' },
       textColor: 'rgba(255,255,255,0.5)',
       fontFamily: "'DM Mono', monospace",
-      fontSize: 10,
+      fontSize: 11,
     },
     grid: {
       vertLines: { color: 'rgba(255,255,255,0.04)' },
       horzLines: { color: 'rgba(255,255,255,0.04)' },
     },
-    crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+    crosshair: {
+      mode: LightweightCharts.CrosshairMode.Normal,
+      vertLine: {
+        color: 'rgba(255,255,255,0.18)',
+        width: 1,
+        style: LightweightCharts.LineStyle.Dashed,
+        labelBackgroundColor: '#363a45',
+      },
+      horzLine: {
+        color: 'rgba(255,255,255,0.18)',
+        width: 1,
+        style: LightweightCharts.LineStyle.Dashed,
+        labelBackgroundColor: '#363a45',
+      },
+    },
     timeScale: {
       timeVisible: true, secondsVisible: false,
       borderColor: 'rgba(255,255,255,0.07)',
       rightBarStaysOnScroll: true,
+      // TradingView shows date breaks at session boundaries; LW Charts auto-does this when ticks span days
     },
-    rightPriceScale: { borderColor: 'rgba(255,255,255,0.07)' },
+    rightPriceScale: {
+      borderColor: 'rgba(255,255,255,0.07)',
+      scaleMargins: { top: 0.08, bottom: 0.08 },
+    },
     handleScroll: true, handleScale: true,
+    // TV-style watermark sits in the chart background
+    watermark: {
+      visible: true,
+      text: 'NQ1! · CME',
+      fontSize: 56,
+      color: 'rgba(255,255,255,0.025)',
+      fontFamily: 'Inter, sans-serif',
+      horzAlign: 'center',
+      vertAlign: 'center',
+    },
   });
   candleSeries = chartObj.addCandlestickSeries({
     upColor: '#26a69a', downColor: '#ef5350',
     borderUpColor: '#26a69a', borderDownColor: '#ef5350',
     wickUpColor: '#26a69a', wickDownColor: '#ef5350',
+    // Last price line (TradingView's dashed line + price label on the axis)
+    priceLineVisible: true,
+    priceLineWidth: 1,
+    priceLineColor: 'rgba(201,168,76,0.6)',
+    priceLineStyle: LightweightCharts.LineStyle.Dotted,
+    lastValueVisible: true,
+    priceFormat: { type: 'price', precision: 2, minMove: 0.25 },
   });
   // Hover OHLC subscription
   chartObj.subscribeCrosshairMove(function(p) {
@@ -1649,6 +1847,8 @@ function syncCurrentBar() {
     document.getElementById('f-entry').value = cur.close.toFixed(2);
     redrawLines();
   }
+  // Keep any active indicators in sync with the visible portion of the chart
+  try { recomputeAllIndicators(); } catch (e) {}
 }
 
 // ── INTERVAL ──
@@ -2840,6 +3040,572 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape' && FLYOUT_EL) closeFlyout();
 });
 
+// ─────────────────────────────────────────────────────────────────────────
+//                         MODAL INFRASTRUCTURE
+// ─────────────────────────────────────────────────────────────────────────
+var OPEN_MODAL = null;
+
+function openModal(content, opts) {
+  closeModal();
+  opts = opts || {};
+  var bg = document.createElement('div');
+  bg.className = 'tv-modal-bg';
+  var modal = document.createElement('div');
+  modal.className = 'tv-modal';
+  if (opts.width) modal.style.width = opts.width;
+  modal.appendChild(content);
+  bg.appendChild(modal);
+  bg.addEventListener('click', function(e) {
+    if (e.target === bg) closeModal();
+  });
+  document.body.appendChild(bg);
+  OPEN_MODAL = bg;
+  return modal;
+}
+
+function closeModal() {
+  if (OPEN_MODAL && OPEN_MODAL.parentNode) OPEN_MODAL.parentNode.removeChild(OPEN_MODAL);
+  OPEN_MODAL = null;
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && OPEN_MODAL) closeModal();
+});
+
+function modalHead(title) {
+  var h = document.createElement('div');
+  h.className = 'tv-modal-head';
+  var ttl = document.createElement('h2');
+  ttl.textContent = title;
+  h.appendChild(ttl);
+  var x = document.createElement('button');
+  x.className = 'tv-modal-close';
+  x.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>';
+  x.addEventListener('click', closeModal);
+  h.appendChild(x);
+  return h;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+//                         INDICATORS ENGINE
+// ─────────────────────────────────────────────────────────────────────────
+// Active indicators: { id, type, params, series, color }
+// Recomputed whenever the candle data changes (load, play, step).
+var ACTIVE_INDICATORS = [];
+var INDICATOR_FAVS = (function() {
+  try { return JSON.parse(localStorage.getItem('nq_ind_favs') || '[]'); } catch (e) { return []; }
+})();
+function isIndFav(name) { return INDICATOR_FAVS.indexOf(name) !== -1; }
+function toggleIndFav(name) {
+  var i = INDICATOR_FAVS.indexOf(name);
+  if (i >= 0) INDICATOR_FAVS.splice(i, 1); else INDICATOR_FAVS.push(name);
+  try { localStorage.setItem('nq_ind_favs', JSON.stringify(INDICATOR_FAVS)); } catch (e) {}
+}
+
+// Catalog of indicators. `compute(candles)` returns array of {time, value}.
+// Real implementations: SMA, EMA, VWAP, RSI, Bollinger Bands.
+// Stubbed (no compute): everything else — adding them shows a "Soon" notice.
+var INDICATOR_CATALOG = [
+  // ── BUILT-INS (overlay on price) ──
+  { name: 'Moving Average', short: 'MA', type: 'overlay', section: 'Trend',
+    params: { length: 20 }, color: '#2962ff',
+    compute: function(candles, p) {
+      var n = p.length, out = [], sum = 0;
+      for (var i = 0; i < candles.length; i++) {
+        sum += candles[i].close;
+        if (i >= n) sum -= candles[i - n].close;
+        if (i >= n - 1) out.push({ time: candles[i].time, value: sum / n });
+      }
+      return out;
+    }
+  },
+  { name: 'Exponential Moving Average', short: 'EMA', type: 'overlay', section: 'Trend',
+    params: { length: 9 }, color: '#f7931e',
+    compute: function(candles, p) {
+      var n = p.length, k = 2 / (n + 1), out = [], ema;
+      for (var i = 0; i < candles.length; i++) {
+        if (i === 0) ema = candles[i].close;
+        else ema = candles[i].close * k + ema * (1 - k);
+        if (i >= n - 1) out.push({ time: candles[i].time, value: ema });
+      }
+      return out;
+    }
+  },
+  { name: 'VWAP', short: 'VWAP', type: 'overlay', section: 'Volume',
+    params: {}, color: '#ab47bc',
+    compute: function(candles) {
+      var pvSum = 0, vSum = 0, out = [], lastDay = null;
+      for (var i = 0; i < candles.length; i++) {
+        var c = candles[i];
+        var day = new Date((c.time || 0) * 1000).toISOString().slice(0, 10);
+        if (day !== lastDay) { pvSum = 0; vSum = 0; lastDay = day; }
+        var tp = (c.high + c.low + c.close) / 3;
+        var v = c.volume || 1;
+        pvSum += tp * v; vSum += v;
+        out.push({ time: c.time, value: vSum > 0 ? pvSum / vSum : tp });
+      }
+      return out;
+    }
+  },
+  { name: 'Bollinger Bands', short: 'BB', type: 'overlay', section: 'Volatility',
+    params: { length: 20, mult: 2 }, color: '#5b9bff',
+    compute: function(candles, p) {
+      var n = p.length, m = p.mult, out = [], upper = [], lower = [];
+      for (var i = n - 1; i < candles.length; i++) {
+        var sum = 0;
+        for (var j = i - n + 1; j <= i; j++) sum += candles[j].close;
+        var mean = sum / n;
+        var sq = 0;
+        for (var k = i - n + 1; k <= i; k++) sq += Math.pow(candles[k].close - mean, 2);
+        var sd = Math.sqrt(sq / n);
+        out.push({ time: candles[i].time, value: mean });
+        upper.push({ time: candles[i].time, value: mean + m * sd });
+        lower.push({ time: candles[i].time, value: mean - m * sd });
+      }
+      return { mid: out, upper: upper, lower: lower };
+    },
+    multiline: true
+  },
+  // ── Stubs (UI only) ──
+  { name: 'RSI', short: 'RSI', type: 'pane', section: 'Momentum', soon: true },
+  { name: 'MACD', short: 'MACD', type: 'pane', section: 'Momentum', soon: true },
+  { name: 'Stochastic', short: 'STOCH', type: 'pane', section: 'Momentum', soon: true },
+  { name: 'ADX', short: 'ADX', type: 'pane', section: 'Trend', soon: true },
+  { name: 'Awesome Oscillator', short: 'AO', type: 'pane', section: 'Momentum', soon: true },
+  { name: 'Ichimoku Cloud', short: 'Ichi', type: 'overlay', section: 'Trend', soon: true },
+  { name: 'Parabolic SAR', short: 'SAR', type: 'overlay', section: 'Trend', soon: true },
+  { name: 'ATR', short: 'ATR', type: 'pane', section: 'Volatility', soon: true },
+  { name: 'Keltner Channels', short: 'KC', type: 'overlay', section: 'Volatility', soon: true },
+  { name: 'Volume', short: 'Vol', type: 'pane', section: 'Volume', soon: true },
+  { name: 'OBV', short: 'OBV', type: 'pane', section: 'Volume', soon: true },
+  { name: 'Pivot Points', short: 'Piv', type: 'overlay', section: 'Support/Resistance', soon: true },
+];
+
+function indicatorIcon() {
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="3 17 8 11 13 14 21 5"/></svg>';
+}
+
+function addIndicator(def) {
+  if (def.soon) {
+    setStatus(def.name + ' is in the catalog but not yet implemented', 'err');
+    return;
+  }
+  var id = Date.now() + Math.random();
+  var inst = { id: id, name: def.name, short: def.short, params: Object.assign({}, def.params || {}), color: def.color, compute: def.compute, multiline: def.multiline };
+  // Create series
+  if (inst.multiline) {
+    inst.series = {
+      mid: chartObj.addLineSeries({ color: inst.color, lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }),
+      upper: chartObj.addLineSeries({ color: inst.color, lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dotted, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }),
+      lower: chartObj.addLineSeries({ color: inst.color, lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dotted, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }),
+    };
+  } else {
+    inst.series = chartObj.addLineSeries({ color: inst.color, lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+  }
+  ACTIVE_INDICATORS.push(inst);
+  recomputeIndicator(inst);
+  renderIndicatorChips();
+}
+
+function recomputeIndicator(inst) {
+  var data = (allCandles || []).slice(0, displayBar || (allCandles || []).length);
+  if (!data.length) return;
+  var result = inst.compute(data, inst.params);
+  if (inst.multiline) {
+    inst.series.mid.setData(result.mid);
+    inst.series.upper.setData(result.upper);
+    inst.series.lower.setData(result.lower);
+  } else {
+    inst.series.setData(result);
+  }
+}
+
+function recomputeAllIndicators() {
+  ACTIVE_INDICATORS.forEach(recomputeIndicator);
+}
+
+function removeIndicator(id) {
+  var idx = ACTIVE_INDICATORS.findIndex(function(i) { return i.id === id; });
+  if (idx < 0) return;
+  var inst = ACTIVE_INDICATORS[idx];
+  if (inst.multiline) {
+    try { chartObj.removeSeries(inst.series.mid); } catch (e) {}
+    try { chartObj.removeSeries(inst.series.upper); } catch (e) {}
+    try { chartObj.removeSeries(inst.series.lower); } catch (e) {}
+  } else {
+    try { chartObj.removeSeries(inst.series); } catch (e) {}
+  }
+  ACTIVE_INDICATORS.splice(idx, 1);
+  renderIndicatorChips();
+}
+
+function renderIndicatorChips() {
+  var el = document.getElementById('indicator-chips');
+  if (!el) return;
+  el.innerHTML = '';
+  ACTIVE_INDICATORS.forEach(function(inst) {
+    var chip = document.createElement('div');
+    chip.className = 'ind-chip';
+    var dot = document.createElement('span');
+    dot.className = 'ind-chip-dot';
+    dot.style.background = inst.color;
+    var name = document.createElement('span');
+    name.className = 'ind-chip-name';
+    var paramStr = Object.keys(inst.params).length ? ' ' + Object.values(inst.params).join(',') : '';
+    name.textContent = inst.short + paramStr;
+    var close = document.createElement('span');
+    close.className = 'ind-chip-close';
+    close.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>';
+    close.addEventListener('click', function() { removeIndicator(inst.id); });
+    chip.appendChild(dot);
+    chip.appendChild(name);
+    chip.appendChild(close);
+    el.appendChild(chip);
+  });
+}
+
+function openIndicatorsModal() {
+  var content = document.createDocumentFragment();
+  content.appendChild(modalHead('Indicators, Metrics, & Strategies'));
+
+  var search = document.createElement('div');
+  search.className = 'tv-modal-search';
+  search.innerHTML = '<input type="text" id="ind-search" placeholder="Search indicators..." autofocus>';
+  content.appendChild(search);
+
+  var tabs = document.createElement('div');
+  tabs.className = 'tv-modal-tabs';
+  var tabNames = ['Favorites', 'All', 'Built-ins', 'Trend', 'Momentum', 'Volatility', 'Volume', 'Support/Resistance'];
+  var activeTab = 'All';
+  tabNames.forEach(function(t) {
+    var b = document.createElement('button');
+    b.className = 'tv-modal-tab' + (t === activeTab ? ' active' : '');
+    b.textContent = t;
+    b.addEventListener('click', function() {
+      activeTab = t;
+      tabs.querySelectorAll('.tv-modal-tab').forEach(function(x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      renderList();
+    });
+    tabs.appendChild(b);
+  });
+  content.appendChild(tabs);
+
+  var body = document.createElement('div');
+  body.className = 'tv-modal-body';
+  content.appendChild(body);
+
+  function renderList() {
+    body.innerHTML = '';
+    var q = (search.querySelector('input').value || '').toLowerCase();
+    var list = INDICATOR_CATALOG.filter(function(def) {
+      if (q && def.name.toLowerCase().indexOf(q) === -1) return false;
+      if (activeTab === 'All' || activeTab === 'Built-ins') return true;
+      if (activeTab === 'Favorites') return isIndFav(def.name);
+      return def.section === activeTab;
+    });
+    if (!list.length) {
+      var empty = document.createElement('div');
+      empty.style.cssText = 'padding:30px;text-align:center;color:#787b86;font-size:13px;';
+      empty.textContent = activeTab === 'Favorites' ? 'No favorites yet — click the star next to an indicator to add it' : 'No matches';
+      body.appendChild(empty);
+      return;
+    }
+    list.forEach(function(def) {
+      var row = document.createElement('div');
+      row.className = 'tv-row' + (def.soon ? ' disabled' : '');
+      row.innerHTML = '<div class="tv-row-icon">' + indicatorIcon() + '</div>' +
+        '<div class="tv-row-text"><div class="tv-row-name">' + def.name + '</div>' +
+        '<div class="tv-row-desc">' + def.section + (def.params && Object.keys(def.params).length ? ' · ' + Object.keys(def.params).map(function(k) { return k + ':' + def.params[k]; }).join(', ') : '') + '</div></div>' +
+        '<div class="tv-row-action">' +
+          (def.soon ? '<span class="tv-soon-pill">Soon</span>' : '') +
+          '<span class="tv-row-fav' + (isIndFav(def.name) ? ' on' : '') + '"><svg viewBox="0 0 24 24" fill="' + (isIndFav(def.name) ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="1.5" width="16" height="16"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9 12 2"/></svg></span>' +
+        '</div>';
+      var fav = row.querySelector('.tv-row-fav');
+      fav.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleIndFav(def.name);
+        fav.classList.toggle('on');
+        var sv = fav.querySelector('svg');
+        sv.setAttribute('fill', isIndFav(def.name) ? 'currentColor' : 'none');
+      });
+      row.addEventListener('click', function() {
+        if (def.soon) { setStatus(def.name + ' coming soon — UI ready, math pending', 'err'); return; }
+        addIndicator(def);
+        closeModal();
+      });
+      body.appendChild(row);
+    });
+  }
+  renderList();
+  search.querySelector('input').addEventListener('input', renderList);
+  var wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display:flex;flex-direction:column;height:100%;';
+  Array.from(content.childNodes).forEach(function(n) { wrapper.appendChild(n); });
+  openModal(wrapper, { width: '720px' });
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+//                         SYMBOL SEARCH MODAL
+// ─────────────────────────────────────────────────────────────────────────
+var SYMBOL_CATALOG = [
+  // Currently supported
+  { sym: 'NQ1!', desc: 'E-MINI NASDAQ-100 FUTURES', exchange: 'CME', type: 'Futures', supported: true },
+  // Coming soon
+  { sym: 'ES1!',  desc: 'E-MINI S&P 500 FUTURES',        exchange: 'CME',   type: 'Futures' },
+  { sym: 'YM1!',  desc: 'E-MINI DOW JONES FUTURES',      exchange: 'CBOT',  type: 'Futures' },
+  { sym: 'RTY1!', desc: 'E-MINI RUSSELL 2000 FUTURES',   exchange: 'CME',   type: 'Futures' },
+  { sym: 'GC1!',  desc: 'GOLD FUTURES',                  exchange: 'COMEX', type: 'Futures' },
+  { sym: 'CL1!',  desc: 'CRUDE OIL FUTURES',             exchange: 'NYMEX', type: 'Futures' },
+  { sym: 'SPY',   desc: 'SPDR S&P 500 ETF',              exchange: 'NYSE',  type: 'Stock' },
+  { sym: 'QQQ',   desc: 'INVESCO QQQ TRUST',             exchange: 'NASDAQ', type: 'Stock' },
+  { sym: 'AAPL',  desc: 'APPLE INC',                     exchange: 'NASDAQ', type: 'Stock' },
+  { sym: 'TSLA',  desc: 'TESLA INC',                     exchange: 'NASDAQ', type: 'Stock' },
+  { sym: 'BTCUSD',desc: 'BITCOIN / U.S. DOLLAR',         exchange: 'CRYPTO', type: 'Crypto' },
+  { sym: 'ETHUSD',desc: 'ETHEREUM / U.S. DOLLAR',        exchange: 'CRYPTO', type: 'Crypto' },
+];
+
+function openSymbolSearchModal() {
+  var content = document.createDocumentFragment();
+  content.appendChild(modalHead('Symbol Search'));
+
+  var search = document.createElement('div');
+  search.className = 'tv-modal-search';
+  search.innerHTML = '<input type="text" id="sym-search" placeholder="Search symbol, e.g. NQ, ES, AAPL..." autofocus>';
+  content.appendChild(search);
+
+  var tabs = document.createElement('div');
+  tabs.className = 'tv-modal-tabs';
+  var types = ['All', 'Futures', 'Stock', 'Crypto'];
+  var activeType = 'All';
+  types.forEach(function(t) {
+    var b = document.createElement('button');
+    b.className = 'tv-modal-tab' + (t === activeType ? ' active' : '');
+    b.textContent = t;
+    b.addEventListener('click', function() {
+      activeType = t;
+      tabs.querySelectorAll('.tv-modal-tab').forEach(function(x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      renderSyms();
+    });
+    tabs.appendChild(b);
+  });
+  content.appendChild(tabs);
+
+  var body = document.createElement('div');
+  body.className = 'tv-modal-body';
+  content.appendChild(body);
+
+  function renderSyms() {
+    body.innerHTML = '';
+    var q = (search.querySelector('input').value || '').toLowerCase();
+    var list = SYMBOL_CATALOG.filter(function(s) {
+      if (activeType !== 'All' && s.type !== activeType) return false;
+      if (q && s.sym.toLowerCase().indexOf(q) === -1 && s.desc.toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    });
+    list.forEach(function(s) {
+      var row = document.createElement('div');
+      row.className = 'tv-row' + (!s.supported ? ' disabled' : '');
+      row.innerHTML =
+        '<div class="tv-row-icon">' + (s.type === 'Futures' ? '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="10" width="3" height="10"/><rect x="9" y="6" width="3" height="14"/><rect x="15" y="12" width="3" height="8"/></svg>' :
+                                       s.type === 'Crypto'  ? '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="9"/></svg>' :
+                                       '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17l6-6 4 4 7-8"/></svg>') + '</div>' +
+        '<div class="tv-row-text"><div class="tv-row-name">' + s.sym + '</div>' +
+          '<div class="tv-row-desc">' + s.desc + ' · ' + s.exchange + '</div></div>' +
+        '<div class="tv-row-action">' + (s.supported ? '<span style="color:#26a69a;font-size:11px;">●</span>' : '<span class="tv-soon-pill">Soon</span>') + '</div>';
+      row.addEventListener('click', function() {
+        if (!s.supported) { setStatus(s.sym + ' not yet supported — only NQ1! has live data', 'err'); return; }
+        // Update pill, no actual symbol switch yet
+        var pill = document.getElementById('sym-pill-txt');
+        if (pill) pill.textContent = s.sym.replace('!', '');
+        closeModal();
+      });
+      body.appendChild(row);
+    });
+  }
+  renderSyms();
+  search.querySelector('input').addEventListener('input', renderSyms);
+  var wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display:flex;flex-direction:column;height:100%;';
+  Array.from(content.childNodes).forEach(function(n) { wrapper.appendChild(n); });
+  openModal(wrapper);
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+//                         CHART SETTINGS MODAL
+// ─────────────────────────────────────────────────────────────────────────
+var CHART_SETTINGS = (function() {
+  try { return JSON.parse(localStorage.getItem('nq_chart_settings') || '{}'); }
+  catch (e) { return {}; }
+})();
+function saveChartSettings() {
+  try { localStorage.setItem('nq_chart_settings', JSON.stringify(CHART_SETTINGS)); } catch (e) {}
+}
+
+function applyChartSettings() {
+  if (!chartObj || !candleSeries) return;
+  var s = CHART_SETTINGS;
+  // Watermark
+  chartObj.applyOptions({
+    watermark: {
+      visible: s.watermark !== false,
+      text: s.watermarkText || 'NQ1! · CME',
+      color: 'rgba(255,255,255,' + (s.watermarkOpacity != null ? s.watermarkOpacity : 0.025) + ')',
+      fontSize: 56, fontFamily: 'Inter, sans-serif',
+      horzAlign: 'center', vertAlign: 'center',
+    },
+    grid: {
+      vertLines: { visible: s.gridVert !== false, color: 'rgba(255,255,255,0.04)' },
+      horzLines: { visible: s.gridHorz !== false, color: 'rgba(255,255,255,0.04)' },
+    },
+    timeScale: { timeVisible: true, secondsVisible: false },
+  });
+  // Candle colors
+  candleSeries.applyOptions({
+    upColor: s.upColor || '#26a69a',
+    downColor: s.downColor || '#ef5350',
+    borderUpColor: s.upColor || '#26a69a',
+    borderDownColor: s.downColor || '#ef5350',
+    wickUpColor: s.upColor || '#26a69a',
+    wickDownColor: s.downColor || '#ef5350',
+    priceLineVisible: s.lastPriceLine !== false,
+  });
+}
+
+function openSettingsModal() {
+  var content = document.createDocumentFragment();
+  content.appendChild(modalHead('Chart Settings'));
+
+  var tabs = document.createElement('div');
+  tabs.className = 'tv-modal-tabs';
+  var tabNames = ['Appearance', 'Scales', 'Trading'];
+  var activeTab = 'Appearance';
+  tabNames.forEach(function(t) {
+    var b = document.createElement('button');
+    b.className = 'tv-modal-tab' + (t === activeTab ? ' active' : '');
+    b.textContent = t;
+    b.addEventListener('click', function() {
+      activeTab = t;
+      tabs.querySelectorAll('.tv-modal-tab').forEach(function(x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      renderTab();
+    });
+    tabs.appendChild(b);
+  });
+  content.appendChild(tabs);
+
+  var body = document.createElement('div');
+  body.className = 'tv-modal-body';
+  body.style.padding = '18px';
+  content.appendChild(body);
+
+  function row(label, controlHtml) {
+    var r = document.createElement('div');
+    r.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);';
+    r.innerHTML = '<span style="font-size:13px;color:#d1d4dc;">' + label + '</span><span>' + controlHtml + '</span>';
+    return r;
+  }
+  function renderTab() {
+    body.innerHTML = '';
+    var s = CHART_SETTINGS;
+    if (activeTab === 'Appearance') {
+      body.appendChild(row('Up color',   '<input type="color" value="' + (s.upColor || '#26a69a') + '" id="set-up-color">'));
+      body.appendChild(row('Down color', '<input type="color" value="' + (s.downColor || '#ef5350') + '" id="set-down-color">'));
+      body.appendChild(row('Vertical grid lines',   '<input type="checkbox" id="set-grid-vert" ' + (s.gridVert !== false ? 'checked' : '') + '>'));
+      body.appendChild(row('Horizontal grid lines', '<input type="checkbox" id="set-grid-horz" ' + (s.gridHorz !== false ? 'checked' : '') + '>'));
+      body.appendChild(row('Symbol watermark',      '<input type="checkbox" id="set-watermark" ' + (s.watermark !== false ? 'checked' : '') + '>'));
+      body.appendChild(row('Last price line',       '<input type="checkbox" id="set-last-price" ' + (s.lastPriceLine !== false ? 'checked' : '') + '>'));
+      body.querySelectorAll('input').forEach(function(inp) {
+        inp.addEventListener('change', function() {
+          if (inp.id === 'set-up-color')   CHART_SETTINGS.upColor = inp.value;
+          if (inp.id === 'set-down-color') CHART_SETTINGS.downColor = inp.value;
+          if (inp.id === 'set-grid-vert')  CHART_SETTINGS.gridVert = inp.checked;
+          if (inp.id === 'set-grid-horz')  CHART_SETTINGS.gridHorz = inp.checked;
+          if (inp.id === 'set-watermark')  CHART_SETTINGS.watermark = inp.checked;
+          if (inp.id === 'set-last-price') CHART_SETTINGS.lastPriceLine = inp.checked;
+          saveChartSettings();
+          applyChartSettings();
+        });
+      });
+    } else if (activeTab === 'Scales') {
+      body.innerHTML = '<div style="color:#787b86;padding:20px;text-align:center;">Scale settings — coming soon.<br><br>For now use the % / log / auto buttons on the chart\'s bottom-right.</div>';
+    } else {
+      body.innerHTML = '<div style="color:#787b86;padding:20px;text-align:center;">Trading panel settings — coming soon.<br><br>Trade logging is configured via the Order panel on the right.</div>';
+    }
+  }
+  renderTab();
+
+  var wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display:flex;flex-direction:column;height:100%;';
+  Array.from(content.childNodes).forEach(function(n) { wrapper.appendChild(n); });
+  openModal(wrapper);
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+//                         RIGHT-CLICK CONTEXT MENU
+// ─────────────────────────────────────────────────────────────────────────
+var CTX_MENU = null;
+function closeCtxMenu() {
+  if (CTX_MENU && CTX_MENU.parentNode) CTX_MENU.parentNode.removeChild(CTX_MENU);
+  CTX_MENU = null;
+}
+function openCtxMenu(x, y) {
+  closeCtxMenu();
+  var m = document.createElement('div');
+  m.className = 'ctx-menu';
+  var ico = function(name) {
+    var i = { settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg>',
+              indicator: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 17 8 11 13 14 21 5"/></svg>',
+              reset: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/></svg>',
+              copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+              sym: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+              trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>',
+            };
+    return i[name] || '';
+  };
+  var items = [
+    { name: 'Settings...',         icon: ico('settings'),  do: function() { openSettingsModal(); } },
+    { name: 'Add indicator...',    icon: ico('indicator'), do: function() { openIndicatorsModal(); } },
+    { name: 'Change symbol...',    icon: ico('sym'),       do: function() { openSymbolSearchModal(); } },
+    { type: 'sep' },
+    { name: 'Reset price scale',   icon: ico('reset'),  do: function() { if (chartObj) chartObj.priceScale('right').applyOptions({ autoScale: true }); } },
+    { name: 'Reset chart',         icon: ico('reset'),  do: function() { if (chartObj) chartObj.timeScale().fitContent(); } },
+    { type: 'sep' },
+    { name: 'Remove all drawings', icon: ico('trash'), do: function() { clearAllDrawings(); } },
+    { name: 'Remove all indicators', icon: ico('trash'), do: function() {
+        while (ACTIVE_INDICATORS.length) removeIndicator(ACTIVE_INDICATORS[0].id);
+      } },
+  ];
+  items.forEach(function(it) {
+    if (it.type === 'sep') {
+      var s = document.createElement('div'); s.className = 'ctx-menu-sep'; m.appendChild(s);
+      return;
+    }
+    var el = document.createElement('div');
+    el.className = 'ctx-menu-item';
+    el.innerHTML = it.icon + '<span>' + it.name + '</span>';
+    el.addEventListener('click', function() { closeCtxMenu(); it.do(); });
+    m.appendChild(el);
+  });
+  document.body.appendChild(m);
+  m.style.left = x + 'px';
+  m.style.top = y + 'px';
+  // Clamp
+  var r = m.getBoundingClientRect();
+  if (r.right > window.innerWidth - 8) m.style.left = (window.innerWidth - r.width - 8) + 'px';
+  if (r.bottom > window.innerHeight - 8) m.style.top = (window.innerHeight - r.height - 8) + 'px';
+  CTX_MENU = m;
+}
+document.addEventListener('click', function() { closeCtxMenu(); });
+
+// Expose
+window.openIndicatorsModal = openIndicatorsModal;
+window.openSymbolSearchModal = openSymbolSearchModal;
+window.openSettingsModal = openSettingsModal;
+window.closeModal = closeModal;
+window.recomputeAllIndicators = recomputeAllIndicators;
+
 
 window.loadData = loadData;
 window.logTrade = logTrade;
@@ -3085,6 +3851,27 @@ function onChartReady() {
   document.getElementById('bot-analytics').addEventListener('click', function() {
     window.location.href = 'backtest.html#analytics';
   });
+
+  // ── TradingView-style features wiring ──
+  // Indicators button (top toolbar)
+  var indBtn = document.getElementById('btn-indicators');
+  if (indBtn) indBtn.addEventListener('click', openIndicatorsModal);
+  // Symbol pill — click to open symbol search modal
+  var symPill = document.getElementById('sym-pill');
+  if (symPill) symPill.addEventListener('click', openSymbolSearchModal);
+  // New Layout / Save settings — repurposed to open Chart Settings for now
+  var nlBtn = document.getElementById('btn-new-layout');
+  if (nlBtn) nlBtn.addEventListener('click', openSettingsModal);
+  // Right-click anywhere on the chart area opens context menu
+  var chartC = document.getElementById('chart-container');
+  if (chartC) chartC.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    openCtxMenu(e.clientX, e.clientY);
+  });
+  // Apply any saved chart settings (colors, watermark, grid toggles) once
+  // chart is mounted. Wrap in try/catch — chart may still be loading.
+  try { applyChartSettings(); } catch (e) {}
+
   // Open Order panel by default
   switchPanel('order');
 
